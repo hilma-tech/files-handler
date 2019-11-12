@@ -1,0 +1,138 @@
+{
+    "name": "RecordsPermissions",
+    "crud": {
+        "metaFunctions": {},
+        "fields": {
+            "id": {
+                "type": "Number"
+            },
+            "model": {
+                "type": "String",
+                "editable": "true"
+            },
+            "recordId": {
+                "type": "Number",
+                "editable": "true"
+            },
+            "principalType": {
+                "type": "String",
+                "editable": "true"
+            },
+            "principalId": {
+                "type": "String",
+                "editable": "true"
+            },
+            "permission": {
+                "type": "String",
+                "enum": [
+                    "ALLOW",
+                    "DENY"
+                ]
+            }
+        }
+    },
+    "options": {
+        "idInjection": false,
+        "mysql": {
+            "schema": "subteacher",
+            "table": "records_permissions"
+        },
+        "relations": {}
+    },
+    "properties": {
+        "id": {
+            "type": "Number",
+            "required": false,
+            "length": null,
+            "precision": 10,
+            "scale": 0,
+            "id": 1,
+            "mysql": {
+                "columnName": "id",
+                "dataType": "int",
+                "dataLength": null,
+                "dataPrecision": 10,
+                "dataScale": 0,
+                "nullable": "N"
+            }
+        },
+        "model": {
+            "type": "String",
+            "required": false,
+            "length": 512,
+            "precision": null,
+            "scale": null,
+            "mysql": {
+                "columnName": "model",
+                "dataType": "varchar",
+                "dataLength": 512,
+                "dataPrecision": null,
+                "dataScale": null,
+                "nullable": "Y"
+            }
+        },
+        "recordId": {
+            "type": "Number",
+            "required": false,
+            "length": null,
+            "precision": 10,
+            "scale": 0,
+            "mysql": {
+                "columnName": "record_id",
+                "dataType": "int",
+                "dataLength": null,
+                "dataPrecision": 10,
+                "dataScale": 0,
+                "nullable": "N"
+            }
+        },
+        "principalType": {
+            "type": "String",
+            "required": false,
+            "length": 512,
+            "precision": null,
+            "scale": null,
+            "mysql": {
+                "columnName": "principal_type",
+                "dataType": "varchar",
+                "dataLength": 512,
+                "dataPrecision": null,
+                "dataScale": null,
+                "nullable": "Y"
+            }
+        },
+        "principalId": {
+            "type": "String",
+            "required": false,
+            "length": 512,
+            "precision": null,
+            "scale": null,
+            "mysql": {
+                "columnName": "principal_id",
+                "dataType": "varchar",
+                "dataLength": 512,
+                "dataPrecision": null,
+                "dataScale": null,
+                "nullable": "Y"
+            }
+        },
+        "permission": {
+            "type": "String",
+            "enum": [
+                "ALLOW",
+                "DENY"
+            ],
+            "required": true,
+            "length": null,
+            "precision": null,
+            "scale": null,
+            "mysql": {
+                "columnName": "permission",
+                "dataType": "enum",
+                "dataLength": 13,
+                "dataPrecision": null,
+                "nullable": "N"
+            }
+        }
+    }
+}
