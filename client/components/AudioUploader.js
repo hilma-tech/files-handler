@@ -5,7 +5,7 @@ export default class AudioUploader extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { audioSrc: '' };
+        this.state = { audioSrc: this.props.defaultAudioSrc ? this.props.defaultAudioSrc : '' };
     }
 
     readFileToBase64 = (fileInfo) => {
