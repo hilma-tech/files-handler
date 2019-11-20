@@ -29,8 +29,8 @@ export default class FileUploader extends Component {
         let fileObj = {
             src: base64String,
             type: 'file',
-            title: this.props.title,
-            category: this.props.category
+            title: this.props.title || "default_file_title",
+            category: this.props.category|| "default_file_category"
         };
 
         let eventObj = { target: { name: this.props.name, value: fileObj } }
@@ -83,7 +83,7 @@ export default class FileUploader extends Component {
                         src={require(`./../../imgs/fileThumbnails/${this.state.thumbnail}-file-thumbnail.svg`)}
                         style={{ width: '6vw', margin: '2%' }}
                     />
-                    <div>{this.props.label}</div>
+                    <div>{this.props.label || "Upload File"}</div>
                 </label>
             </div>);
     }

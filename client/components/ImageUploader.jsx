@@ -40,8 +40,8 @@ export default class ImageUploader extends Component {
         let imageObj = {
             src: base64String,
             type: 'image',
-            title: this.props.title,
-            category: this.props.category
+            title: this.props.title || "default_image_title",
+            category: this.props.category || "default_image_category"
         };
 
         let eventObj = { target: { name: this.props.name, value: imageObj } }
@@ -68,7 +68,7 @@ export default class ImageUploader extends Component {
                         width="auto"
                         alt="uploading image"
                     />
-                    <span>{this.props.label}</span>
+                    <span>{this.props.label || "Upload Image"}</span>
                 </label>
             </div>
         );

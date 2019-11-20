@@ -33,8 +33,8 @@ export default class AudioUploader extends Component {
         let fileObj = {
             src: base64String,
             type: 'file',
-            title: 'title',
-            category: this.props.category
+            title: this.props.title || "default_audio_title",
+            category: this.props.category || "default_audio_category"
         };
 
         let eventObj = { target: { name: this.props.name, value: fileObj } }
@@ -58,11 +58,11 @@ export default class AudioUploader extends Component {
                     <input
                         onChange={this.onChangeFile}
                         name="file"
-                        required={this.props.required}
+                        required={this.props.required || false}
                         type="file"
                         accept=".mp3, .wav"
                     />
-                    <div>{this.props.label}</div>
+                    <div>{this.props.label  || "Upload Audio"}</div>
                 </label>
             </div>);
     }
