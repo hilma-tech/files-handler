@@ -29,7 +29,7 @@ export default class FileUploader extends Component {
         let fileObj = {
             src: base64String,
             type: 'file',
-            title: 'title',
+            title: this.props.title,
             category: this.props.category
         };
 
@@ -75,7 +75,7 @@ export default class FileUploader extends Component {
                     <input
                         onChange={this.onChangeFile}
                         name="file"
-                        required={this.props.required}
+                        required={this.props.required || false}
                         type="file"
                         accept=".docx, .doc, .pdf"
                     />

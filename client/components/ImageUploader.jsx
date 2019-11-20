@@ -11,7 +11,6 @@ export default class ImageUploader extends Component {
                 defaultThumbnailImage :
                 this.props.defaultThumbnailImageSrc
         };
-        console.log(props)
     }
 
 
@@ -41,7 +40,7 @@ export default class ImageUploader extends Component {
         let imageObj = {
             src: base64String,
             type: 'image',
-            title: 'title',
+            title: this.props.title,
             category: this.props.category
         };
 
@@ -59,7 +58,7 @@ export default class ImageUploader extends Component {
                     <input
                         onChange={this.onChangeImg}
                         name="image"
-                        required={this.props.required}
+                        required={this.props.required || false}
                         type="file"
                         accept=".png, .jpg, .jpeg, .gif"
                     />
@@ -68,7 +67,6 @@ export default class ImageUploader extends Component {
                         height="100px"
                         width="auto"
                         alt="uploading image"
-                        onClick={this.openFileExplorer}
                     />
                     <span>{this.props.label}</span>
                 </label>

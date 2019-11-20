@@ -6,6 +6,7 @@ const to = (promise) => {
     })
         .catch(err => [err]);
 }
+
 const fs = require('fs');
 const FILE_TYPE_FILE = 'file';
 const FILE_TYPE_IMAGE = 'image';
@@ -17,8 +18,9 @@ module.exports = function FilesHandler(Model) {
 
     Model.saveFile = async function (file, FileModel, ownerId = null, fileId = null) {
 
-        logFile("Model.saveFile is launched with ownerId",ownerId);
+        logFile("Model.saveFile is launched with ownerId", ownerId);
         let saveDir = getSaveDir(file.type);
+        if (!saveDir) return false;
         let extension = getFileExtension(file.src);
         if (!extension) return false;
         let base64Data = file.src.replace(/^data:[a-z]+\/[a-z]+\d?;base64,/, "");
@@ -33,7 +35,7 @@ module.exports = function FilesHandler(Model) {
             title: file.title
         };
 
-        logFile("fileObj before save",fileObj);
+        logFile("fileObj before save", fileObj);
 
         // If we are posting to and from the same model,
         // the instance was already created in the remote so we just update it 
@@ -44,29 +46,29 @@ module.exports = function FilesHandler(Model) {
         let [err, newFile] = await to(FileModel.upsert(fileObj));
 
         if (err) { console.error("Error creating file, aborting...", err); return false }
-        logFile("New entry created for model ",file.type, newFile);
+        logFile("New entry created for model ", file.type, newFile);
 
-        let fileTargetPath=null;
+        let fileTargetPath = null;
 
-        try{
+        try {
             if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
                 fs.mkdirSync(specificSaveDir, { recursive: true });
-                logFile("New folder was created ",specificSaveDir);
+                logFile("New folder was created ", specificSaveDir);
             }
 
-            fileTargetPath=specificSaveDir + newFile.id + "." + extension;
+            fileTargetPath = specificSaveDir + newFile.id + "." + extension;
             fs.writeFileSync(fileTargetPath, base64Data, 'base64');
-        }catch(err){
-            logFile("Err",err);
+        } catch (err) {
+            logFile("Err", err);
         }
 
-        logFile("New file was created of type (%s) on path (%s)",file.type,fileTargetPath);
-        logFile("New file id",newFile.id)
+        logFile("New file was created of type (%s) on path (%s)", file.type, fileTargetPath);
+        logFile("New file id", newFile.id)
         return newFile.id;
     }
 
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
-        
+
         logFile("Model.beforeRemote is launched");
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT"/* && !modelInstance.id*/)
             return next()
@@ -104,13 +106,13 @@ module.exports = function FilesHandler(Model) {
             return next();
 
         let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
-                ctx.args.options.accessToken.userId : //if there's accessToken use userId
-                (Model === Model.app.models.CustomUser ? //else, if we are creating new user use new user's id
-                    modelInstance.id :
-                    null);
-        
+            ctx.args.options.accessToken.userId : //if there's accessToken use userId
+            (Model === Model.app.models.CustomUser ? //else, if we are creating new user use new user's id
+                modelInstance.id :
+                null);
+
         //Access is always restricted without authentication
-        if (!fileOwnerId){return next();}
+        if (!fileOwnerId) { return next(); }
 
         let args = ctx.args;
 
@@ -120,7 +122,7 @@ module.exports = function FilesHandler(Model) {
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
 
                 let field = argsKeys[i];
-                logFile("Iterating with field (%s)",field);
+                logFile("Iterating with field (%s)", field);
 
                 if (field === "options") continue;
                 if (!args[field] || !args[field].filesToSave) return next();
@@ -143,11 +145,10 @@ module.exports = function FilesHandler(Model) {
                             ModelToSaveName = `${FILE_TYPE_FILE}s`;
                             break;
                         // TODO Shira ? - add Audio model and a case for it ?
-                        default:continue;
+                        default: continue;
                     }
 
-                    logFile("ModelToSave - Should be either Images/Files",ModelToSave);
-
+                    logFile("ModelToSave - Should be either Images/Files", ModelToSave);
 
                     // If we are posting to and from the same model more than 1 file.. 
                     // Example: posting from Files (table) to Files (table) 2 files
@@ -161,16 +162,17 @@ module.exports = function FilesHandler(Model) {
                     // If [fileKey] doesnt exist in Model then dont upsert
                     let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
                     if (findErr || !findRes) { console.error("Error finding field, aborting...", findErr); continue; }
-                    if (!(fileKey in findRes)) { console.error(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); continue; }
+                    if (!(fileKey in findRes)) { console.error(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/ }
+                    else {
+                        // Updating the row to include the id of the file added
+                        let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
+                            { id: modelInstance.id }, { [fileKey]: newFileId }
+                        ));
+                        logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
 
-                    // Updating the row to include the id of the file added
-                    let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
-                        { id: modelInstance.id }, { [fileKey]: newFileId }
-                    ));
-                    logFile("Updated model with key,val:%s,%s",fileKey,newFileId);
-
-                    if (upsertErr) { console.error(`error upserting field "${fileKey}", aborting...`, upsertErr); continue; }
-
+                        if (upsertErr) { console.error(`error upserting field "${fileKey}", aborting...`, upsertErr); continue; }
+                    }
+                    
                     // giving the owner of the file/image permission to view it
                     const rpModel = Model.app.models.RecordsPermissions;
                     let rpData = {
@@ -181,8 +183,12 @@ module.exports = function FilesHandler(Model) {
                         permission: ALLOW
                     }
                     let [rpErr, rpRes] = await to(rpModel.create(rpData));
-                    logFile("New permission row is created on RecordsPermissions model with data",rpData);
+                    logFile("New permission row is created on RecordsPermissions model with data", rpData);
                     if (rpErr) { console.error(`Error granting permissions to file owner, aborting...`, rpErr); continue; }
+
+                    //calling a custom remote method after FilesHandler is done
+                    let afhData = { model: ModelToSaveName, recordId: newFileId };
+                    Model.afterFilesHandler && await Model.afterFilesHandler(afhData);
                 };
             }
             return next();
@@ -191,11 +197,18 @@ module.exports = function FilesHandler(Model) {
 }
 
 function getSaveDir(type) {
-    const saveDir = path.join(__dirname, `../../../../../public/${type}s/`);
-    if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
-        fs.mkdirSync(saveDir, { recursive: true });
+    try {
+        const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
+        const saveDir = path.join(__dirname, `${baseFileDirPath}/${type}s/`);
+        if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
+            fs.mkdirSync(saveDir, { recursive: true });
+            logFile("New folder was created ", saveDir);
+        }
+        return saveDir;
+    } catch (err) {
+        logFile("Err creating a base folder for our files :(", err);
+        return;
     }
-    return saveDir;
 }
 
 function getFileExtension(fileSrc) {
