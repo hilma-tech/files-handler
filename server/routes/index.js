@@ -1,12 +1,13 @@
-const readFile = promisify(fs.readFile);
+const fs = require('fs');
 const path = require('path');
 const PermissionsFilter = require('./../lib/PermissionsFilter');
+const logFile = require('debug')('model:file');
+
+logFile("fileshandler routes/index is launched?");
 
 module.exports = function (app) {
 
-    function allowFileAccess(req, res) {
-
-        function getContentType(extension) {
+    function getContentType(extension) {
             if (!extension) return null;
 
             const contentTypes = {
@@ -16,10 +17,15 @@ module.exports = function (app) {
                 png: 'image/png'
             };
             return contentTypes[extension];
-        }
+    }
+
+    function allowFileAccess(req, res) {
+
+        
 
 
         (async () => {
+
             const permissionsFilter = new PermissionsFilter(req, app);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
 
@@ -43,13 +49,16 @@ module.exports = function (app) {
         })();
     }
 
+    
     app.get('/files/*', function (req, res) {
+    	logFile("fileshandler routes for verb GET with /files/* is launched");
         allowFileAccess(req, res);
     });
 
     app.get('/images/*', function (req, res) {
+    	logFile("fileshandler routes for verb GET with /images/* is launched");
         console.log("we are here")
-        allowFileAccess(req.res);
+        allowFileAccess(req,res);
     })
 
 }
