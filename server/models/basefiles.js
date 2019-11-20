@@ -1,7 +1,7 @@
 
 var fs = require('fs');
 var path = require('path');
-var logFile = require('debug')('model:file');
+const logFile = require('debug')('model:file');
 const https = require('https');
 
 const FILES_DIR = 'public/files/';

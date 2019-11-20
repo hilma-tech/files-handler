@@ -1,6 +1,6 @@
 const squel = require('squel');
-const { exeQuery } = require('../../server/common/db/queries');
-
+const { exeQuery } = require('../../../../../server/common/db/queries');
+const logFile = require('debug')('model:file');
 const ROLE = 'ROLE';
 const USER = 'USER';
 const ALLOW = 'ALLOW';
