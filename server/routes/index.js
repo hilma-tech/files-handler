@@ -19,9 +19,7 @@ module.exports = function (app) {
             return contentTypes[extension];
     }
 
-    function allowFileAccess(req, res) {
-
-        
+    function allowFileAccess(req, res, fileType) {
 
 
         (async () => {
@@ -29,12 +27,20 @@ module.exports = function (app) {
             const permissionsFilter = new PermissionsFilter(req, app);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
 
-            console.log("allowaccess", allowAccess);
-            if (!allowAccess) { res.sendStatus(403); return; }
+            
+            if (!allowAccess) { 
+            	logFile("Access is denied for this specific user, for further info see records_permissions table");
+            	res.sendStatus(403); return; 
+            }else{
+            	logFile("Access is allowed for this specific user, for further info see records_permissions table");
+            }
 
             const baseFileDirPath = process.env.NODE_ENV == 'production' ? 'build' : 'public';
-            const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/files/${req.params[0]}`;
+            const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/${fileType}/${req.params[0]}`;
             const fileExtension = req.params[0].split('.')[1]; //pdf, mp3, wav...
+            
+            logFile("filePath?",filePath);
+
             let contentType = getContentType(fileExtension);
             if (!contentType) { res.sendStatus(404); return; }
 
@@ -52,13 +58,13 @@ module.exports = function (app) {
     
     app.get('/files/*', function (req, res) {
     	logFile("fileshandler routes for verb GET with /files/* is launched");
-        allowFileAccess(req, res);
+        allowFileAccess(req, res, 'files');
     });
 
     app.get('/images/*', function (req, res) {
     	logFile("fileshandler routes for verb GET with /images/* is launched");
         console.log("we are here")
-        allowFileAccess(req,res);
+        allowFileAccess(req,res, 'images');
     })
 
 }

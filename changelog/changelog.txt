@@ -1,5 +1,4 @@
 Instructions for required updated:
-
 CustomUser.json
 
 * Add this line to properties:
@@ -19,7 +18,6 @@ CustomUser.json
 	        "foreignKey":"mainImageId"
 	    }
 }
-
 ----------------------------------------------------------------------------
 
 file:/server/server.js
@@ -36,7 +34,6 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../build'));
 require('./routes')(app);
 require('./../src/modules/fileshandler/server/routes')(app);
-
 
 -------------- SQL ALTERS -------------------------
 

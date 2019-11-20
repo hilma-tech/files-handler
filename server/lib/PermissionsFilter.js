@@ -33,12 +33,13 @@ module.exports = class PermissionsFilter {
     }
 
     async filterByPermissions() {
-        console.log("\nfilterByPermissions");
+        
+        logFile("Permissions.Filter.filterByPermissions is launched");
 
         if (!this.userId) {
             //extract access token and find out user id
             let userId = this.request.accessToken && this.request.accessToken.userId;
-            if (!userId) { console.log("no user id (user is logged out), aborting..."); return; }
+            if (!userId) { logFile("no user id (user is logged out), aborting..."); return false; }
             this.userId = userId;
         }
 
@@ -53,9 +54,17 @@ module.exports = class PermissionsFilter {
             fields: { roleId: true },
             include: 'role'
         });
-        if (!(rmRole && rmRole.role && rmRole.role.name)) { console.log("no user role found, aborting..."); return/* false*/; }
+        
+        if (!(rmRole && rmRole.role && rmRole.role.name)) { logFile("no user role found, aborting..."); return false; }
 
-        let userRole = rmRole.role.name;
+        let userRole=null;
+        try{
+            userRole = JSON.parse(JSON.stringify(rmRole)).role.name;
+        }catch(err){
+            logFile("Could not parse rmRole into object, userRole, err",userRole,err);
+            return false;
+
+        }
 
         let query = squel
             .select({ separator: "\n" })
@@ -64,18 +73,20 @@ module.exports = class PermissionsFilter {
             .where("model=?", model)
             .where(
                 squel.expr()
-                    .and("principal_id=?", null)
-                    .or("principal_id=?", this.userId)
-                    .or("principal_id=?", userRole)
+                    .and("principalId=?", null)
+                    .or("principalId=?", this.userId)
+                    .or("principalId=?", userRole)
             )
             .where(
-                squel.expr().and("record_id=?", null).or("record_id=?", fileId)
+                squel.expr().and("recordId=?", null).or("recordId=?", fileId)
             );
 
-        // console.log("query\n", query.toString());
+        logFile("\nSQL Query", query.toString());
+        logFile("\n");
+
         let [err, pRecords] = await exeQuery(query.toString(), this.app);
-        if (err) { console.log("exeQuery err", err); return; }
-        if (!pRecords) { console.log("no precords, aborting..."); return; }
+        if (err) { logFile("exeQuery err", err); return false; }
+        if (!pRecords) { logFile("no precords, aborting..."); return false; }
 
         this.pRecords = pRecords;
 
