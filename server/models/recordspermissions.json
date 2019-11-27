@@ -1,5 +1,6 @@
 {
     "name": "RecordsPermissions",
+    "isPublic":"false",
     "crud": {
         "metaFunctions": {},
         "fields": {

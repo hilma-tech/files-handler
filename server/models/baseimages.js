@@ -14,13 +14,14 @@ module.exports = function (BaseImages) {
             fData = ctx.instance;
         }
         else {
-            // logImage("CTX.instance does not exist",ctx);
+            const hostName = process.env.NODE_ENV == 'production' ? '' : 'http://localhost:8080';            
             fData = ctx.data;
-            fData.path = `/images/${fData.category}/${fData.id}.${fData.format}`;
+            fData.path = `${hostName}/images/${fData.category}/${fData.id}.${fData.format}`;
         };
         ctx.data = fData;
         next();
     });
+
 
 
 

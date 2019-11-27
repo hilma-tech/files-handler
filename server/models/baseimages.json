@@ -1,5 +1,6 @@
 {
   "name": "BaseImages",
+  "isPublic":"false",
   "http": {
     "path": "BaseImages"
   },

@@ -3,20 +3,27 @@ const path = require('path');
 const PermissionsFilter = require('./../lib/PermissionsFilter');
 const logFile = require('debug')('model:file');
 
-logFile("fileshandler routes/index is launched?");
+//logFile("fileshandler routes/index is launched?");
 
 module.exports = function (app) {
 
     function getContentType(extension) {
-            if (!extension) return null;
+        if (!extension) return null;
 
-            const contentTypes = {
-                pdf: 'application/pdf',
-                mp3: 'audio/mp3',
-                wav: 'audio/wav',
-                png: 'image/png'
-            };
-            return contentTypes[extension];
+        const contentTypes = {
+			//files
+			pdf: 'application/pdf',
+			//doc: 'application/msword', //check this
+			//docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', //check this
+			//images
+			png: 'image/png',
+			jpeg: 'image/jpeg', //jpeg & jpg
+			gif: 'image/gif',
+			//audio
+			mp3: 'audio/mp3',
+			wav: 'audio/wav'
+        };
+        return contentTypes[extension];
     }
 
     function allowFileAccess(req, res, fileType) {
@@ -63,7 +70,6 @@ module.exports = function (app) {
 
     app.get('/images/*', function (req, res) {
     	logFile("fileshandler routes for verb GET with /images/* is launched");
-        console.log("we are here")
         allowFileAccess(req,res, 'images');
     })
 
