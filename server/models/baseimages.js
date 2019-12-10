@@ -16,7 +16,7 @@ module.exports = function (BaseImages) {
         else {
             const hostName = process.env.NODE_ENV == 'production' ? '' : 'http://localhost:8080';            
             fData = ctx.data;
-            fData.path = `${hostName}/images/${fData.category}/${fData.id}.${fData.format}`;
+            fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
         };
         ctx.data = fData;
         next();

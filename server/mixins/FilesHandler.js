@@ -13,6 +13,10 @@ const FILE_TYPE_IMAGE = 'image';
 const USER = 'USER';
 const ALLOW = 'ALLOW';
 const logFile = require('debug')('model:file');
+const folders = {
+    [FILE_TYPE_IMAGE]: 'imgs',
+    [FILE_TYPE_FILE]: 'files'
+};
 
 module.exports = function FilesHandler(Model) {
 
@@ -148,7 +152,7 @@ module.exports = function FilesHandler(Model) {
                         default: continue;
                     }
 
-                    logFile("ModelToSave - Should be either Images/Files", ModelToSave);
+                    logFile("ModelToSave - Should be either Images/Files", ModelToSaveName);
 
                     // If we are posting to and from the same model more than 1 file.. 
                     // Example: posting from Files (table) to Files (table) 2 files
@@ -199,7 +203,7 @@ module.exports = function FilesHandler(Model) {
 function getSaveDir(type) {
     try {
         const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
-        const saveDir = path.join(__dirname, `${baseFileDirPath}/${type}s/`);
+        const saveDir = path.join(__dirname, `${baseFileDirPath}/${folders[type]}/`);
         if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
             fs.mkdirSync(saveDir, { recursive: true });
             logFile("New folder was created ", saveDir);

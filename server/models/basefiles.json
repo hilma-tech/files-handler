@@ -1,6 +1,7 @@
 {
     "name": "BaseFiles",
     "isPublic":false,
+    "mixins": {"FilesHandler":true},
     "http":{"path": "BaseFiles"},
     "pathLink" : "BaseFiles",
     "listViewWidget":"FileDisplayer",

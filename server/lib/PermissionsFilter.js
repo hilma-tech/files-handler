@@ -7,11 +7,12 @@ const ALLOW = 'ALLOW';
 
 module.exports = class PermissionsFilter {
 
-    constructor(req, app, userId) {
+    constructor(req, app, userId, fileModel) {
         this.request = req;
         this.app = app;
         this.pRecords = [];
         this.userId = userId;
+        this.fileModel = fileModel;
     }
 
     findByKeys(args) {
@@ -47,7 +48,7 @@ module.exports = class PermissionsFilter {
         const fileName = filePath[filePath.length - 1];
 
         let fileId = fileName.split('.')[0]; //principalId
-        const model = filePath[1];
+        const model = this.fileModel;
 
         const rmRole = await this.app.models.RoleMapping.findOne({
             where: { principalId: this.userId },

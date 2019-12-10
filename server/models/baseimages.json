@@ -1,6 +1,7 @@
 {
   "name": "BaseImages",
   "isPublic":"false",
+  "mixins": {"FilesHandler":true},
   "http": {
     "path": "BaseImages"
   },
