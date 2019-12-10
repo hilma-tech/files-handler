@@ -93,10 +93,10 @@ module.exports = class PermissionsFilter {
 
         let allow = true;
 
-        let record = this.findByKeys({ principal_type: ROLE, principal_id: userRole })
+        let record = this.findByKeys({ principalType: ROLE, principalId: userRole })
         if (record && record.permission != ALLOW) allow = false;
 
-        record = this.findByKeys({ principal_type: USER, principal_id: this.userId })
+        record = this.findByKeys({ principalType: USER, principalId: this.userId })
         if ((record && record.permission == ALLOW) || (allow && !record)) allow = true;
         else allow = false;
 
