@@ -1,9 +1,11 @@
 const squel = require('squel');
-const { exeQuery } = require('../../../../../server/common/db/queries');
 const logFile = require('debug')('model:file');
 const ROLE = 'ROLE';
 const USER = 'USER';
 const ALLOW = 'ALLOW';
+
+function to(promise) {return promise.then(data => {return [null, data];}).catch(err => [err]);}
+async function exeQuery(sql, app) {return await to(new Promise(function (resolve, reject) {let ds = app.dataSources['msql'];ds.connector.execute(sql, [], function (err, res) {if (err) reject(res);else resolve(res);});}));}
 
 module.exports = class PermissionsFilter {
 

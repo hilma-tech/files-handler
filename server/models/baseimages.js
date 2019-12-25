@@ -75,7 +75,7 @@ module.exports = function (BaseImages) {
             return BaseImages.find({ where: { owner: userId }, ...filter }, options, (err, res) => {
                 if (err) return cb(err)
                 res.forEach(image => {
-                    BaseImages.owner = null; `   `
+                    BaseImages.owner = null;
                 });
                 return cb(null, res);
             });
