@@ -58,9 +58,9 @@ export default class ImageUploader extends Component {
 
         return (
             <div>
-                {(this.state.thumbnail !== this.props.thumbnail
-                    || this.state.thumbnail !== defaultThumbnail
-                    || this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
+                {(this.state.thumbnail !== this.props.thumbnail)
+                    && (this.state.thumbnail !== defaultThumbnail)
+                    && (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
                     <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
                 <label>
                     <input
