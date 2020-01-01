@@ -31,7 +31,7 @@ export default class ImageUploader extends Component {
     removeFile = () => {
         if (this.state.thumbnail === (this.props.thumbnail || defaultThumbnail)) return;
         this.refs.imageUploaderInputRef.value = null;
-        this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail});
+        this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail });
         let eventObj = { target: { name: this.props.name, value: null } }
         this.props.onChange(eventObj);
     }
@@ -58,7 +58,9 @@ export default class ImageUploader extends Component {
 
         return (
             <div>
-                {this.state.thumbnail !== (this.props.thumbnail || defaultThumbnail) &&
+                {(this.state.thumbnail !== this.props.thumbnail
+                    || this.state.thumbnail !== defaultThumbnail
+                    || this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
                     <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
                 <label>
                     <input
@@ -76,7 +78,7 @@ export default class ImageUploader extends Component {
                         alt="uploading image"
                         onError={e => {
                             e.target.src = this.props.thumbnail || defaultThumbnail;
-                            this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail});
+                            this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail });
                         }}
                     />
                     <div>{this.props.label || "Upload Image"}</div>
