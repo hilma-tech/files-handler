@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import defaultThumbnail from './../../imgs/default-thumbnail-img.png';
+import './ImageUploader.scss';
 
 export default class ImageUploader extends Component {
 
@@ -31,7 +32,7 @@ export default class ImageUploader extends Component {
     removeFile = () => {
         if (this.state.thumbnail === (this.props.thumbnail || defaultThumbnail)) return;
         this.refs.imageUploaderInputRef.value = null;
-        this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail});
+        this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail });
         let eventObj = { target: { name: this.props.name, value: null } }
         this.props.onChange(eventObj);
     }
@@ -53,11 +54,18 @@ export default class ImageUploader extends Component {
         this.props.onChange(eventObj);
     }
 
+    /* 
+    <ImageUploader 
+        theme={'circleTheme/defaultTheme'}
+        previewWidget=<ImagePreview 
+        enableEdit={true}
+        enableDelete={true}
+        /> 
+    */
 
     render() {
-
         return (
-            <div>
+            <div className={`image-uploader ${this.props.theme ? this.props.theme : "default-theme"}`}>
                 {this.state.thumbnail !== (this.props.thumbnail || defaultThumbnail) &&
                     <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
                 <label>
@@ -76,7 +84,7 @@ export default class ImageUploader extends Component {
                         alt="uploading image"
                         onError={e => {
                             e.target.src = this.props.thumbnail || defaultThumbnail;
-                            this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail});
+                            this.setState({ thumbnail: this.props.thumbnail || defaultThumbnail });
                         }}
                     />
                     <div>{this.props.label || "Upload Image"}</div>
