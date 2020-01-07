@@ -1,0 +1,44 @@
+{
+    "name": "BaseVideos",
+    "isPublic": "false",
+    "mixins": {
+        "FilesHandler": true
+    },
+    "http": {
+        "path": "BaseVideos"
+    },
+    "options": {
+        "idInjection": false,
+        "mysql": {
+            "table": "Video"
+        },
+        "relations": {}
+    },
+    "properties": {
+        "id": {
+            "type": "number",
+            "generated": true
+        },
+        "title": "string",
+        "created": "date",
+        "modified": "date",
+        "category": "string",
+        "description": "string",
+        "format": "string",
+        "owner": "number"
+    },
+    "acls": [
+        {
+            "accessType": "*",
+            "principalType": "ROLE",
+            "principalId": "$everyone",
+            "permission": "DENY"
+        },
+        {
+            "accessType": "WRITE",
+            "principalType": "ROLE",
+            "principalId": "$authenticated",
+            "permission": "ALLOW"
+        }
+    ]
+}

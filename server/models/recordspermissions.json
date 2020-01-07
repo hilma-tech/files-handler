@@ -1,6 +1,6 @@
 {
     "name": "RecordsPermissions",
-    "isPublic":"false",
+    "isPublic": true,
     "crud": {
         "metaFunctions": {},
         "fields": {
@@ -34,7 +34,9 @@
     },
     "options": {
         "idInjection": false,
-        "mysql": {"table": "records_permissions"}
+        "mysql": {
+            "table": "records_permissions"
+        }
     },
     "relations": {},
     "properties": {
@@ -64,8 +66,25 @@
         },
         "permission": {
             "type": "String",
-            "enum": ["ALLOW","DENY"],
+            "enum": [
+                "ALLOW",
+                "DENY"
+            ],
             "required": true
         }
-    }
+    },
+    "acls": [
+        {
+            "principalType": "ROLE",
+            "principalId": "$everyone",
+            "permission": "DENY",
+            "property": "*"
+        },
+        {
+            "principalType": "ROLE",
+            "principalId": "$authenticated",
+            "permission": "ALLOW",
+            "property": "allowFileAccess"
+        }
+    ]
 }
