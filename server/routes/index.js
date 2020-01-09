@@ -26,6 +26,7 @@ module.exports = function (app) {
             jpeg: 'image/jpeg', //jpeg & jpg
             jpg: 'image/jpeg',
             gif: 'image/gif',
+            svg: 'image/svg+xml',
             //audio
             mp3: 'audio/mp3',
             wav: 'audio/wav'
