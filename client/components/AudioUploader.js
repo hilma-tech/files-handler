@@ -5,7 +5,7 @@ export default class AudioUploader extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            audioSrc: this.props.defaultVaule ? this.props.defaultVaule :
+            audioSrc: this.props.defaultValue ? this.props.defaultValue :
                 (this.props.defaultAudioSrc ? this.props.defaultAudioSrc : '')
         };
     }

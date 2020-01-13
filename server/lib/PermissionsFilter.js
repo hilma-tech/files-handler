@@ -45,6 +45,7 @@ module.exports = class PermissionsFilter {
 
         if (!this.userId) {
             //extract access token and find out user id
+            // logFile("this.request.accessToken", this.request)
             let userId = this.request.accessToken && this.request.accessToken.userId;
             if (!userId) {
                 logFile("no user id (user is logged out), aborting...");
@@ -62,23 +63,29 @@ module.exports = class PermissionsFilter {
         let fileId = fileName.split('.')[0]; //principalId
         const model = this.fileModel;
 
-        const rmRole = await this.app.models.RoleMapping.findOne({
+        const [rmRoleErr, rmRole] = await to(this.app.models.RoleMapping.findOne({
             where: { principalId: this.userId },
             fields: { roleId: true },
             include: 'role'
-        });
+        }));
+        if(rmRoleErr){
+            logFile("error finding user role from rolemapping", rmRoleErr);
+        }
 
+        logFile("user role from rolemapping: rmRole", rmRole)
         if (!(rmRole && rmRole.role && rmRole.role.name)) {
             logFile("no user role found, try %s...", authStatus);
         }
 
         let userRole = null;
         try {
-            userRole = JSON.parse(JSON.stringify(rmRole)).role.name;
+            const parsedRmRole = JSON.parse(JSON.stringify(rmRole));
+            userRole = parsedRmRole && parsedRmRole.role && parsedRmRole.role.name;
         } catch (err) {
             logFile("Could not parse rmRole into object, userRole, err", userRole, err);
         }
 
+        logFile("userRole", userRole);
         let query = squel
             .select({ separator: "\n" })
             .field("*")

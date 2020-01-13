@@ -10,12 +10,14 @@ const to = (promise) => {
 const fs = require('fs');
 const FILE_TYPE_FILE = 'file';
 const FILE_TYPE_IMAGE = 'image';
+const FILE_TYPE_VIDEO = 'video';
 const USER = 'USER';
 const ALLOW = 'ALLOW';
 const logFile = require('debug')('model:file');
 const folders = {
     [FILE_TYPE_IMAGE]: 'imgs',
-    [FILE_TYPE_FILE]: 'files'
+    [FILE_TYPE_FILE]: 'files',
+    [FILE_TYPE_VIDEO]: 'videos'
 };
 
 module.exports = function FilesHandler(Model) {
@@ -52,8 +54,10 @@ module.exports = function FilesHandler(Model) {
         let saveDir = getSaveDir(file.type);
         if (!saveDir) return false;
         let extension = getFileExtension(file.src);
+        logFile("extension", extension);
         if (!extension) return false;
         let regex = getRegex(extension);
+        logFile("regex", regex);
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
@@ -176,11 +180,15 @@ module.exports = function FilesHandler(Model) {
                             ModelToSave = Model.app.models.Files;
                             ModelToSaveName = `${FILE_TYPE_FILE}s`;
                             break;
+                        case FILE_TYPE_VIDEO:
+                            ModelToSave = Model.app.models.Video;
+                            ModelToSaveName = `${FILE_TYPE_VIDEO}s`;
+                            break;
                         // TODO Shira ? - add Audio model and a case for it ?
                         default: continue;
                     }
 
-                    logFile("ModelToSave - Should be either Images/Files", ModelToSaveName);
+                    logFile("ModelToSave - Should be either Images/Files/Video", ModelToSaveName);
 
                     // If we are posting to and from the same model more than 1 file.. 
                     // Example: posting from Files (table) to Files (table) 2 files
@@ -207,7 +215,7 @@ module.exports = function FilesHandler(Model) {
 
                         if (upsertErr) { logFile(`error upserting field "${fileKey}", aborting...`, upsertErr); continue; }
                     }
-                    
+
                     // giving the owner of the file/image permission to view it
                     const rpModel = Model.app.models.RecordsPermissions;
                     let rpData = {
@@ -270,6 +278,14 @@ function getRegex(extension) {
         // case 'webm':
         //     //TODO Shira: make the following regex be valid for both "video" and "audio"
         //     return /^data:video\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/; 
+        case 'mp4':
+            return /^data:video+\/mp4?;base64,/;
+        case 'webm':
+            return /^data:video+\/webm?;base64,/;
+        case 'ogg':
+            return /^data:video+\/ogg?;base64,/;
+        case 'avi':
+            return /^data:video+\/avi?;base64,/;
         default:
             return null;
     }
@@ -292,6 +308,11 @@ function getFileExtension(fileSrc) {
         //audio
         mp3: 'audio/mp3',
         wav: 'audio/wav',
+        //video
+        mp4: 'video/mp4',
+        webm: 'video/webm',
+        ogg: 'video/ogg',
+        avi: 'video/avi'
         //video+audio
         // webm: ['audio/webm', 'video/webm'],
     };
