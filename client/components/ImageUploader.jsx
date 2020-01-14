@@ -39,7 +39,6 @@ export default class ImageUploader extends Component {
     }
 
     onChangeImg = async (e) => {
-        // console.log("Image has changed");
         let base64String = await this.readFileToBase64(e.target.files[0]);
         this.setState({ thumbnail: base64String })
 
@@ -67,14 +66,14 @@ export default class ImageUploader extends Component {
 
         let chosenImgStyle = { backgroundImage: `url(${this.state.thumbnail}), url(${this.props.thumbnail || this.defaultThumbnail})` }  //other url is in case the first is failed to load
         let chosenImg = <div className="chosen-img" style={chosenImgStyle} onClick={this.props.previewWidget && this.toggleShowPopup} />;
-        let previewWidgetChosenImg = <div className="chosen-img" style={chosenImgStyle} />;
+        let previewWidgetChosenImg = <div className="chosen-img-preview" style={chosenImgStyle} />;
 
         return (
             <div dir="ltr" className="image-uploader-container">
                 <div className={this.props.theme ? this.props.theme : "default-theme"}>
 
                     <input
-                        id="image-uploader"
+                        id={this.props.name}
                         onChange={this.onChangeImg}
                         name="image"
                         required={this.props.required || false}
@@ -85,7 +84,7 @@ export default class ImageUploader extends Component {
                     {this.props.previewWidget ?
                         chosenImg :
                         <div className="chosen-image-parent">
-                            <label htmlFor="image-uploader">
+                            <label htmlFor={this.props.name}>
                                 {chosenImg}
                                 <div className="label">{this.props.label || "Choose image"}</div>
                             </label>
@@ -99,60 +98,16 @@ export default class ImageUploader extends Component {
                                         <img className="remove-button" src={require('../../imgs/x-icon.png')} alt="x" />}
                                 </div>}
                         </div>}
-                </div>
 
-                {this.props.previewWidget &&
-                    typeof this.state.showPopup === "boolean" &&
-                    this.addExtraProps(this.props.previewWidget, {
-                        chosenImg: previewWidgetChosenImg,
-                        showPopup: this.state.showPopup,
-                        toggleShowPopup: this.toggleShowPopup,
-                        removeFile: this.removeFile
-                    })}
-            </div>
-        );
-    }
-}
-
-export class PreviewWidget extends Component {
-
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            showPopup: this.props.showPopup
-        };
-    }
-
-    render() {
-        return (
-            <div className="preview-widget">
-                {this.props.showPopup && <div className="dark-background" onClick={this.props.toggleShowPopup} />}
-                <div className={`image-popup ${this.props.showPopup ? "scale-in-center" : "scale-out-center"}`} >
-                    {this.props.chosenImg}
-                    {(this.props.enableEdit || this.props.enableDelete) &&
-                        <div>
-                            <div className="tool-bar-dark-background" />
-                            <div className="tool-bar">
-                                {this.props.enableEdit && <label className="tool-bar-label" htmlFor="image-uploader"><img className="edit" src={require('../../imgs/edit.svg')} /></label>}
-                                {this.props.enableDelete && <img className="bin" src={require('../../imgs/bin.svg')} onClick={this.props.removeFile} />}
-                            </div>
-                        </div>}
-                </div>
-            </div>
-        );
-    }
-}
-
-export class PreviewWidgetExtension extends PreviewWidget {
-
-    render() {
-        return (
-            <div className="preview-widget">
-                {this.props.showPopup && <div className="dark-background" onClick={this.props.toggleShowPopup} />}
-                <div className={`image-popup ${this.props.showPopup ? "scale-in-center" : "scale-out-center"}`} >
-                    {this.props.chosenImg}
-                    <h1>SHALVA </h1>
+                    {this.props.previewWidget &&
+                        typeof this.state.showPopup === "boolean" &&
+                        this.addExtraProps(this.props.previewWidget, {
+                            chosenImg: previewWidgetChosenImg,
+                            showPopup: this.state.showPopup,
+                            toggleShowPopup: this.toggleShowPopup,
+                            removeFile: this.removeFile,
+                            inputId: this.props.name
+                        })}
                 </div>
             </div>
         );
