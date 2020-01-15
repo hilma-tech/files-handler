@@ -62,16 +62,49 @@ export default class ImageUploader extends Component {
         return <Component.type {...Component.props} {...extraProps} />;
     }
 
+    getPropertiesForTheme = () => {
+        let chosenImgStyle = { backgroundImage: `url(${this.state.thumbnail}), url(${this.props.thumbnail || this.defaultThumbnail})` }  // the second url is in case the first is failed to load
+        let chosenImage = <div className="chosen-img" style={chosenImgStyle} onClick={this.props.previewWidget && this.toggleShowPopup} />;
+        let previewWidgetChosenImg = <div className="chosen-img-preview" style={chosenImgStyle} />;
+        let themeClassName, parentClassName;
+
+        switch (this.props.theme) {
+            case "basic-theme":
+                themeClassName = "basic-theme";
+                parentClassName = "chosen-image-parent";
+                break;
+
+            case "circle-theme":
+                themeClassName = "circle-theme";
+                parentClassName = "chosen-image-parent";
+                break;
+
+            default: // "default-theme"
+                themeClassName = "default-theme";
+                parentClassName = "";
+                chosenImage = <img
+                    src={this.state.thumbnail}
+                    height="100px"
+                    width="auto"
+                    alt="uploading image"
+                    onClick={this.props.previewWidget && this.toggleShowPopup}
+                    onError={e => {
+                        e.target.src = this.props.thumbnail || this.defaultThumbnail;
+                        this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
+                    }} />;
+                break;
+        }
+
+        return [themeClassName, parentClassName, chosenImage, previewWidgetChosenImg];
+    }
+
     render() {
 
-        let chosenImgStyle = { backgroundImage: `url(${this.state.thumbnail}), url(${this.props.thumbnail || this.defaultThumbnail})` }  //other url is in case the first is failed to load
-        let chosenImg = <div className="chosen-img" style={chosenImgStyle} onClick={this.props.previewWidget && this.toggleShowPopup} />;
-        let previewWidgetChosenImg = <div className="chosen-img-preview" style={chosenImgStyle} />;
+        let [themeClassName, parentClassName, chosenImage, previewWidgetChosenImg] = this.getPropertiesForTheme();
 
         return (
             <div dir="ltr" className="image-uploader-container">
-                <div className={this.props.theme || "default-theme"}>
-
+                <div className={themeClassName}>
                     <input
                         id={this.props.name}
                         onChange={this.onChangeImg}
@@ -82,38 +115,23 @@ export default class ImageUploader extends Component {
                         ref="imageUploaderInputRef" />
 
                     {this.props.previewWidget ?
-                        chosenImg :
+                        chosenImage :
 
-                        <div className={this.props.theme ? "chosen-image-parent" : ""}>
+                        <div className={parentClassName}>
 
                             <label htmlFor={this.props.name}>
-
-                                {this.props.theme ? chosenImg :
-
-                                    <img
-                                        src={this.state.thumbnail}
-                                        height="100px"
-                                        width="auto"
-                                        alt="uploading image"
-                                        onError={e => {
-                                            e.target.src = this.props.thumbnail || this.defaultThumbnail;
-                                            this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
-                                        }}
-                                    />
-                                }
+                                {chosenImage}
                                 <div className="label">{this.props.label || "Choose image"}</div>
                             </label>
 
-                            {(this.state.thumbnail !== this.props.thumbnail)
-                                && (this.state.thumbnail !== this.defaultThumbnail)
-                                && (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
+                            {(this.state.thumbnail !== this.props.thumbnail) && (this.state.thumbnail !== this.defaultThumbnail) &&
+                                (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
 
                                 <div onClick={this.removeFile}>
                                     {this.props.removeFileIcon ||
                                         <img className="remove-button" src={require('../../imgs/x-icon.png')} alt="x" />}
                                 </div>}
-                        </div>
-                    }
+                        </div>}
 
                     {this.props.previewWidget &&
                         typeof this.state.showPopup === "boolean" &&
