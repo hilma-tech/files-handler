@@ -11,13 +11,15 @@ const fs = require('fs');
 const FILE_TYPE_FILE = 'file';
 const FILE_TYPE_IMAGE = 'image';
 const FILE_TYPE_VIDEO = 'video';
+const FILE_TYPE_AUDIO = 'audio';
 const USER = 'USER';
 const ALLOW = 'ALLOW';
 const logFile = require('debug')('model:file');
 const folders = {
     [FILE_TYPE_IMAGE]: 'imgs',
     [FILE_TYPE_FILE]: 'files',
-    [FILE_TYPE_VIDEO]: 'videos'
+    [FILE_TYPE_VIDEO]: 'videos',
+    [FILE_TYPE_AUDIO]: 'audios'
 };
 
 module.exports = function FilesHandler(Model) {
@@ -31,7 +33,7 @@ module.exports = function FilesHandler(Model) {
         const isProd = process.env.NODE_ENV == 'production';
         const baseFileDirPath = isProd ? './../../build' : './../../public';
         let filePath = prevFileRes.path;
-        if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
+        if (!isProd) filePath = filePath.replace('http://localhost:8080', '.');
 
         try {
             const fullFilePath = path.join(__dirname, `${baseFileDirPath}${filePath}`);
@@ -105,7 +107,7 @@ module.exports = function FilesHandler(Model) {
 
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
 
-        logFile("Model.beforeRemote is launched");
+        logFile("Model.beforeRemote is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH"/* && !modelInstance.id*/)
             return next()
 
@@ -124,7 +126,7 @@ module.exports = function FilesHandler(Model) {
 
                 for (let j = 0; j < dataKeys.length; j++) { // we are not using map func, because we cannot put async inside it.
                     key = dataKeys[j];
-                    if (typeof data[key] !== "object" || !data[key]) continue;
+                    if (typeof data[key] !== "object" || !data[key] || !(data[key].src && data[key].type)) continue;
 
                     let filesToSave = ctx.args[field].filesToSave || {};
                     filesToSave[key] = data[key];
@@ -137,7 +139,7 @@ module.exports = function FilesHandler(Model) {
     });
 
     Model.afterRemote('*', function (ctx, modelInstance, next) {
-        logFile("Model.afterRemote(*) is launched");
+        logFile("Model.afterRemote(*) is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH" /*&& !modelInstance.id*/)
             return next();
 
@@ -147,8 +149,9 @@ module.exports = function FilesHandler(Model) {
                 modelInstance.id :
                 null);
 
+        logFile("The owner of the file is fileOwnerId", fileOwnerId);
         //Access is always restricted without authentication
-        if (!fileOwnerId) { return next(); }
+        if (!fileOwnerId) { logFile("No owner for this file, aborting..."); return next(); }
 
         let args = ctx.args;
 
@@ -170,7 +173,6 @@ module.exports = function FilesHandler(Model) {
                     if (typeof file !== "object") continue;
                     let ModelToSave = null;
                     let ModelToSaveName = null;
-
                     switch (file.type) {
                         case FILE_TYPE_IMAGE:
                             ModelToSave = Model.app.models.Images;
@@ -185,6 +187,10 @@ module.exports = function FilesHandler(Model) {
                             ModelToSaveName = `${FILE_TYPE_VIDEO}s`;
                             break;
                         // TODO Shira ? - add Audio model and a case for it ?
+                        case FILE_TYPE_AUDIO:
+                            ModelToSave = Model.app.models.Audio;
+                            ModelToSaveName = `${FILE_TYPE_AUDIO}s`;
+                            break;
                         default: continue;
                     }
 
@@ -231,7 +237,7 @@ module.exports = function FilesHandler(Model) {
 
                     //calling a custom remote method after FilesHandler is done
                     let afhData = { model: ModelToSaveName, recordId: newFileId, principalId: fileOwnerId };
-                    Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId);
+                    Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
                 };
             }
             return next();
@@ -278,10 +284,12 @@ function getRegex(extension) {
         // case 'webm':
         //     //TODO Shira: make the following regex be valid for both "video" and "audio"
         //     return /^data:video\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/; 
+        case 'webm':
+            return /^data:(video|audio)\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/;
         case 'mp4':
             return /^data:video+\/mp4?;base64,/;
-        case 'webm':
-            return /^data:video+\/webm?;base64,/;
+        // case 'webm':
+        //     return /^data:video+\/webm?;base64,/; // return /^data:(\bvideo\b)|(\baudio\b)+\/webm?;base64,/
         case 'ogg':
             return /^data:video+\/ogg?;base64,/;
         case 'avi':
@@ -293,6 +301,7 @@ function getRegex(extension) {
 
 function getFileExtension(fileSrc) {
     let mimeType = base64MimeType(fileSrc);
+    logFile("Base64 mimeType of file", mimeType);
     if (!mimeType) return null;
 
     const mimeTypes = {
@@ -310,20 +319,17 @@ function getFileExtension(fileSrc) {
         wav: 'audio/wav',
         //video
         mp4: 'video/mp4',
-        webm: 'video/webm',
         ogg: 'video/ogg',
-        avi: 'video/avi'
+        avi: 'video/avi',
         //video+audio
-        // webm: ['audio/webm', 'video/webm'],
+        webm: ['audio/webm', 'video/webm'],
     };
 
-    return Object.keys(mimeTypes).find(key => mimeTypes[key] === mimeType);
-    // TODO Shira: when adding audio/video we will probably need to use the following code
-    // if some mimetypes are arrays use the following code
-    // return Object.keys(mimeTypes).find(key => {
-    //     if (Array.isArray(mimeTypes[key]) && mimeTypes[key].includes(mimeType)) return key;
-    //     return mimeTypes[key] === mimeType;
-    // });
+    // return Object.keys(mimeTypes).find(key => mimeTypes[key] === mimeType);
+    return Object.keys(mimeTypes).find(key => {
+        if (Array.isArray(mimeTypes[key]) && mimeTypes[key].includes(mimeType)) return key;
+        return mimeTypes[key] === mimeType;
+    });
 }
 
 function base64MimeType(encoded) {

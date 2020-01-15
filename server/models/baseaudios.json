@@ -1,16 +1,16 @@
 {
-    "name": "BaseVideos",
+    "name": "BaseAudios",
     "isPublic": "false",
     "mixins": {
         "FilesHandler": true
     },
     "http": {
-        "path": "BaseVideos"
+        "path": "BaseAudios"
     },
     "options": {
         "idInjection": false,
         "mysql": {
-            "table": "Video"
+            "table": "Audio"
         },
         "relations": {}
     },

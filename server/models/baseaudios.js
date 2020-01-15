@@ -1,6 +1,6 @@
 
-module.exports = function (BaseVideos) {
-    BaseVideos.observe('loaded', function (ctx, next) {
+module.exports = function (BaseAudios) {
+    BaseAudios.observe('loaded', function (ctx, next) {
         let fData = null;
         if (ctx.instance) {
             fData = ctx.instance;
@@ -8,7 +8,7 @@ module.exports = function (BaseVideos) {
         else {
             const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';        
             fData = ctx.data;
-            fData.path = `${hostName}/videos/${fData.category}/${fData.id}.${fData.format}`;
+            fData.path = `${hostName}/audios/${fData.category}/${fData.id}.${fData.format}`;
         };
         ctx.data = fData;
         next();

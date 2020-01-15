@@ -26,9 +26,6 @@ export default class AudioUploader extends Component {
     onChangeFile = async (e) => {
         if (!e.target.files[0]) return;
 
-        let mimeType = e.target.files[0].type;
-        if (!this.verifyMimeType(mimeType)) return;
-
         let base64String = await this.readFileToBase64(e.target.files[0]);
         this.setState({ audioSrc: base64String });
 
@@ -45,12 +42,6 @@ export default class AudioUploader extends Component {
 
     }
 
-    verifyMimeType = (mimeType) => {
-        if (!mimeType) return null;
-        const mimeTypes = ['audio/mp3', 'audio/wav'/*, 'audio/webm', 'video/webm'*/];
-        return mimeTypes.includes(mimeType) && mimeType || null;
-    }
-
     render() {
 
         return (
@@ -63,7 +54,7 @@ export default class AudioUploader extends Component {
                         name="file"
                         required={this.props.required || false}
                         type="file"
-                        accept=".mp3, .wav"//, .webm"
+                        accept=".mp3, .wav, .webm" 
                     />
                     <div>{this.props.label || "Upload Audio"}</div>
                 </label>
