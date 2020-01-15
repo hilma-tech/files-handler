@@ -1,8 +1,11 @@
 .image-uploader-container {
-  margin: auto;
-  width: fit-content;
-  padding-top: 1em;
-  padding-bottom: 1em;
+  .basic-theme,
+  .circle-theme {
+    margin: auto;
+    width: fit-content;
+    padding-top: 1em;
+    padding-bottom: 1em;
+  }
 
   .remove-button {
     height: 2em;
@@ -16,13 +19,14 @@
     position: relative;
   }
 
-  .chosen-img, .chosen-img-preview {
+  .chosen-img,
+  .chosen-img-preview {
     width: 10em;
     height: 10em;
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
-}
+  }
 
   // Hides the "choose file" button
   input[type="file"] {
@@ -35,7 +39,7 @@
     right: 0;
   }
 
-  .default-theme {
+  .basic-theme {
     .remove-button {
       right: -1em;
       top: -1em;
@@ -43,14 +47,13 @@
   }
 
   .circle-theme {
-    
     .chosen-img {
-        border-radius: 50%;
-        box-shadow: 2px 2px 8px 3px rgb(189, 189, 189);
+      border-radius: 50%;
+      box-shadow: 2px 2px 8px 3px rgb(189, 189, 189);
     }
 
     .chosen-img-preview {
-      background-color: #E5E5E5;
+      background-color: #e5e5e5;
     }
 
     .label {
@@ -89,11 +92,11 @@
       background-color: white;
       z-index: 3;
     }
-    
+
     .chosen-img-preview {
-        width: 100%;
-        height: 100%;
-        z-index: 100;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
     }
 
     .tool-bar-dark-background {
@@ -164,8 +167,7 @@
 }
 
 .scale-out-center {
-  -webkit-animation: scale-out-center 0.2s cubic-bezier(0.55, 0.085, 0.68, 0.53)
-    both;
+  -webkit-animation: scale-out-center 0.2s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
   animation: scale-out-center 0.2s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
 }
 

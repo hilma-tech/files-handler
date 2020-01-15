@@ -70,7 +70,7 @@ export default class ImageUploader extends Component {
 
         return (
             <div dir="ltr" className="image-uploader-container">
-                <div className={this.props.theme ? this.props.theme : "default-theme"}>
+                <div className={this.props.theme || "default-theme"}>
 
                     <input
                         id={this.props.name}
@@ -83,9 +83,24 @@ export default class ImageUploader extends Component {
 
                     {this.props.previewWidget ?
                         chosenImg :
-                        <div className="chosen-image-parent">
+
+                        <div className={this.props.theme ? "chosen-image-parent" : ""}>
+
                             <label htmlFor={this.props.name}>
-                                {chosenImg}
+
+                                {this.props.theme ? chosenImg :
+
+                                    <img
+                                        src={this.state.thumbnail}
+                                        height="100px"
+                                        width="auto"
+                                        alt="uploading image"
+                                        onError={e => {
+                                            e.target.src = this.props.thumbnail || this.defaultThumbnail;
+                                            this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
+                                        }}
+                                    />
+                                }
                                 <div className="label">{this.props.label || "Choose image"}</div>
                             </label>
 
@@ -97,7 +112,8 @@ export default class ImageUploader extends Component {
                                     {this.props.removeFileIcon ||
                                         <img className="remove-button" src={require('../../imgs/x-icon.png')} alt="x" />}
                                 </div>}
-                        </div>}
+                        </div>
+                    }
 
                     {this.props.previewWidget &&
                         typeof this.state.showPopup === "boolean" &&
