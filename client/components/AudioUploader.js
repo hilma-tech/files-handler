@@ -31,7 +31,7 @@ export default class AudioUploader extends Component {
 
         let fileObj = {
             src: base64String,
-            type: 'file',
+            type: 'audio',
             title: this.props.title || "default_audio_title",
             category: this.props.category || "default_audio_category",
             description: this.props.description || "default_audio_description"
