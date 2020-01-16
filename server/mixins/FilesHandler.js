@@ -1,5 +1,8 @@
 'use strict';
 const path = require('path');
+const resizeOptimizeImages = require('resize-optimize-images');
+const sizeOf = require('image-size');
+
 const to = (promise) => {
     return promise.then(data => {
         return [null, data];
@@ -71,6 +74,7 @@ module.exports = function FilesHandler(Model) {
             dontSave: true,// dont let afterSave remote do anything- needed?
             title: file.title
         };
+        logFile('category', file.category)
 
         logFile("fileObj before save", fileObj);
 
@@ -82,25 +86,41 @@ module.exports = function FilesHandler(Model) {
 
         let specificSaveDir = saveDir + fileObj.category + "/";
         let [err, newFile] = await to(FileModel.upsert(fileObj));
-
         if (err) { console.error("Error creating file, aborting...", err); return false }
         logFile("New entry created for model ", file.type, newFile);
 
-        let fileTargetPath = null;
 
+
+        let fileTargetPath=null;
         try {
             if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
                 fs.mkdirSync(specificSaveDir, { recursive: true });
                 logFile("New folder was created ", specificSaveDir);
             }
 
-            fileTargetPath = specificSaveDir + newFile.id + "." + extension;
-            fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+            if (file.category === 'uploaded_images') {
+                logFile('is imgesssssssssssssss')
+                let sizes = await tripleimg(base64Data, specificSaveDir + newFile.id, extension)
+
+                logFile("sizes 7", sizes)
+                sizes.map((size) => {
+                    fs.writeFileSync(size.filePath, base64Data, 'base64');
+                    resizeImg(size.filePath, size.width)
+                })
+            } else {
+                logFile('not imggggggggggggggg')
+                fileTargetPath = specificSaveDir + newFile.id + "." + extension;
+                fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+            }
+
+
+
+
         } catch (err) {
             logFile("Err", err);
         }
 
-        logFile("New file was created of type (%s) on path (%s)", file.type, fileTargetPath);
+        logFile("New file was created of type (%s) on path (%s)", file.type);
         logFile("New file id", newFile.id)
         return newFile.id;
     }
@@ -339,3 +359,34 @@ function base64MimeType(encoded) {
     if (mime && mime.length) return mime[1];
     return null;
 }
+
+async function resizeImg(imgPath, width) {
+
+    const options = {
+        images: [imgPath],
+        width: width
+    };
+
+    await resizeOptimizeImages(options);
+
+}
+async function getImgWidth(base64Data) {
+    let img = new Buffer(base64Data, 'base64');
+    let dimensions = sizeOf(img)
+    return dimensions.width;
+}
+
+async function tripleimg(base64Data, fileTargetPath, extension) {
+    let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: 200 }]
+    let width = await getImgWidth(base64Data);
+    if (width >= 800) {
+        logFile('in 800', width)
+        sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: 800 })
+    }
+    if (width >= 1500) {
+        sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: 1500 })
+    }
+    return sizesPath;
+}
+
+
