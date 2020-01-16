@@ -102,6 +102,36 @@ export default class ImageUploader extends Component {
 
         let [themeClassName, parentClassName, chosenImage, previewWidgetChosenImg] = this.getPropertiesForTheme();
 
+        if (!this.props.theme && !this.props.previewWidget) return( // Supports previous versions
+            <div>
+                {(this.state.thumbnail !== this.props.thumbnail)
+                    && (this.state.thumbnail !== this.defaultThumbnail)
+                    && (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
+                    <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
+                <label>
+                    <input
+                        onChange={this.onChangeImg}
+                        name="image"
+                        required={this.props.required || false}
+                        type="file"
+                        accept=".png, .jpg, .jpeg, .gif, .svg"
+                        ref="imageUploaderInputRef"
+                    />
+                    <img
+                        src={this.state.thumbnail}
+                        height="100px"
+                        width="auto"
+                        alt="uploading image"
+                        onError={e => {
+                            e.target.src = this.props.thumbnail || this.defaultThumbnail;
+                            this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
+                        }}
+                    />
+                    <div>{this.props.label || "Upload Image"}</div>
+                </label>
+            </div>
+        )
+
         return (
             <div dir="ltr" className="image-uploader-container">
                 <div className={themeClassName}>
