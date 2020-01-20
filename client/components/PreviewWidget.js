@@ -12,7 +12,6 @@ export default class PreviewWidget extends Component {
 
     render() {
         return (
-            // <div className={this.props.showPopup ? "preview-widget" : ""}>
             <div className="preview-widget">
                 {this.props.showPopup && <div className="dark-background" onClick={this.props.toggleShowPopup} />}
                 <div className={`image-popup ${this.props.showPopup ? "scale-in-center" : "scale-out-center"}`} >
