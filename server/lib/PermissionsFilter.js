@@ -7,8 +7,8 @@ const AUTHENTICATED = '$authenticated';
 const NOT_AUTHENTICATED = "$unauthenticated";
 const EVERYONE = '$everyone';
 
-function to(promise) {return promise.then(data => {return [null, data];}).catch(err => [err]);}
-async function exeQuery(sql, app) {return await to(new Promise(function (resolve, reject) {let ds = app.dataSources['msql'];ds.connector.execute(sql, [], function (err, res) {if (err) reject(res);else resolve(res);});}));}
+function to(promise) { return promise.then(data => { return [null, data]; }).catch(err => [err]); }
+async function exeQuery(sql, app) { return await to(new Promise(function (resolve, reject) { let ds = app.dataSources['msql']; ds.connector.execute(sql, [], function (err, res) { if (err) reject(res); else resolve(res); }); })); }
 
 module.exports = class PermissionsFilter {
 
@@ -30,6 +30,8 @@ module.exports = class PermissionsFilter {
 
                 if (!pRecord[argKey] || Array.isArray(argValue) || argValue != pRecord[argKey])
                     isMatch = false;
+
+                if (argKey === 'recordId' && argValue === pRecord[argKey]) isMatch = true;
             })
 
             if (isMatch) return pRecord;
@@ -68,7 +70,7 @@ module.exports = class PermissionsFilter {
             fields: { roleId: true },
             include: 'role'
         }));
-        if(rmRoleErr){
+        if (rmRoleErr) {
             logFile("error finding user role from rolemapping", rmRoleErr);
         }
 
@@ -93,14 +95,14 @@ module.exports = class PermissionsFilter {
             .where("model=?", model)
             .where(
                 squel.expr()
-                    .and("principalId=?", null)
+                    .and("principalId is null")
                     .or("principalId=?", this.userId)
                     .or("principalId=?", userRole)
                     .or("principalId=?", EVERYONE)
                     .or("principalId=?", authStatus)
             )
             .where(
-                squel.expr().and("recordId=?", null).or("recordId=?", fileId)
+                squel.expr().and("recordId is null").or("recordId=?", fileId)
             );
 
         logFile("\nSQL Query", query.toString());
@@ -110,13 +112,19 @@ module.exports = class PermissionsFilter {
         if (err) { logFile("exeQuery err", err); return false; }
         if (!pRecords) { logFile("no precords, aborting..."); return false; }
 
-        logFile("pRecords",pRecords);
+        logFile("pRecords", pRecords);
 
         this.pRecords = pRecords;
 
         let allow = false;
 
         let record = null;
+
+        record = this.findByKeys({ recordId: null });
+        if ((record && record.permission == ALLOW)) allow = true;
+
+        logFile("Step 0 (all " + model + ") are allowed?", allow);
+
         record = this.findByKeys({ principalType: ROLE, principalId: EVERYONE });
         if (record && record.permission == ALLOW) allow = true;
 
@@ -130,13 +138,13 @@ module.exports = class PermissionsFilter {
         record = this.findByKeys({ principalType: ROLE, principalId: userRole });
         if ((record && record.permission == ALLOW) || (allow && !record)) allow = true;
 
-        logFile("Step 3 (userRole: "+userRole+") is allowed?", allow);
+        logFile("Step 3 (userRole: " + userRole + ") is allowed?", allow);
 
         record = this.findByKeys({ principalType: USER, principalId: this.userId });
         if ((record && record.permission == ALLOW) || (allow && !record)) allow = true;
         else allow = false;
 
-        logFile("Step 4 Final (principalId "+this.userId+") is allowed?", allow);
+        logFile("Step 4 Final (principalId " + this.userId + ") is allowed?", allow);
 
         return allow;
     }
