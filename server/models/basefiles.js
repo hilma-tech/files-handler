@@ -1,30 +1,17 @@
 
-var fs = require('fs');
-var path = require('path');
-const logFile = require('debug')('model:file');
-const https = require('https');
-
-const FILES_DIR = 'public/files/';
-
-const APP_ROOT=path.join(__dirname,'../../../../../');
-
 module.exports = function (BaseFiles) {
     BaseFiles.observe('loaded', function (ctx, next) {
 
-        var fData;
-        if (ctx.instance) {    //for first upload
-            //  logImage("CTX.instance exists",ctx);
+        let fData = null;
+        if (ctx.instance) {
             fData = ctx.instance;
         }
         else {
-            // logImage("CTX.instance does not exist",ctx);
+            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';
             fData = ctx.data;
-            fData.path = `/files/${fData.category}/${fData.id}.${fData.format}`;
+            fData.path = `${hostName}/files/${fData.category}/${fData.id}.${fData.format}`;
         };
         ctx.data = fData;
         next();
     });
-
-
-
 };

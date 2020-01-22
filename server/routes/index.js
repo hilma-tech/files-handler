@@ -6,9 +6,11 @@ const logFile = require('debug')('model:file');
 //logFile("fileshandler routes/index is launched?");
 const FILE_MODEL = 'files';
 const IMAGE_MODEL = 'images';
+const VIDEO_MODEL = 'videos';
 const folders = {
     [FILE_MODEL]: 'files',
-    [IMAGE_MODEL]: 'imgs'
+    [IMAGE_MODEL]: 'imgs',
+    [VIDEO_MODEL]: 'videos'
 };
 
 module.exports = function (app) {
@@ -26,9 +28,15 @@ module.exports = function (app) {
             jpeg: 'image/jpeg', //jpeg & jpg
             jpg: 'image/jpeg',
             gif: 'image/gif',
+            svg: 'image/svg+xml',
             //audio
             mp3: 'audio/mp3',
-            wav: 'audio/wav'
+            wav: 'audio/wav',
+            //video
+            mp4: 'video/mp4',
+            webm: 'video/webm',
+            ogg: 'video/ogg',
+            avi: 'video/avi'
         };
         return contentTypes[extension];
     }
@@ -41,19 +49,19 @@ module.exports = function (app) {
             const permissionsFilter = new PermissionsFilter(req, app, null, fileModel);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
 
-            
-            if (!allowAccess) { 
-            	logFile("Access is denied for this specific user, for further info see records_permissions table");
-            	res.sendStatus(403); return; 
-            }else{
-            	logFile("Access is allowed for this specific user, for further info see records_permissions table");
+
+            if (!allowAccess) {
+                logFile("Access is denied for this specific user, for further info see records_permissions table");
+                res.sendStatus(403); return;
+            } else {
+                logFile("Access is allowed for this specific user, for further info see records_permissions table");
             }
 
             const baseFileDirPath = process.env.NODE_ENV == 'production' ? 'build' : 'public';
             const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/${folders[fileModel]}/${req.params[0]}`;
             const fileExtension = req.params[0].split('.')[1]; //pdf, mp3, wav...
-            
-            logFile("filePath?",filePath);
+
+            logFile("filePath?", filePath);
 
             let contentType = getContentType(fileExtension);
             if (!contentType) { res.sendStatus(404); return; }
@@ -69,15 +77,19 @@ module.exports = function (app) {
         })();
     }
 
-    
-    app.get('/files/*', function (req, res) {
+
+    app.get(`/${folders[FILE_MODEL]}/*`, function (req, res) {
         logFile("fileshandler routes for verb GET with /files/* is launched");
         allowFileAccess(req, res, FILE_MODEL);
     });
 
-    app.get('/imgs/*', function (req, res) {
+    app.get(`/${folders[IMAGE_MODEL]}/*`, function (req, res) {
         logFile("fileshandler routes for verb GET with /imgs/* is launched");
         allowFileAccess(req, res, IMAGE_MODEL);
     });
 
+    app.get(`/${folders[VIDEO_MODEL]}/*`, function (req, res) {
+        logFile("fileshandler routes for verb GET with /imgs/* is launched");
+        allowFileAccess(req, res, VIDEO_MODEL);
+    });
 }

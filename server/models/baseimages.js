@@ -14,7 +14,7 @@ module.exports = function (BaseImages) {
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ? '' : 'http://localhost:8080';            
+            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';            
             fData = ctx.data;
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
         };
@@ -75,7 +75,7 @@ module.exports = function (BaseImages) {
             return BaseImages.find({ where: { owner: userId }, ...filter }, options, (err, res) => {
                 if (err) return cb(err)
                 res.forEach(image => {
-                    BaseImages.owner = null; `   `
+                    BaseImages.owner = null;
                 });
                 return cb(null, res);
             });
