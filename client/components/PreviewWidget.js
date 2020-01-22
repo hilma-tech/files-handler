@@ -20,8 +20,8 @@ export default class PreviewWidget extends Component {
                         <div>
                             <div className="tool-bar-dark-background" />
                             <div className="tool-bar">
-                                {this.props.enableEdit && <label className="tool-bar-label" htmlFor={this.props.inputId}><img className="edit" src={require('../../imgs/edit.svg')} /></label>}
-                                {this.props.enableDelete && <img className="bin" src={require('../../imgs/bin.svg')} onClick={this.props.removeFile} />}
+                                {this.props.enableEdit && !this.props.disabled && <label className="tool-bar-label" htmlFor={this.props.inputId}><img className="edit" src={require('../../imgs/edit.svg')} /></label>}
+                                {this.props.enableDelete && !this.props.disabled && <img className="bin" src={require('../../imgs/bin.svg')} onClick={this.props.removeFile} />}
                             </div>
                         </div>}
                 </div>
