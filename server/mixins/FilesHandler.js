@@ -24,10 +24,25 @@ const folders = {
 
 module.exports = function FilesHandler(Model) {
 
-    Model.deleteFile = async function (prevFileId, ModelToSave) {
-        logFile("Model.deleteFile is launched now with prevFileId: ", prevFileId);
+    Model.getFileModelOfFile = function (file) {
+        switch (file.type) {
+            case FILE_TYPE_IMAGE:
+                return [Model.app.models.Images, `${FILE_TYPE_IMAGE}s`]
+            case FILE_TYPE_FILE:
+                return [Model.app.models.Files, `${FILE_TYPE_FILE}s`]
+            case FILE_TYPE_VIDEO:
+                return [Model.app.models.Video, `${FILE_TYPE_VIDEO}s`]
+            case FILE_TYPE_AUDIO:
+                return [Model.app.models.Audio, `${FILE_TYPE_AUDIO}s`]
+            default:
+                return [null, null];
+        }
+    }
 
-        let [prevFileErr, prevFileRes] = await to(ModelToSave.findOne({ where: { id: prevFileId } }));
+    Model.deleteFileInFileModel = async function (prevFileId, FileModel) {
+        logFile("Model.deleteFileInFileModel is launched now with prevFileId: ", prevFileId);
+
+        let [prevFileErr, prevFileRes] = await to(FileModel.findOne({ where: { id: prevFileId } }));
         if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
 
         const isProd = process.env.NODE_ENV == 'production';
@@ -50,7 +65,7 @@ module.exports = function FilesHandler(Model) {
         }
     }
 
-    Model.saveFile = async function (file, FileModel, ownerId = null, fileId = null) {
+    Model.saveFileInFileModel = async function (file, FileModel, ownerId = null, fileId = null) {
 
         logFile("Model.saveFile is launched with ownerId", ownerId);
         let saveDir = getSaveDir(file.type);
@@ -105,6 +120,58 @@ module.exports = function FilesHandler(Model) {
         return newFile.id;
     }
 
+    Model.saveFileInCurrModel = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance) {
+        let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
+
+        logFile("FileModel - Should be either Images/Files/Video", FileModelName);
+
+        // If we are posting to and from the same model more than 1 file.. 
+        // Example: posting from Files (table) to Files (table) 2 files
+        let index = Array.isArray(filesToSave[fileKey]) ?
+            filesToSave[fileKey].indexOf(file) : Object.keys(filesToSave).indexOf(fileKey);
+
+        let fileId = null;
+
+        if (index === 0 && Model === FileModel) fileId = modelInstance.id;
+
+        if (modelInstance[fileKey]) fileId = await Model.deleteFileInFileModel(modelInstance[fileKey], FileModel);
+        logFile("FileId right before saveFileInFileModel is launched is", fileId);
+
+        let newFileId = await Model.saveFileInFileModel(file, FileModel, fileOwnerId, fileId);
+        if (!newFileId) { logFile("Couldn't create your file, aborting..."); return; }
+
+        // If [fileKey] doesnt exist in Model then dont upsert
+        let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
+        if (findErr || !findRes) { logFile("Error finding field, aborting...", findErr); return; }
+        if (!(fileKey in findRes)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/ }
+        else {
+            // Updating the row to include the id of the file added
+            let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
+                { id: modelInstance.id }, { [fileKey]: newFileId }
+            ));
+            logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
+
+            if (upsertErr) { logFile(`error upserting field "${fileKey}", aborting...`, upsertErr); return; }
+        }
+
+        // giving the owner of the file/image permission to view it
+        const rpModel = Model.app.models.RecordsPermissions;
+        let rpData = {
+            model: FileModelName,
+            recordId: newFileId,
+            principalType: USER,
+            principalId: fileOwnerId,
+            permission: ALLOW
+        }
+        let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
+        logFile("New permission row is created on RecordsPermissions model with data", rpData);
+        if (rpErr) { console.error(`Error granting permissions to file owner, aborting...`, rpErr); return; }
+
+        //calling a custom remote method after FilesHandler is done
+        let afhData = { model: FileModelName, recordId: newFileId, principalId: fileOwnerId };
+        Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
+    }
+
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
 
         logFile("Model.beforeRemote is launched", ctx.req.method);
@@ -126,14 +193,18 @@ module.exports = function FilesHandler(Model) {
 
                 for (let j = 0; j < dataKeys.length; j++) { // we are not using map func, because we cannot put async inside it.
                     key = dataKeys[j];
-                    if (typeof data[key] !== "object" || !data[key] || !(data[key].src && data[key].type)) continue;
-
+                    let keyData = data[key];
+                    if (typeof keyData !== "object" || !keyData) continue;
+                    if (!Array.isArray(keyData) && !(keyData.src && keyData.type)) continue;
+                    if (Array.isArray(keyData) && !keyData.every(val =>
+                        (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    filesToSave[key] = data[key];
+                    filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
                 };
             }
+
             return next();
         })();
     });
@@ -161,84 +232,27 @@ module.exports = function FilesHandler(Model) {
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
 
                 let field = argsKeys[i];
+
                 logFile("Iterating with field (%s)", field);
 
                 if (field === "options") continue;
+
                 if (!args[field] || !args[field].filesToSave) return next();
                 let filesToSave = args[field].filesToSave;
-
                 for (let fileKey in filesToSave) {
+                    const fileOrFiles = filesToSave[fileKey];
 
-                    const file = filesToSave[fileKey];
-                    if (typeof file !== "object") continue;
-                    let ModelToSave = null;
-                    let ModelToSaveName = null;
-                    switch (file.type) {
-                        case FILE_TYPE_IMAGE:
-                            ModelToSave = Model.app.models.Images;
-                            ModelToSaveName = `${FILE_TYPE_IMAGE}s`;
-                            break;
-                        case FILE_TYPE_FILE:
-                            ModelToSave = Model.app.models.Files;
-                            ModelToSaveName = `${FILE_TYPE_FILE}s`;
-                            break;
-                        case FILE_TYPE_VIDEO:
-                            ModelToSave = Model.app.models.Video;
-                            ModelToSaveName = `${FILE_TYPE_VIDEO}s`;
-                            break;
-                        // TODO Shira ? - add Audio model and a case for it ?
-                        case FILE_TYPE_AUDIO:
-                            ModelToSave = Model.app.models.Audio;
-                            ModelToSaveName = `${FILE_TYPE_AUDIO}s`;
-                            break;
-                        default: continue;
+                    if (Array.isArray(fileOrFiles)) {
+                        for (let j = 0; j < fileOrFiles.length; j++) {
+                            if (typeof fileOrFiles[j] !== "object") continue;
+                            await Model.saveFileInCurrModel(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance);
+                        }
                     }
-
-                    logFile("ModelToSave - Should be either Images/Files/Video", ModelToSaveName);
-
-                    // If we are posting to and from the same model more than 1 file.. 
-                    // Example: posting from Files (table) to Files (table) 2 files
-                    let index = Object.keys(filesToSave).indexOf(fileKey);
-                    let fileId = null;
-                    if (index === 0 && Model === ModelToSave) fileId = modelInstance.id;
-
-                    if (modelInstance[fileKey]) fileId = await Model.deleteFile(modelInstance[fileKey], ModelToSave);
-                    logFile("FileId right before saveFile is launched is", fileId);
-
-                    let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, fileId);
-                    if (!newFileId) { logFile("Couldn't create your file dude, aborting..."); continue; }
-
-                    // If [fileKey] doesnt exist in Model then dont upsert
-                    let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
-                    if (findErr || !findRes) { logFile("Error finding field, aborting...", findErr); continue; }
-                    if (!(fileKey in findRes)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/ }
                     else {
-                        // Updating the row to include the id of the file added
-                        let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
-                            { id: modelInstance.id }, { [fileKey]: newFileId }
-                        ));
-                        logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
-
-                        if (upsertErr) { logFile(`error upserting field "${fileKey}", aborting...`, upsertErr); continue; }
+                        if (typeof fileOrFiles !== "object") continue;
+                        await Model.saveFileInCurrModel(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance);
                     }
-
-                    // giving the owner of the file/image permission to view it
-                    const rpModel = Model.app.models.RecordsPermissions;
-                    let rpData = {
-                        model: ModelToSaveName,
-                        recordId: newFileId,
-                        principalType: USER,
-                        principalId: fileOwnerId,
-                        permission: ALLOW
-                    }
-                    let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
-                    logFile("New permission row is created on RecordsPermissions model with data", rpData);
-                    if (rpErr) { console.error(`Error granting permissions to file owner, aborting...`, rpErr); continue; }
-
-                    //calling a custom remote method after FilesHandler is done
-                    let afhData = { model: ModelToSaveName, recordId: newFileId, principalId: fileOwnerId };
-                    Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
-                };
+                }
             }
             return next();
         })();
