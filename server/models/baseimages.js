@@ -14,9 +14,20 @@ module.exports = function (BaseImages) {
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';            
+            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';
             fData = ctx.data;
-            fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
+            let sizes;
+            if (fData.size < 800) {
+                sizes = ['s']
+            } else if (fData.size < 1500) {
+                sizes = ['s', 'm']
+            } else {
+                sizes = ['s', 'm', 'l']
+            }
+            fData.path = []
+            for (let size of sizes) {
+                fData.path.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
+            }
         };
         ctx.data = fData;
         next();
@@ -33,7 +44,7 @@ module.exports = function (BaseImages) {
     BaseImages.downloadToServer = function (data, options, cb) {
 
         //DEPRECATED UNTIL WILL BE SECURED (Eran)
-        return cb(null,{});
+        return cb(null, {});
 
         let saveDir = path.join(__dirname, '../', '../', IMAGES_DIR, data.category);
         let extention = path.extname(data.url).substr(1);
