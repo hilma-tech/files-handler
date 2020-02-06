@@ -26,7 +26,6 @@ export default class MultiImagesHandler extends Component {
                 title: this.props.title || "default_image_title",
                 category: this.props.category || "default_image_category",
                 description: this.props.description || "default_image_description",
-                // keyToSaveImgId: this.props.name,
                 relatedModelToSaveImgId: this.props.relatedModelToSaveImgId || {}
             };
 
@@ -67,17 +66,23 @@ export default class MultiImagesHandler extends Component {
 
         return (
             <div className="multi-images-handler">
-                <Dropzone onDrop={this.onDrop} accept='image/*'>
-                    {({ getRootProps, getInputProps }) => (
-                        <section className="container">
-                            <div {...getRootProps({ className: 'dropzone' })}>
-                                <input {...getInputProps()} />
-                                <p>Drag 'n' drop some files here, or click to select files</p>
-                            </div>
-                            <aside className='thumbs-container'>
-                                {thumbs}
-                            </aside>
-                        </section>)}
+                <Dropzone onDrop={this.onDrop} accept='image/*' disabled={this.props.disabled}>
+                    {({ getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject }) => {
+                        let classNames = `dropzone 
+                        ${isDragActive && 'drag-active'} 
+                        ${isDragAccept && 'drag-accept'} 
+                        ${isDragReject && 'drag-reject'}`;
+
+                        return (
+                            <section className="container">
+                                <div {...getRootProps({ className: classNames })}>
+                                    <input {...getInputProps()} />
+                                    <p>{this.props.label || "Drag & drop some files here, or click to select files"}</p>
+                                </div>
+                                <aside className='thumbs-container'>
+                                    {thumbs}
+                                </aside>
+                            </section>)}}
                 </Dropzone>
             </div>
         )

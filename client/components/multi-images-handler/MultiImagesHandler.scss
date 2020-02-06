@@ -1,5 +1,33 @@
 .multi-images-handler {
 
+  .dropzone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border-width: 2;
+    border-radius: 2;
+    border-color: #eeeeee;
+    border-style: dashed;
+    background-color: #fafafa;
+    color: #bdbdbd;
+    outline: none;
+    transition: border 0.24s ease-in-out;
+  }
+
+  .drag-active {
+    border-color: #2196f3;
+  }
+
+  .drag-accept {
+    border-color: #00e676;
+  }
+
+  .drag-reject {
+    border-color: #ff1744;
+  }
+
   .thumbs-container {
     display: flex;
     flex-direction: row;
@@ -7,7 +35,7 @@
     justify-content: space-evenly;
     margin-top: 0.5em;
   }
-  
+
   .thumb {
     display: inline-flex;
     border-radius: 2px;
