@@ -7,10 +7,12 @@ const logFile = require('debug')('model:file');
 const FILE_MODEL = 'files';
 const IMAGE_MODEL = 'images';
 const VIDEO_MODEL = 'videos';
+const AUDIO_MODEL = 'audios';
 const folders = {
     [FILE_MODEL]: 'files',
     [IMAGE_MODEL]: 'imgs',
-    [VIDEO_MODEL]: 'videos'
+    [VIDEO_MODEL]: 'videos',
+    [AUDIO_MODEL]: 'audios'
 };
 
 module.exports = function (app) {
@@ -91,5 +93,10 @@ module.exports = function (app) {
     app.get(`/${folders[VIDEO_MODEL]}/*`, function (req, res) {
         logFile("fileshandler routes for verb GET with /imgs/* is launched");
         allowFileAccess(req, res, VIDEO_MODEL);
+    });
+
+    app.get(`/${folders[AUDIO_MODEL]}/*`, function (req, res) {
+        logFile("fileshandler routes for verb GET with /audios/* is launched");
+        allowFileAccess(req, res, AUDIO_MODEL);
     });
 }
