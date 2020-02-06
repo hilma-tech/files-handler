@@ -31,9 +31,9 @@ module.exports = function FilesHandler(Model) {
         if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
 
         const isProd = process.env.NODE_ENV == 'production';
-        const baseFileDirPath = isProd ? './../../build' : './../../public';
+        const baseFileDirPath = isProd ? '../../../../../build' : '../../../../../public';
         let filePath = prevFileRes.path;
-        if (!isProd) filePath = filePath.replace('http://localhost:8080', '.');
+        if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
 
         try {
             const fullFilePath = path.join(__dirname, `${baseFileDirPath}${filePath}`);
@@ -69,7 +69,8 @@ module.exports = function FilesHandler(Model) {
             format: extension,
             created: Date.now(),
             dontSave: true,// dont let afterSave remote do anything- needed?
-            title: file.title
+            title: file.title,
+            description: file.description
         };
 
         logFile("fileObj before save", fileObj);
@@ -199,13 +200,13 @@ module.exports = function FilesHandler(Model) {
                     // If we are posting to and from the same model more than 1 file.. 
                     // Example: posting from Files (table) to Files (table) 2 files
                     let index = Object.keys(filesToSave).indexOf(fileKey);
-                    let fileId = null;
-                    if (index === 0 && Model === ModelToSave) fileId = modelInstance.id;
+                    let oldFileId = null;
+                    if (index === 0 && Model === ModelToSave) oldFileId = modelInstance.id;
 
-                    if (modelInstance[fileKey]) fileId = await Model.deleteFile(modelInstance[fileKey], ModelToSave);
-                    logFile("FileId right before saveFile is launched is", fileId);
+                    if (modelInstance[fileKey] && modelInstance[fileKey] !== {}) oldFileId = await Model.deleteFile(modelInstance[fileKey], ModelToSave);
+                    logFile("FileId right before saveFile is launched is", oldFileId);
 
-                    let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, fileId);
+                    let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, oldFileId);
                     if (!newFileId) { logFile("Couldn't create your file dude, aborting..."); continue; }
 
                     // If [fileKey] doesnt exist in Model then dont upsert
@@ -237,7 +238,7 @@ module.exports = function FilesHandler(Model) {
 
                     //calling a custom remote method after FilesHandler is done
                     let afhData = { model: ModelToSaveName, recordId: newFileId, principalId: fileOwnerId };
-                    Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
+                    Model.afterFilesHandler && await Model.afterFilesHandler(afhData, oldFileId, modelInstance, ctx);
                 };
             }
             return next();
