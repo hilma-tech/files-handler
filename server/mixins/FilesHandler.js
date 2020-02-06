@@ -212,7 +212,11 @@ module.exports = function FilesHandler(Model) {
                     // If [fileKey] doesnt exist in Model then dont upsert
                     let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
                     if (findErr || !findRes) { logFile("Error finding field, aborting...", findErr); continue; }
-                    if (!(fileKey in findRes)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/ }
+
+                    if (typeof findRes !== 'object') continue;
+                    let findResKeys = (findRes && findRes.__data) ? Object.keys(findRes.__data) : Object.keys(findRes);
+                    if (!findResKeys) continue;
+                    if (!findResKeys.includes(fileKey)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); }
                     else {
                         // Updating the row to include the id of the file added
                         let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
