@@ -146,6 +146,7 @@ module.exports = function FilesHandler(Model) {
 
         if (isMultiFilesSave) {
             let relations = Model.relations;
+            if (!relations) return logFile("No relations, couldn't save new file id reference in modelThrough...");
             for (let relationName in relations) {
                 let relation = relations[relationName];
                 if (relation.type !== "hasMany") continue;
@@ -155,20 +156,19 @@ module.exports = function FilesHandler(Model) {
                 let modelThrough = relation.modelThrough;
                 let keyTo = relation.keyTo;
 
-                let newModelThroughInstance = {};
+                let newModelThroughInstance = {created: Date.now(), modified: Date.now()};
                 newModelThroughInstance[keyTo] = modelInstance.id;
                 newModelThroughInstance[fileKey] = newFileId;
 
-                logFile("modelThrough", modelThrough.properties)
+                // If [fileKey] doesnt exist in Model then don't upsert
+                let modelThroughProperties = modelThrough.definition.properties;
+                if (!modelThroughProperties || typeof modelThroughProperties !== "object") return logFile("No properties object, couldn't save new file id reference in modelThrough...");
+                if (!Object.keys(modelThroughProperties).includes(fileKey)) return logFile(`The field "${fileKey}" doesnt exist in modelThrough ${modelThrough}, skipping upsert to that field...`);
 
                 // Creating a new row at modelThrough to include the relation between the newModelInstance & newFile
                 let [modelTroughErr, modelTroughRes] = await to(modelThrough.create(newModelThroughInstance));
                 if (modelTroughErr || !modelTroughRes) { logFile("Error creating new instance in modelThrough, aborting...", modelTroughErr); return; }
                 logFile(`New row created at model ${modelThrough.name} with ${keyTo}=${modelInstance.id}, ${fileKey}=${newFileId}`);
-
-                // if (!(fileKey in findRes)) {
-                //     logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/
-                // }
             }
         }
         else {
@@ -185,7 +185,7 @@ module.exports = function FilesHandler(Model) {
                 ));
                 logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
 
-                if (upsertErr) { logFile(`error upserting field "${fileKey}", aborting...`, upsertErr); return; }
+                if (upsertErr) { logFile(`Error upserting field "${fileKey}", aborting...`, upsertErr); return; }
             }
         }
 
