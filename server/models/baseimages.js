@@ -4,6 +4,7 @@ var path = require('path');
 var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
+const consts = require('../../consts/Consts')
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
@@ -17,17 +18,28 @@ module.exports = function (BaseImages) {
             const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';
             fData = ctx.data;
             let sizes;
-            if (fData.size < 800) {
-                sizes = ['s']
-            } else if (fData.size < 1500) {
-                sizes = ['s', 'm']
+            if (fData.size) {
+                if (fData.size < consts.medium) {
+                    sizes = ['s']
+                    fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.s.${fData.format}`;
+                } else {
+                    fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.m.${fData.format}`;
+                    if (fData.size < consts.large) {
+                        sizes = ['s', 'm']
+                    } else {
+                        sizes = ['s', 'm', 'l']
+                    }
+                }
+
+                fData.multiplesizes = []
+                for (let size of sizes) {
+                    fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
+                }
             } else {
-                sizes = ['s', 'm', 'l']
+                fData.multiplesizes = [];
+                fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
             }
-            fData.path = []
-            for (let size of sizes) {
-                fData.path.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
-            }
+
         };
         ctx.data = fData;
         next();

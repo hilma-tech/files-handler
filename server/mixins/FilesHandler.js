@@ -2,6 +2,7 @@
 const path = require('path');
 const resizeOptimizeImages = require('resize-optimize-images');
 const sizeOf = require('image-size');
+const consts =require('../../consts/Consts');
 
 const to = (promise) => {
     return promise.then(data => {
@@ -66,7 +67,7 @@ module.exports = function FilesHandler(Model) {
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
-        let size = await getImgWidth(base64Data);
+        let size = file.multipleSizes===true?await getImgWidth(base64Data):null;
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
             owner: ownerId,
@@ -99,10 +100,10 @@ module.exports = function FilesHandler(Model) {
                 logFile("New folder was created ", specificSaveDir);
             }
 
-            if (file.type === "image") {
+            if (file.type === "image"&&file.multipleSizes===true) {
                 let sizes = await tripleimg(specificSaveDir + newFile.id, extension,size)
 
-                logFile("sizes 7", sizes)
+                logFile("sizes", sizes)
                 sizes.map((size) => {
                     fs.writeFileSync(size.filePath, base64Data, 'base64');
                     resizeImg(size.filePath, size.width)
@@ -143,20 +144,20 @@ module.exports = function FilesHandler(Model) {
                 data = args[field];
                 if (typeof data !== "object" || !data || Array.isArray(data)) continue;
                 const dataKeys = Object.keys(data);
-
+                
                 for (let j = 0; j < dataKeys.length; j++) { // we are not using map func, because we cannot put async inside it.
                     key = dataKeys[j];
-
+                    
                     if (typeof data[key] !== "object" || !data[key] || !(data[key].src && data[key].type)) continue;
-                    if (key === 'imageSampleId') {
+                    if (data[key].type === 'image') {
                         let extension = getFileExtension(data[key].src);
                         if (!extension) return false;
                         let regex = getRegex(extension);
                         if (!regex) return false;
                         let base64Data = data[key].src.replace(regex, '');
-                        if ((await getImgWidth(base64Data)) < 200) {
+                        if ((await getImgWidth(base64Data)) < consts.small) {
                             console.error('ERR: img is to small')
-                            return;
+                            return false;
                         }
 
                     }
@@ -201,7 +202,7 @@ module.exports = function FilesHandler(Model) {
                 logFile("Iterating with field (%s)", field);
 
                 if (field === "options") continue;
-                if (!args[field] || !args[field].filesToSave) return next();
+                if (!args[field] || !args[field].filesToSave){ return next()};
                 let filesToSave = args[field].filesToSave;
 
                 for (let fileKey in filesToSave) {
@@ -379,6 +380,7 @@ function base64MimeType(encoded) {
 
 async function resizeImg(imgPath, width) {
 
+    logFile('width',width)
     const options = {
         images: [imgPath],
         width: width
@@ -394,13 +396,12 @@ async function getImgWidth(base64Data) {
 }
 
 async function tripleimg(fileTargetPath, extension,width) {
-    let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: 200 }]
-    if (width >= 800) {
-        logFile('in 800', width)
-        sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: 800 })
+    let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: consts.small }]
+    if (width >= consts.medium) {
+        sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: consts.medium })
     }
-    if (width >= 1500) {
-        sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: 1500 })
+    if (width >= consts.large) {
+        sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: consts.large })
     }
     return sizesPath;
 }
