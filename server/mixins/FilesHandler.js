@@ -46,9 +46,9 @@ module.exports = function FilesHandler(Model) {
         if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
 
         const isProd = process.env.NODE_ENV == 'production';
-        const baseFileDirPath = isProd ? './../../build' : './../../public';
+        const baseFileDirPath = isProd ? '../../../../../build' : '../../../../../public';
         let filePath = prevFileRes.path;
-        if (!isProd) filePath = filePath.replace('http://localhost:8080', '.');
+        if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
 
         try {
             const fullFilePath = path.join(__dirname, `${baseFileDirPath}${filePath}`);
@@ -84,7 +84,8 @@ module.exports = function FilesHandler(Model) {
             format: extension,
             created: Date.now(),
             dontSave: true,// dont let afterSave remote do anything- needed?
-            title: file.title
+            title: file.title,
+            description: file.description
         };
 
         logFile("fileObj before save", fileObj);
@@ -120,11 +121,7 @@ module.exports = function FilesHandler(Model) {
         return newFile.id;
     }
 
-    Model.updateFileReference = async function () {
-
-    }
-
-    Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, isMultiFilesSave = false) {
+    Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false) {
         let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
 
         logFile("FileModel - Should be either Images/Files/Video", FileModelName);
@@ -134,15 +131,15 @@ module.exports = function FilesHandler(Model) {
         let index = Array.isArray(filesToSave[fileKey]) ?
             filesToSave[fileKey].indexOf(file) : Object.keys(filesToSave).indexOf(fileKey);
 
-        let fileId = null;
+        let oldFileId = null;
 
-        if (index === 0 && Model === FileModel) fileId = modelInstance.id;
+        if (index === 0 && Model === FileModel) oldFileId = modelInstance.id;
 
-        if (modelInstance[fileKey]) fileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
-        logFile("FileId right before saveFile is launched is", fileId);
+        if (modelInstance[fileKey] && modelInstance[fileKey] !== {}) oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
+        logFile("FileId right before saveFile is launched is", oldFileId);
 
-        let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, fileId);
-        if (!newFileId) { logFile("Couldn't create your file, aborting..."); return; }
+        let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
+        if (!newFileId) return logFile("Couldn't create your file, aborting...");
 
         if (isMultiFilesSave) {
             let relations = Model.relations;
@@ -160,24 +157,26 @@ module.exports = function FilesHandler(Model) {
                 newModelThroughInstance[keyTo] = modelInstance.id;
                 newModelThroughInstance[fileKey] = newFileId;
 
-                // If [fileKey] doesnt exist in Model then don't upsert
+                // If [fileKey] doesn't exist in Model then don't upsert
                 let modelThroughProperties = modelThrough.definition.properties;
                 if (!modelThroughProperties || typeof modelThroughProperties !== "object") return logFile("No properties object, couldn't save new file id reference in modelThrough...");
                 if (!Object.keys(modelThroughProperties).includes(fileKey)) return logFile(`The field "${fileKey}" doesnt exist in modelThrough ${modelThrough}, skipping upsert to that field...`);
 
                 // Creating a new row at modelThrough to include the relation between the newModelInstance & newFile
                 let [modelTroughErr, modelTroughRes] = await to(modelThrough.create(newModelThroughInstance));
-                if (modelTroughErr || !modelTroughRes) { logFile("Error creating new instance in modelThrough, aborting...", modelTroughErr); return; }
+                if (modelTroughErr || !modelTroughRes) return logFile("Error creating new instance in modelThrough, aborting...", modelTroughErr);
                 logFile(`New row created at model ${modelThrough.name} with ${keyTo}=${modelInstance.id}, ${fileKey}=${newFileId}`);
             }
         }
         else {
-            // If [fileKey] doesnt exist in Model then don't upsert
+            // If [fileKey] doesn't exist in Model then don't upsert
             let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
-            if (findErr || !findRes) { logFile("Error finding field, aborting...", findErr); return; }
-            if (!(fileKey in findRes)) {
-                logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/
-            }
+            if (findErr || !findRes) return logFile("Error finding field, aborting...", findErr);
+            
+            if (typeof findRes !== 'object') return;
+            let findResKeys = (findRes && findRes.__data) ? Object.keys(findRes.__data) : Object.keys(findRes);
+            if (!findResKeys) return;
+            if (!findResKeys.includes(fileKey)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); }
             else {
                 // Updating the row to include the id of the file added
                 let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
@@ -185,7 +184,7 @@ module.exports = function FilesHandler(Model) {
                 ));
                 logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
 
-                if (upsertErr) { logFile(`Error upserting field "${fileKey}", aborting...`, upsertErr); return; }
+                if (upsertErr) return logFile(`Error upserting field "${fileKey}", aborting...`, upsertErr);
             }
         }
 
@@ -200,11 +199,11 @@ module.exports = function FilesHandler(Model) {
         }
         let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
         logFile("New permission row is created on RecordsPermissions model with data", rpData);
-        if (rpErr) { console.error(`Error granting permissions to file owner, aborting...`, rpErr); return; }
+        if (rpErr) return logFile(`Error granting permissions to file owner, aborting...`, rpErr);
 
         //calling a custom remote method after FilesHandler is done
         let afhData = { model: FileModelName, recordId: newFileId, principalId: fileOwnerId };
-        Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
+        Model.afterFilesHandler && await Model.afterFilesHandler(afhData, oldFileId, modelInstance, ctx);
     }
 
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
@@ -280,12 +279,12 @@ module.exports = function FilesHandler(Model) {
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
                             if (typeof fileOrFiles[j] !== "object") continue;
-                            await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, true);
+                            await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
                         }
                     }
                     else {
                         if (typeof fileOrFiles !== "object") continue;
-                        await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance);
+                        await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx);
                     }
                 }
             }
