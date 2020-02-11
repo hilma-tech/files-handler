@@ -12,6 +12,7 @@ export default class ImageUploader extends Component {
             thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || defaultThumbnail,
             // defaultValue: this.props.defaultValue || defaultThumbnail
         };
+        this.onChangeImg = this.onChangeImg.bind(this);
     }
 
     readFileToBase64 = (fileInfo) => {
@@ -38,7 +39,7 @@ export default class ImageUploader extends Component {
         this.props.onChange(eventObj);
     }
 
-    onChangeImg = async (e) => {
+    async onChangeImg(e) {
         // console.log("Image has changed");
         let base64String = await this.readFileToBase64(e.target.files[0]);
         this.setState({ thumbnail: base64String })
