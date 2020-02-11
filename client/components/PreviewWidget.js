@@ -16,7 +16,7 @@ export default class PreviewWidget extends Component {
                 {this.props.showPopup && <div className="dark-background" onClick={this.props.toggleShowPopup} />}
                 <div className={`image-popup ${this.props.showPopup ? "scale-in-center" : "scale-out-center"}`} >
                     {this.props.chosenImg}
-                    {(this.props.enableEdit || this.props.enableDelete) &&
+                    {(this.props.enableEdit || this.props.enableDelete) && !this.props.disabled &&
                         <div>
                             <div className="tool-bar-dark-background" />
                             <div className="tool-bar">

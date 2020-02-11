@@ -2,7 +2,7 @@
 const path = require('path');
 const resizeOptimizeImages = require('resize-optimize-images');
 const sizeOf = require('image-size');
-const consts =require('../../consts/Consts');
+const consts = require('../../consts/Consts.json');
 
 const to = (promise) => {
     return promise.then(data => {
@@ -12,13 +12,14 @@ const to = (promise) => {
 }
 
 const fs = require('fs');
+const logFile = require('debug')('model:file');
+
 const FILE_TYPE_FILE = 'file';
 const FILE_TYPE_IMAGE = 'image';
 const FILE_TYPE_VIDEO = 'video';
 const FILE_TYPE_AUDIO = 'audio';
 const USER = 'USER';
 const ALLOW = 'ALLOW';
-const logFile = require('debug')('model:file');
 const folders = {
     [FILE_TYPE_IMAGE]: 'imgs',
     [FILE_TYPE_FILE]: 'files',
@@ -28,16 +29,31 @@ const folders = {
 
 module.exports = function FilesHandler(Model) {
 
-    Model.deleteFile = async function (prevFileId, ModelToSave) {
+    Model.getFileModelOfFile = function (file) {
+        switch (file.type) {
+            case FILE_TYPE_IMAGE:
+                return [Model.app.models.Images, `${FILE_TYPE_IMAGE}s`]
+            case FILE_TYPE_FILE:
+                return [Model.app.models.Files, `${FILE_TYPE_FILE}s`]
+            case FILE_TYPE_VIDEO:
+                return [Model.app.models.Video, `${FILE_TYPE_VIDEO}s`]
+            case FILE_TYPE_AUDIO:
+                return [Model.app.models.Audio, `${FILE_TYPE_AUDIO}s`]
+            default:
+                return [null, null];
+        }
+    }
+
+    Model.deleteFile = async function (prevFileId, FileModel) {
         logFile("Model.deleteFile is launched now with prevFileId: ", prevFileId);
 
-        let [prevFileErr, prevFileRes] = await to(ModelToSave.findOne({ where: { id: prevFileId } }));
+        let [prevFileErr, prevFileRes] = await to(FileModel.findOne({ where: { id: prevFileId } }));
         if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
 
         const isProd = process.env.NODE_ENV == 'production';
-        const baseFileDirPath = isProd ? './../../build' : './../../public';
+        const baseFileDirPath = isProd ? '../../../../../build' : '../../../../../public';
         let filePath = prevFileRes.path;
-        if (!isProd) filePath = filePath.replace('http://localhost:8080', '.');
+        if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
 
         try {
             const fullFilePath = path.join(__dirname, `${baseFileDirPath}${filePath}`);
@@ -67,7 +83,7 @@ module.exports = function FilesHandler(Model) {
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
-        let size = file.multipleSizes===true?await getImgWidth(base64Data):null;
+        let size = file.multipleSizes === true ? await getImgWidth(base64Data) : null;
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
             owner: ownerId,
@@ -75,7 +91,8 @@ module.exports = function FilesHandler(Model) {
             created: Date.now(),
             dontSave: true,// dont let afterSave remote do anything- needed?
             title: file.title,
-            size:size
+            size: size,
+            description: file.description
         };
 
         logFile("fileObj before save", fileObj);
@@ -100,8 +117,8 @@ module.exports = function FilesHandler(Model) {
                 logFile("New folder was created ", specificSaveDir);
             }
 
-            if (file.type === "image"&&file.multipleSizes===true) {
-                let sizes = await tripleimg(specificSaveDir + newFile.id, extension,size)
+            if (file.type === "image" && file.multipleSizes === true) {
+                let sizes = await tripleimg(specificSaveDir + newFile.id, extension, size)
 
                 logFile("sizes", sizes)
                 sizes.map((size) => {
@@ -125,6 +142,91 @@ module.exports = function FilesHandler(Model) {
         return newFile.id;
     }
 
+    Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false) {
+        let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
+
+        logFile("FileModel - Should be either Images/Files/Video", FileModelName);
+
+        // If we are posting to and from the same model more than 1 file.. 
+        // Example: posting from Files (table) to Files (table) 2 files
+        let index = Array.isArray(filesToSave[fileKey]) ?
+            filesToSave[fileKey].indexOf(file) : Object.keys(filesToSave).indexOf(fileKey);
+
+        let oldFileId = null;
+
+        if (index === 0 && Model === FileModel) oldFileId = modelInstance.id;
+
+        if (modelInstance[fileKey] && modelInstance[fileKey] !== {}) oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
+        logFile("FileId right before saveFile is launched is", oldFileId);
+
+        let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
+        if (!newFileId) return logFile("Couldn't create your file, aborting...");
+
+        if (isMultiFilesSave) {
+            let relations = Model.relations;
+            if (!relations) return logFile("No relations, couldn't save new file id reference in modelThrough...");
+            for (let relationName in relations) {
+                let relation = relations[relationName];
+                if (relation.type !== "hasMany") continue;
+                if (relation.modelTo !== FileModel) continue;
+                if (relation.keyThrough !== fileKey) continue;
+
+                let modelThrough = relation.modelThrough;
+                let keyTo = relation.keyTo;
+
+                let newModelThroughInstance = { created: Date.now(), modified: Date.now() };
+                newModelThroughInstance[keyTo] = modelInstance.id;
+                newModelThroughInstance[fileKey] = newFileId;
+
+                // If [fileKey] doesn't exist in Model then don't upsert
+                let modelThroughProperties = modelThrough.definition.properties;
+                if (!modelThroughProperties || typeof modelThroughProperties !== "object") return logFile("No properties object, couldn't save new file id reference in modelThrough...");
+                if (!Object.keys(modelThroughProperties).includes(fileKey)) return logFile(`The field "${fileKey}" doesnt exist in modelThrough ${modelThrough}, skipping upsert to that field...`);
+
+                // Creating a new row at modelThrough to include the relation between the newModelInstance & newFile
+                let [modelTroughErr, modelTroughRes] = await to(modelThrough.create(newModelThroughInstance));
+                if (modelTroughErr || !modelTroughRes) return logFile("Error creating new instance in modelThrough, aborting...", modelTroughErr);
+                logFile(`New row created at model ${modelThrough.name} with ${keyTo}=${modelInstance.id}, ${fileKey}=${newFileId}`);
+            }
+        }
+        else {
+            // If [fileKey] doesn't exist in Model then don't upsert
+            let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
+            if (findErr || !findRes) return logFile("Error finding field, aborting...", findErr);
+
+            if (typeof findRes !== 'object') return;
+            let findResKeys = (findRes && findRes.__data) ? Object.keys(findRes.__data) : Object.keys(findRes);
+            if (!findResKeys) return;
+            if (!findResKeys.includes(fileKey)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); }
+            else {
+                // Updating the row to include the id of the file added
+                let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
+                    { id: modelInstance.id }, { [fileKey]: newFileId }
+                ));
+                logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
+
+                if (upsertErr) return logFile(`Error upserting field "${fileKey}", aborting...`, upsertErr);
+            }
+        }
+
+        // giving the owner of the file/image permission to view it
+        const rpModel = Model.app.models.RecordsPermissions;
+        let rpData = {
+            model: FileModelName,
+            recordId: newFileId,
+            principalType: USER,
+            principalId: fileOwnerId,
+            permission: ALLOW
+        }
+        let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
+        logFile("New permission row is created on RecordsPermissions model with data", rpData);
+        if (rpErr) return logFile(`Error granting permissions to file owner, aborting...`, rpErr);
+
+        //calling a custom remote method after FilesHandler is done
+        let afhData = { model: FileModelName, recordId: newFileId, principalId: fileOwnerId };
+        Model.afterFilesHandler && await Model.afterFilesHandler(afhData, oldFileId, modelInstance, ctx);
+    }
+
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
 
         logFile("Model.beforeRemote is launched", ctx.req.method);
@@ -137,34 +239,28 @@ module.exports = function FilesHandler(Model) {
         (async () => {
             const argsKeys = Object.keys(args);
 
-            
+
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
                 field = argsKeys[i];
                 if (field === "options") continue;
                 data = args[field];
                 if (typeof data !== "object" || !data || Array.isArray(data)) continue;
                 const dataKeys = Object.keys(data);
-                
+
                 for (let j = 0; j < dataKeys.length; j++) { // we are not using map func, because we cannot put async inside it.
                     key = dataKeys[j];
-                    
-                    if (typeof data[key] !== "object" || !data[key] || !(data[key].src && data[key].type)) continue;
-                    if (data[key].type === 'image') {
-                        let extension = getFileExtension(data[key].src);
-                        if (!extension) return false;
-                        let regex = getRegex(extension);
-                        if (!regex) return false;
-                        let base64Data = data[key].src.replace(regex, '');
-                        if ((await getImgWidth(base64Data)) < consts.small) {
-                            console.error('ERR: img is to small')
-                            return false;
-                        }
+                    let keyData = data[key];
+                    if (typeof keyData !== "object" || !keyData) continue;
+                    if (!Array.isArray(keyData) && !(keyData.src && keyData.type && !isImgTooSmall(keyData))) continue;
+                    if (Array.isArray(keyData) && !keyData.every(val =>
+                        (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
+                    // Array.isArray(keyData) && { keyData = keyData.filter(file => !isImgTooSmall(file)) };
 
-                    }
+                    keyData =Array.isArray(keyData)?keyData = keyData.filter(file => !isImgTooSmall(file)) :keyData;
 
-
-                    let filesToSave = ctx.args[field].filesToSave || {};
-                    filesToSave[key] = data[key];
+                    if (Array.isArray(keyData) && keyData.length === 0)continue;
+                        let filesToSave = ctx.args[field].filesToSave || {};
+                    filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
                     //the lines above take the data in dataObj and put it in obj called filesToSave inside dataObj
@@ -172,6 +268,7 @@ module.exports = function FilesHandler(Model) {
 
                 };
             }
+
             return next();
         })();
     });
@@ -199,84 +296,27 @@ module.exports = function FilesHandler(Model) {
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
 
                 let field = argsKeys[i];
+
                 logFile("Iterating with field (%s)", field);
 
                 if (field === "options") continue;
-                if (!args[field] || !args[field].filesToSave){ return next()};
+
+                if (!args[field] || !args[field].filesToSave) return next();
                 let filesToSave = args[field].filesToSave;
-
                 for (let fileKey in filesToSave) {
+                    const fileOrFiles = filesToSave[fileKey];
 
-                    const file = filesToSave[fileKey];
-                    if (typeof file !== "object") continue;
-                    let ModelToSave = null;
-                    let ModelToSaveName = null;
-                    switch (file.type) {
-                        case FILE_TYPE_IMAGE:
-                            ModelToSave = Model.app.models.Images;
-                            ModelToSaveName = `${FILE_TYPE_IMAGE}s`;
-                            break;
-                        case FILE_TYPE_FILE:
-                            ModelToSave = Model.app.models.Files;
-                            ModelToSaveName = `${FILE_TYPE_FILE}s`;
-                            break;
-                        case FILE_TYPE_VIDEO:
-                            ModelToSave = Model.app.models.Video;
-                            ModelToSaveName = `${FILE_TYPE_VIDEO}s`;
-                            break;
-                        // TODO Shira ? - add Audio model and a case for it ?
-                        case FILE_TYPE_AUDIO:
-                            ModelToSave = Model.app.models.Audio;
-                            ModelToSaveName = `${FILE_TYPE_AUDIO}s`;
-                            break;
-                        default: continue;
+                    if (Array.isArray(fileOrFiles)) {
+                        for (let j = 0; j < fileOrFiles.length; j++) {
+                            if (typeof fileOrFiles[j] !== "object") continue;
+                            await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
+                        }
                     }
-
-                    logFile("ModelToSave - Should be either Images/Files/Video", ModelToSaveName);
-
-                    // If we are posting to and from the same model more than 1 file.. 
-                    // Example: posting from Files (table) to Files (table) 2 files
-                    let index = Object.keys(filesToSave).indexOf(fileKey);
-                    let fileId = null;
-                    if (index === 0 && Model === ModelToSave) fileId = modelInstance.id;
-
-                    if (modelInstance[fileKey]) fileId = await Model.deleteFile(modelInstance[fileKey], ModelToSave);
-                    logFile("FileId right before saveFile is launched is", fileId);
-
-                    let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, fileId);
-                    if (!newFileId) { logFile("Couldn't create your file dude, aborting..."); continue; }
-
-                    // If [fileKey] doesnt exist in Model then dont upsert
-                    let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
-                    if (findErr || !findRes) { logFile("Error finding field, aborting...", findErr); continue; }
-                    if (!(fileKey in findRes)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/ }
                     else {
-                        // Updating the row to include the id of the file added
-                        let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
-                            { id: modelInstance.id }, { [fileKey]: newFileId }
-                        ));
-                        logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
-
-                        if (upsertErr) { logFile(`error upserting field "${fileKey}", aborting...`, upsertErr); continue; }
+                        if (typeof fileOrFiles !== "object") continue;
+                        await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx);
                     }
-
-                    // giving the owner of the file/image permission to view it
-                    const rpModel = Model.app.models.RecordsPermissions;
-                    let rpData = {
-                        model: ModelToSaveName,
-                        recordId: newFileId,
-                        principalType: USER,
-                        principalId: fileOwnerId,
-                        permission: ALLOW
-                    }
-                    let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
-                    logFile("New permission row is created on RecordsPermissions model with data", rpData);
-                    if (rpErr) { console.error(`Error granting permissions to file owner, aborting...`, rpErr); continue; }
-
-                    //calling a custom remote method after FilesHandler is done
-                    let afhData = { model: ModelToSaveName, recordId: newFileId, principalId: fileOwnerId };
-                    Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
-                };
+                }
             }
             return next();
         })();
@@ -380,7 +420,7 @@ function base64MimeType(encoded) {
 
 async function resizeImg(imgPath, width) {
 
-    logFile('width',width)
+    logFile('width', width)
     const options = {
         images: [imgPath],
         width: width
@@ -395,7 +435,7 @@ async function getImgWidth(base64Data) {
     return dimensions.width;
 }
 
-async function tripleimg(fileTargetPath, extension,width) {
+async function tripleimg(fileTargetPath, extension, width) {
     let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: consts.small }]
     if (width >= consts.medium) {
         sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: consts.medium })
@@ -404,6 +444,24 @@ async function tripleimg(fileTargetPath, extension,width) {
         sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: consts.large })
     }
     return sizesPath;
+}
+
+
+async function isImgTooSmall(keyData) {
+    if (keyData.type === 'image') {
+        let extension = getFileExtension(keyData.src);
+        if (!extension) return true;
+        let regex = getRegex(extension);
+        if (!regex) return true;
+        let base64Data = keyData.src.replace(regex, '');
+        if ((await getImgWidth(base64Data)) < consts.small) {
+            console.error('ERR: img is to small')
+            return true;
+        }
+
+
+    }
+    return false;
 }
 
 

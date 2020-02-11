@@ -4,7 +4,7 @@ var path = require('path');
 var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
-const consts = require('../../consts/Consts')
+const consts = require('../../consts/Consts.json')
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
@@ -31,6 +31,7 @@ module.exports = function (BaseImages) {
                     }
                 }
 
+                console.log('sizes',sizes)
                 fData.multiplesizes = []
                 for (let size of sizes) {
                     fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);

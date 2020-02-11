@@ -143,6 +143,7 @@ export default class ImageHandler extends Component {
                     <input
                         id={this.props.name}
                         onChange={this.onChangeImg}
+                        disabled={this.props.disabled}
                         name="image"
                         required={this.props.required || false}
                         type="file"
@@ -160,7 +161,7 @@ export default class ImageHandler extends Component {
                             </label>
 
                             {(this.state.thumbnail !== this.props.thumbnail) && (this.state.thumbnail !== this.defaultThumbnail) &&
-                                (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
+                                (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) && !this.props.disabled &&
 
                                 <div onClick={this.removeFile}>
                                     {this.props.removeFileIcon ||
@@ -175,7 +176,8 @@ export default class ImageHandler extends Component {
                             showPopup: this.state.showPopup,
                             toggleShowPopup: this.toggleShowPopup,
                             removeFile: this.removeFile,
-                            inputId: this.props.name
+                            inputId: this.props.name,
+                            disabled: this.props.disabled
                         })}
                 </div>
             </div>

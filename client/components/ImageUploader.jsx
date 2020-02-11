@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import defaultThumbnail from './../../imgs/default-thumbnail-img.png';
+import consts from '../../consts/Consts.json';
 
 /********************THIS VERSION WILL BE DEPRECATED************************/
 
@@ -11,8 +12,9 @@ export default class ImageUploader extends Component {
         this.state = {
             thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || defaultThumbnail,
             // defaultValue: this.props.defaultValue || defaultThumbnail
-            maxSize: this.props.maxSize || 625
+            maxSize: this.props.maxSize || consts.FILE_MAX_SIZE
         };
+        this.onChangeImg = this.onChangeImg.bind(this);
     }
 
     readFileToBase64 = (fileInfo) => {
@@ -39,9 +41,9 @@ export default class ImageUploader extends Component {
         this.props.onChange(eventObj);
     }
 
-    onChangeImg = async (e) => {
+    async onChangeImg(e) {
         let sizeMB = e.target.files[0].size * 0.001;
-        if (sizeMB > this.state.maxSize) {console.error('img is to big'); return;}
+        if (sizeMB > this.state.maxSize) { console.error('img is to big'); return; }
 
         // console.log("Image has changed");
         let base64String = await this.readFileToBase64(e.target.files[0]);
