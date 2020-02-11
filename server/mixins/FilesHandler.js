@@ -8,13 +8,14 @@ const to = (promise) => {
 }
 
 const fs = require('fs');
+const logFile = require('debug')('model:file');
+
 const FILE_TYPE_FILE = 'file';
 const FILE_TYPE_IMAGE = 'image';
 const FILE_TYPE_VIDEO = 'video';
 const FILE_TYPE_AUDIO = 'audio';
 const USER = 'USER';
 const ALLOW = 'ALLOW';
-const logFile = require('debug')('model:file');
 const folders = {
     [FILE_TYPE_IMAGE]: 'imgs',
     [FILE_TYPE_FILE]: 'files',

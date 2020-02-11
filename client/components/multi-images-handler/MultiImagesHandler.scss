@@ -1,5 +1,4 @@
 .multi-images-handler {
-
   .dropzone {
     flex: 1;
     display: flex;
@@ -28,35 +27,55 @@
     border-color: #ff1744;
   }
 
-  .thumbs-container {
+  .file-previews-container {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-evenly;
     margin-top: 0.5em;
-  }
 
-  .thumb {
-    display: inline-flex;
-    border-radius: 2px;
-    border: 1px solid lightgray;
-    margin-bottom: 1em;
-    // margin-right: 2%;
-    width: 8em;
-    height: 8em;
-    padding: 0.5em;
-    box-sizing: border-box;
-  }
+    .file-preview {
+      position: relative;
 
-  .thumb-inner {
-    display: flex;
-    min-width: 0;
-    overflow: hidden;
-  }
+      .thumb {
+        display: inline-flex;
+        border-radius: 2px;
+        border: 1px solid lightgray;
+        margin-bottom: 1em;
+        // margin-right: 2%;
+        width: 8em;
+        height: 8em;
+        padding: 0.5em;
+        box-sizing: border-box;
+      }
 
-  .img {
-    display: block;
-    width: 100%;
-    height: 100%;
+      .thumb-inner {
+        display: flex;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .thumb-inner img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .remove-icon img {
+        position: absolute;
+        right: -0.5em;
+        top: 0em;
+        height: 1.8em;
+        background-color: white;
+        border-radius: 15px;
+      }
+
+      .error-icon img {
+        position: absolute;
+        left: -0.5em;
+        top: 0em;
+        height: 2em;
+      }
+    }
   }
 }
