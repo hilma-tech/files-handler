@@ -61,12 +61,13 @@ module.exports = function (app) {
 
             const baseFileDirPath = process.env.NODE_ENV == 'production' ? 'build' : 'public';
             const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/${folders[fileModel]}/${req.params[0]}`;
-            const fileExtension = req.params[0].split('.')[1]; //pdf, mp3, wav...
+            let ext=req.params[0].split('.');
+            const fileExtension = ext[ext.length-1]; //pdf, mp3, wav...
 
             logFile("filePath?", filePath);
 
             let contentType = getContentType(fileExtension);
-            if (!contentType) { res.sendStatus(404); return; }
+            if (!contentType) {logFile(contentType); res.sendStatus(404); return; }
 
             fs.readFile(filePath, function (err, data) {
                 if (err) return res.sendStatus(404);

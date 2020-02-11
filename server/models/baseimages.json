@@ -127,6 +127,21 @@
         "dataScale": 0,
         "nullable": "Y"
       }
+    },
+    "size": {
+      "type": "Number",
+      "required": false,
+      "length": null,
+      "precision": 10,
+      "scale": 0,
+      "mysql": {
+        "columnName": "size",
+        "dataType": "int",
+        "dataLength": null,
+        "dataPrecision": 10,
+        "dataScale": 0,
+        "nullable": "Y"
+      }
     }
   },
   "acls": [
@@ -137,7 +152,7 @@
       "permission": "DENY"
     },
     {
-      "accessType": "WRITE",
+      "accessType": "*",
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW"

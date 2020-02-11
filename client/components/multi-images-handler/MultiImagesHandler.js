@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Dropzone from 'react-dropzone';
-import Consts from '../../../consts/Consts';
+import Consts from '../../../consts/Consts.json';
 import Tooltip from '@material-ui/core/Tooltip';
 import './MultiImagesHandler.scss';
 

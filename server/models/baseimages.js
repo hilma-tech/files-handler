@@ -4,6 +4,7 @@ var path = require('path');
 var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
+const consts = require('../../consts/Consts.json')
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
@@ -14,9 +15,32 @@ module.exports = function (BaseImages) {
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';            
+            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';
             fData = ctx.data;
-            fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
+            let sizes;
+            if (fData.size) {
+                if (fData.size < consts.medium) {
+                    sizes = ['s']
+                    fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.s.${fData.format}`;
+                } else {
+                    fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.m.${fData.format}`;
+                    if (fData.size < consts.large) {
+                        sizes = ['s', 'm']
+                    } else {
+                        sizes = ['s', 'm', 'l']
+                    }
+                }
+
+                console.log('sizes',sizes)
+                fData.multiplesizes = []
+                for (let size of sizes) {
+                    fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
+                }
+            } else {
+                fData.multiplesizes = [];
+                fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
+            }
+
         };
         ctx.data = fData;
         next();
@@ -33,7 +57,7 @@ module.exports = function (BaseImages) {
     BaseImages.downloadToServer = function (data, options, cb) {
 
         //DEPRECATED UNTIL WILL BE SECURED (Eran)
-        return cb(null,{});
+        return cb(null, {});
 
         let saveDir = path.join(__dirname, '../', '../', IMAGES_DIR, data.category);
         let extention = path.extname(data.url).substr(1);

@@ -1,5 +1,9 @@
 'use strict';
 const path = require('path');
+const resizeOptimizeImages = require('resize-optimize-images');
+const sizeOf = require('image-size');
+const consts = require('../../consts/Consts.json');
+
 const to = (promise) => {
     return promise.then(data => {
         return [null, data];
@@ -79,6 +83,7 @@ module.exports = function FilesHandler(Model) {
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
+        let size = file.multipleSizes === true ? await getImgWidth(base64Data) : null;
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
             owner: ownerId,
@@ -86,6 +91,7 @@ module.exports = function FilesHandler(Model) {
             created: Date.now(),
             dontSave: true,// dont let afterSave remote do anything- needed?
             title: file.title,
+            size: size,
             description: file.description
         };
 
@@ -98,26 +104,40 @@ module.exports = function FilesHandler(Model) {
         logFile("fileObj before save", fileObj);
 
         let specificSaveDir = saveDir + fileObj.category + "/";
-        let [err, newFile] = await to(FileModel.upsert(fileObj));
-
-        if (err) { console.error("Error creating file, aborting...", err); return false }
+        let [errr, newFile] = await to(FileModel.upsert(fileObj));
+        if (errr) { console.error("Error creating file, aborting...", errr); return false }
         logFile("New entry created for model ", file.type, newFile);
 
-        let fileTargetPath = null;
 
+
+        let fileTargetPath = null;
         try {
             if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
                 fs.mkdirSync(specificSaveDir, { recursive: true });
                 logFile("New folder was created ", specificSaveDir);
             }
 
-            fileTargetPath = specificSaveDir + newFile.id + "." + extension;
-            fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+            if (file.type === "image" && file.multipleSizes === true) {
+                let sizes = await tripleimg(specificSaveDir + newFile.id, extension, size)
+
+                logFile("sizes", sizes)
+                sizes.map((size) => {
+                    fs.writeFileSync(size.filePath, base64Data, 'base64');
+                    resizeImg(size.filePath, size.width)
+                })
+            } else {
+                fileTargetPath = specificSaveDir + newFile.id + "." + extension;
+                fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+            }
+
+
+
+
         } catch (err) {
             logFile("Err", err);
         }
 
-        logFile("New file was created of type (%s) on path (%s)", file.type, fileTargetPath);
+        logFile("New file was created of type (%s) on path (%s)", file.type);
         logFile("New file id", newFile.id)
         return newFile.id;
     }
@@ -154,7 +174,7 @@ module.exports = function FilesHandler(Model) {
                 let modelThrough = relation.modelThrough;
                 let keyTo = relation.keyTo;
 
-                let newModelThroughInstance = {created: Date.now(), modified: Date.now()};
+                let newModelThroughInstance = { created: Date.now(), modified: Date.now() };
                 newModelThroughInstance[keyTo] = modelInstance.id;
                 newModelThroughInstance[fileKey] = newFileId;
 
@@ -173,7 +193,7 @@ module.exports = function FilesHandler(Model) {
             // If [fileKey] doesn't exist in Model then don't upsert
             let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
             if (findErr || !findRes) return logFile("Error finding field, aborting...", findErr);
-            
+
             if (typeof findRes !== 'object') return;
             let findResKeys = (findRes && findRes.__data) ? Object.keys(findRes.__data) : Object.keys(findRes);
             if (!findResKeys) return;
@@ -219,6 +239,7 @@ module.exports = function FilesHandler(Model) {
         (async () => {
             const argsKeys = Object.keys(args);
 
+
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
                 field = argsKeys[i];
                 if (field === "options") continue;
@@ -230,13 +251,21 @@ module.exports = function FilesHandler(Model) {
                     key = dataKeys[j];
                     let keyData = data[key];
                     if (typeof keyData !== "object" || !keyData) continue;
-                    if (!Array.isArray(keyData) && !(keyData.src && keyData.type)) continue;
+                    if (!Array.isArray(keyData) && !(keyData.src && keyData.type && !isImgTooSmall(keyData))) continue;
                     if (Array.isArray(keyData) && !keyData.every(val =>
                         (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
-                    let filesToSave = ctx.args[field].filesToSave || {};
+                    // Array.isArray(keyData) && { keyData = keyData.filter(file => !isImgTooSmall(file)) };
+
+                    keyData =Array.isArray(keyData)?keyData = keyData.filter(file => !isImgTooSmall(file)) :keyData;
+
+                    if (Array.isArray(keyData) && keyData.length === 0)continue;
+                        let filesToSave = ctx.args[field].filesToSave || {};
                     filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
+                    //the lines above take the data in dataObj and put it in obj called filesToSave inside dataObj
+                    //so we can later take it and add it to the file/img/audio table
+
                 };
             }
 
@@ -388,3 +417,51 @@ function base64MimeType(encoded) {
     if (mime && mime.length) return mime[1];
     return null;
 }
+
+async function resizeImg(imgPath, width) {
+
+    logFile('width', width)
+    const options = {
+        images: [imgPath],
+        width: width
+    };
+
+    await resizeOptimizeImages(options);
+
+}
+async function getImgWidth(base64Data) {
+    let img = new Buffer(base64Data, 'base64');
+    let dimensions = sizeOf(img)
+    return dimensions.width;
+}
+
+async function tripleimg(fileTargetPath, extension, width) {
+    let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: consts.small }]
+    if (width >= consts.medium) {
+        sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: consts.medium })
+    }
+    if (width >= consts.large) {
+        sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: consts.large })
+    }
+    return sizesPath;
+}
+
+
+async function isImgTooSmall(keyData) {
+    if (keyData.type === 'image') {
+        let extension = getFileExtension(keyData.src);
+        if (!extension) return true;
+        let regex = getRegex(extension);
+        if (!regex) return true;
+        let base64Data = keyData.src.replace(regex, '');
+        if ((await getImgWidth(base64Data)) < consts.small) {
+            console.error('ERR: img is to small')
+            return true;
+        }
+
+
+    }
+    return false;
+}
+
+
