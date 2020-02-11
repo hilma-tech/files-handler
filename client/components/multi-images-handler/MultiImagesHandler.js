@@ -9,16 +9,14 @@ export default class MultiImagesHandler extends Component { // change "image" to
         super(props);
 
         this.state = {
-            acceptedfilesPreviews: [],
-            rejectedFilesPreviews: []
+            files: []
         };
 
         this.type = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS).includes(this.props.type) ? this.props.type : Consts.FILE_TYPE_IMAGE;
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
-        let acceptedfilesPreviews = [];
-        let rejectedFilesPreviews = [];
+        let files = [];
         let acceptedFilesObjs = [];
 
         for (let i = 0; i < acceptedfiles.length; i++) {
@@ -33,26 +31,26 @@ export default class MultiImagesHandler extends Component { // change "image" to
                 relatedModelToSaveImgId: this.props.relatedModelToSaveImgId || {}
             };
 
-            acceptedfilesPreviews.push({ preview: base64String });
+            files.push({ preview: base64String, status: Consts.FILE_ACCEPTED, errMsg: null });
             acceptedFilesObjs.push(fileObj);
         }
 
         for (let i = 0; i < rejectedFiles.length; i++) {
             let base64String = await this.readFileToBase64(rejectedFiles[i]);
-            rejectedFilesPreviews.push({ preview: base64String });
+            console.log("rejectedFiles[i]", rejectedFiles[i])
+            files.push({ preview: base64String, status: Consts.FILE_REJECTED, errMsg: "erroe msg" });
         }
 
-        // Display previews of the accepted files
-        this.setState({ acceptedfilesPreviews, rejectedFilesPreviews });
+        // Display previews of dropped files
+        this.setState({ files });
 
-        // Calls the onChange callback
+        // Calls the onChange callback with the accepted files
         let eventObj = { target: { name: this.props.name || "multiImagesHandler", value: acceptedFilesObjs } };
         this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     };
 
     onDropAccepted = async (files) => {
         console.log("onDropAccepted", files)
-        
     }
 
     onDropRejected = async (files) => {
@@ -74,7 +72,13 @@ export default class MultiImagesHandler extends Component { // change "image" to
         })
     }
 
-    getFilePreview = (file, errMsg = null) => {
+    getRejectedFileErrorMsg = (file) => {
+        if (file.size < Consts.FILE_MIN_SIZE) return "Error: the file is too small";
+        if (file.size > Consts.FILE_MAX_SIZE) return "Error: the file is too big";
+        let type = file.type.split('/')
+    }
+
+    getFilePreview = (file) => {
         return (
             <div className="file-preview">
                 <div className='thumb'>
@@ -85,9 +89,9 @@ export default class MultiImagesHandler extends Component { // change "image" to
                 <div className="remove-icon" onClick={this.removeFile}>
                     <img src={require('../../../imgs/x-icon.png')} alt="x" />
                 </div>
-                {errMsg &&
+                {file.status === Consts.FILE_REJECTED &&
                     <div className="error-icon">
-                        <Tooltip title={errMsg} placement="left" arrow>
+                        <Tooltip title={file.errMsg} placement="left">
                             <img src={require('../../../imgs/error.svg')} alt="error accepting the file" />
                         </Tooltip>
                     </div>}
@@ -96,14 +100,9 @@ export default class MultiImagesHandler extends Component { // change "image" to
     }
 
     render() {
-        const acceptedfilesPreviews = this.state.acceptedfilesPreviews.map((file, i) => (
+        const filePreviews = this.state.files.map((file, i) => (
             <div key={i}>
                 {this.getFilePreview(file)}
-            </div>
-        ));
-        const rejectedFilesPreviews = this.state.rejectedFilesPreviews.map((file, i) => (
-            <div key={i}>
-                {this.getFilePreview(file, "error")}
             </div>
         ));
 
@@ -134,8 +133,7 @@ export default class MultiImagesHandler extends Component { // change "image" to
                                     <p>{this.props.label || "Drag & drop some files here, or click to select files"}</p>
                                 </div>
                                 <aside className='file-previews-container'>
-                                    {acceptedfilesPreviews}
-                                    {rejectedFilesPreviews}
+                                    {filePreviews}
                                 </aside>
                             </section>)}}
                 </Dropzone>
