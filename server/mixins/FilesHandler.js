@@ -108,8 +108,6 @@ module.exports = function FilesHandler(Model) {
         if (errr) { console.error("Error creating file, aborting...", errr); return false }
         logFile("New entry created for model ", file.type, newFile);
 
-
-
         let fileTargetPath = null;
         try {
             if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
@@ -129,10 +127,6 @@ module.exports = function FilesHandler(Model) {
                 fileTargetPath = specificSaveDir + newFile.id + "." + extension;
                 fs.writeFileSync(fileTargetPath, base64Data, 'base64');
             }
-
-
-
-
         } catch (err) {
             logFile("Err", err);
         }
@@ -143,6 +137,7 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false) {
+
         let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
 
         logFile("FileModel - Should be either Images/Files/Video", FileModelName);
@@ -252,26 +247,25 @@ module.exports = function FilesHandler(Model) {
                     let keyData = data[key];
                     if (!keyData || typeof keyData !== "object") continue;
 
+                    let isImgInRange = null;
+
                     if (!Array.isArray(keyData)) {
-                        let isimgInRange = await isImgSizeInRange(keyData);
-                        if (!keyData.src || !keyData.type || !isimgInRange) continue;
+                        if (!keyData.src || !keyData.type) continue;
+                        isImgInRange = await isImgSizeInRange(keyData);
                     }
                     else { // keyData is an array
                         if (!keyData.every(val =>
                             (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
 
-                        let filteredKeyData = [];
                         for (let z = 0; z < keyData.length; z++) {
-                            let isimgInRange = await isImgSizeInRange(keyData[z]);
-                            if (isimgInRange) filteredKeyData.push(keyData[z]);
+                            isImgInRange = await isImgSizeInRange(keyData[z]);
+                            if (!isImgInRange) keyData[z] = null;
                         }
-
-                        keyData = filteredKeyData;
-                        if (keyData.length === 0) continue;
+                        // if (keyData.every())
                     }
 
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    filesToSave[key] = keyData;
+                    filesToSave[key] = isImgInRange ? keyData : null;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
                     //the lines above take the data in dataObj and put it in obj called filesToSave inside dataObj
@@ -315,16 +309,20 @@ module.exports = function FilesHandler(Model) {
                 if (!args[field] || !args[field].filesToSave) return next();
                 let filesToSave = args[field].filesToSave;
                 for (let fileKey in filesToSave) {
+
+                    // TODO: delete the extra row
+                    // TODO: check if file.type is img before chcking it's size
+
                     const fileOrFiles = filesToSave[fileKey];
 
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
-                            if (typeof fileOrFiles[j] !== "object") continue;
+                            if (!fileOrFiles[j] || typeof fileOrFiles[j] !== "object") continue;
                             await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
                         }
                     }
                     else {
-                        if (typeof fileOrFiles !== "object") continue;
+                        if (!fileOrFiles || typeof fileOrFiles !== "object") continue;
                         await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx);
                     }
                 }
@@ -440,6 +438,7 @@ async function resizeImg(imgPath, width) {
     await resizeOptimizeImages(options);
 
 }
+
 async function getImgWidth(base64Data) {
     let img = new Buffer(base64Data, 'base64');
     let dimensions = sizeOf(img)
@@ -457,7 +456,6 @@ async function tripleimg(fileTargetPath, extension, width) {
     return sizesPath;
 }
 
-
 async function isImgSizeInRange(keyData) {
     if (keyData.type === 'image') {
         let extension = getFileExtension(keyData.src);
@@ -469,10 +467,6 @@ async function isImgSizeInRange(keyData) {
             console.error('ERR: img is to small')
             return false;
         }
-
-
     }
     return true;
 }
-
-
