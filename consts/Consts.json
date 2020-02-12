@@ -1,44 +1,13 @@
 {
-    "FILE_MIN_SIZE": 100000,
-    "FILE_MAX_SIZE": 5120,
     "FILE_TYPE_FILE": "file",
     "FILE_TYPE_IMAGE": "image",
     "FILE_TYPE_VIDEO": "video",
     "FILE_TYPE_AUDIO": "audio",
-    "FILE_EXTENSIONS_FILE": [
-        "pdf",
-        "doc",
-        "docx"
-    ],
-    "FILE_EXTENSIONS_IMAGE": [
-        "png",
-        "jpeg",
-        "jpg",
-        "gif",
-        "svg"
-    ],
-    "FILE_EXTENSIONS_VIDEO": [
-        "mp3",
-        "wav",
-        "webm"
-    ],
-    "FILE_EXTENSIONS_AUDIO": [
-        "mp4",
-        "ogg",
-        "avi",
-        "webm"
-    ],
 
+    "FILE_ACCEPTED": "accepted",
+    "FILE_REJECTED": "rejected",
 
-
-    
-      "USER"  : "USER" ,
-      "ALLOW"  : "ALLOW" ,
-
-     " FILE_ACCEPTED"  : "accepted",
-      "FILE_REJECTED"  : "rejected",
-
-      "FILE_TYPES"  : {
+    "FILE_TYPES_AND_EXTENSIONS_AND_MIMES": {
         "file": {
             "pdf": "application/pdf",
             "doc": "application/msword",
@@ -46,7 +15,7 @@
         },
         "image": {
             "jpg": "image/jpeg",
-            "png":"image/png",
+            "png": "image/png",
             "jpeg": "image/jpeg",
             "gif": "image/gif",
             "svg": "image/svg+xml"
@@ -63,7 +32,21 @@
             "webm": "video/webm"
         }
     },
-    "small":200 ,
-    "medium" : 800,
-     "large" : 1200
+
+    "FOLDERS": {
+        "file": "files",
+        "image": "imgs",
+        "video": "videos",
+        "audio": "audios"
+    },
+
+    "FILE_MIN_SIZE_IN_KB": 0,
+    "FILE_MAX_SIZE_IN_KB": 5000,
+
+    "IMAGE_SIZE_SMALL_IN_PX": 200,
+    "IMAGE_SIZE_MEDIUM_IN_PX": 800,
+    "IMAGE_SIZE_LARGE_IN_PX": 1200,
+
+    "USER": "USER",
+    "ALLOW": "ALLOW"
 }

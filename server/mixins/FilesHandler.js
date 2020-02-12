@@ -2,8 +2,9 @@
 const path = require('path');
 const resizeOptimizeImages = require('resize-optimize-images');
 const sizeOf = require('image-size');
-const consts = require('../../consts/Consts.json');
-
+const Consts = require('../../consts/Consts.json');
+const fs = require('fs');
+const logFile = require('debug')('model:file');
 const to = (promise) => {
     return promise.then(data => {
         return [null, data];
@@ -11,34 +12,18 @@ const to = (promise) => {
         .catch(err => [err]);
 }
 
-const fs = require('fs');
-const logFile = require('debug')('model:file');
-
-const FILE_TYPE_FILE = 'file';
-const FILE_TYPE_IMAGE = 'image';
-const FILE_TYPE_VIDEO = 'video';
-const FILE_TYPE_AUDIO = 'audio';
-const USER = 'USER';
-const ALLOW = 'ALLOW';
-const folders = {
-    [FILE_TYPE_IMAGE]: 'imgs',
-    [FILE_TYPE_FILE]: 'files',
-    [FILE_TYPE_VIDEO]: 'videos',
-    [FILE_TYPE_AUDIO]: 'audios'
-};
-
 module.exports = function FilesHandler(Model) {
 
     Model.getFileModelOfFile = function (file) {
         switch (file.type) {
-            case FILE_TYPE_IMAGE:
-                return [Model.app.models.Images, `${FILE_TYPE_IMAGE}s`]
-            case FILE_TYPE_FILE:
-                return [Model.app.models.Files, `${FILE_TYPE_FILE}s`]
-            case FILE_TYPE_VIDEO:
-                return [Model.app.models.Video, `${FILE_TYPE_VIDEO}s`]
-            case FILE_TYPE_AUDIO:
-                return [Model.app.models.Audio, `${FILE_TYPE_AUDIO}s`]
+            case Consts.FILE_TYPE_IMAGE:
+                return [Model.app.models.Images, `${Consts.FILE_TYPE_IMAGE}s`]
+            case Consts.FILE_TYPE_FILE:
+                return [Model.app.models.Files, `${Consts.FILE_TYPE_FILE}s`]
+            case Consts.FILE_TYPE_VIDEO:
+                return [Model.app.models.Video, `${Consts.FILE_TYPE_VIDEO}s`]
+            case Consts.FILE_TYPE_AUDIO:
+                return [Model.app.models.Audio, `${Consts.FILE_TYPE_AUDIO}s`]
             default:
                 return [null, null];
         }
@@ -108,8 +93,6 @@ module.exports = function FilesHandler(Model) {
         if (errr) { console.error("Error creating file, aborting...", errr); return false }
         logFile("New entry created for model ", file.type, newFile);
 
-
-
         let fileTargetPath = null;
         try {
             if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
@@ -129,10 +112,6 @@ module.exports = function FilesHandler(Model) {
                 fileTargetPath = specificSaveDir + newFile.id + "." + extension;
                 fs.writeFileSync(fileTargetPath, base64Data, 'base64');
             }
-
-
-
-
         } catch (err) {
             logFile("Err", err);
         }
@@ -214,9 +193,9 @@ module.exports = function FilesHandler(Model) {
         let rpData = {
             model: FileModelName,
             recordId: newFileId,
-            principalType: USER,
+            principalType: Consts.USER,
             principalId: fileOwnerId,
-            permission: ALLOW
+            permission: Consts.ALLOW
         }
         let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
         logFile("New permission row is created on RecordsPermissions model with data", rpData);
@@ -256,10 +235,10 @@ module.exports = function FilesHandler(Model) {
                         (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
                     // Array.isArray(keyData) && { keyData = keyData.filter(file => !isImgTooSmall(file)) };
 
-                    keyData =Array.isArray(keyData)?keyData = keyData.filter(file => !isImgTooSmall(file)) :keyData;
+                    keyData = Array.isArray(keyData) ? keyData = keyData.filter(file => !isImgTooSmall(file)) : keyData;
 
-                    if (Array.isArray(keyData) && keyData.length === 0)continue;
-                        let filesToSave = ctx.args[field].filesToSave || {};
+                    if (Array.isArray(keyData) && keyData.length === 0) continue;
+                    let filesToSave = ctx.args[field].filesToSave || {};
                     filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
@@ -326,7 +305,7 @@ module.exports = function FilesHandler(Model) {
 function getSaveDir(type) {
     try {
         const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
-        const saveDir = path.join(__dirname, `${baseFileDirPath}/${folders[type]}/`);
+        const saveDir = path.join(__dirname, `${baseFileDirPath}/${Consts.folders[type]}/`);
         if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
             fs.mkdirSync(saveDir, { recursive: true });
             logFile("New folder was created ", saveDir);
@@ -436,12 +415,12 @@ async function getImgWidth(base64Data) {
 }
 
 async function tripleimg(fileTargetPath, extension, width) {
-    let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: consts.small }]
-    if (width >= consts.medium) {
-        sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: consts.medium })
+    let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: Consts.IMAGE_SIZE_SMALL_IN_PX }]
+    if (width >= Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
+        sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: Consts.IMAGE_SIZE_MEDIUM_IN_PX })
     }
-    if (width >= consts.large) {
-        sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: consts.large })
+    if (width >= Consts.IMAGE_SIZE_LARGE_IN_PX) {
+        sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: Consts.IMAGE_SIZE_LARGE_IN_PX })
     }
     return sizesPath;
 }
@@ -454,7 +433,7 @@ async function isImgTooSmall(keyData) {
         let regex = getRegex(extension);
         if (!regex) return true;
         let base64Data = keyData.src.replace(regex, '');
-        if ((await getImgWidth(base64Data)) < consts.small) {
+        if ((await getImgWidth(base64Data)) < Consts.IMAGE_SIZE_SMALL_IN_PX) {
             console.error('ERR: img is to small')
             return true;
         }

@@ -12,7 +12,15 @@ export default class MultiImagesHandler extends Component { // change "image" to
             files: []
         };
 
-        this.type = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS).includes(this.props.type) ? this.props.type : Consts.FILE_TYPE_IMAGE;
+        this.type = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
+            this.props.type : Consts.FILE_TYPE_IMAGE;
+        this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
+            this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB) * 1000;
+        this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
+            this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
+        // this.accept = this.props.accept && Array.isArray(this.props.accept) &&
+        //     this.props.accept.every(extention => Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[this.type]).includes(extention) ?
+        //         this.props.accept.joine(", ") : `${this.type}/*`;
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
@@ -73,9 +81,14 @@ export default class MultiImagesHandler extends Component { // change "image" to
     }
 
     getRejectedFileErrorMsg = (file) => {
-        if (file.size < Consts.FILE_MIN_SIZE) return "Error: the file is too small";
-        if (file.size > Consts.FILE_MAX_SIZE) return "Error: the file is too big";
-        let type = file.type.split('/')
+        if (file.size < this.minSizeInBytes) return "Error: the file is too small";
+        if (file.size > this.maxSizeInBytes) return "Error: the file is too big";
+
+
+        // let acceptedMimeTypes = this.props.accept.map(extention => {
+        //     extention = extention.slice(1, extention.length);
+        //     Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[extention] = 
+        //     })
     }
 
     getFilePreview = (file) => {
@@ -112,9 +125,9 @@ export default class MultiImagesHandler extends Component { // change "image" to
                     onDrop={this.onDrop}
                     onDropAccepted={this.onDropAccepted}
                     onDropRejected={this.onDropRejected}
-                    accept={this.props.accept || `${this.type}/*`}
-                    minSize={this.props.minSize || Consts.FILE_MIN_SIZE}
-                    maxSize={this.props.maxSize || Consts.FILE_MAX_SIZE}
+                    accept={this.accept}
+                    minSize={this.minSizeInBytes}
+                    maxSize={this.maxSizeInBytes}
                     noClick={this.props.onClick}
                     noDrag={this.props.noDrag}
                     noKeyBoard={this.props.noKeyBoard}
@@ -135,7 +148,8 @@ export default class MultiImagesHandler extends Component { // change "image" to
                                 <aside className='file-previews-container'>
                                     {filePreviews}
                                 </aside>
-                            </section>)}}
+                            </section>)
+                    }}
                 </Dropzone>
             </div>
         )

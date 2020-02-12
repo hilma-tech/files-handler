@@ -89,10 +89,10 @@ export default class MultiImagesHandlerView extends Component {
                             disabled={isSubmited}
                             
                             type="image" // image, audio, video, file
-                            // accept="" // Accepting specific file types !mime types
+                            // accept=[".png", ".jpg"] // Accepting specific file types !mime types, one type!
 
-                            // maxSize={} //bytes
-                            // minSize={} //bytes
+                            // maxSizeInKB={}
+                            // minSizeInKB={}
                             
                             // noClick=""
                             // noDrag=""

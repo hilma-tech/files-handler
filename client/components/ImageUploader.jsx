@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import defaultThumbnail from './../../imgs/default-thumbnail-img.png';
-import consts from '../../consts/Consts.json';
+import Consts from '../../consts/Consts.json';
 
 /********************THIS VERSION WILL BE DEPRECATED************************/
 
@@ -12,7 +12,7 @@ export default class ImageUploader extends Component {
         this.state = {
             thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || defaultThumbnail,
             // defaultValue: this.props.defaultValue || defaultThumbnail
-            maxSize: this.props.maxSize || consts.FILE_MAX_SIZE
+            maxSize: this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB
         };
         this.onChangeImg = this.onChangeImg.bind(this);
     }

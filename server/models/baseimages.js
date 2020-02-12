@@ -4,7 +4,7 @@ var path = require('path');
 var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
-const consts = require('../../consts/Consts.json')
+const Consts = require('../../consts/Consts.json')
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
@@ -19,12 +19,12 @@ module.exports = function (BaseImages) {
             fData = ctx.data;
             let sizes;
             if (fData.size) {
-                if (fData.size < consts.medium) {
+                if (fData.size < Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
                     sizes = ['s']
                     fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.s.${fData.format}`;
                 } else {
                     fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.m.${fData.format}`;
-                    if (fData.size < consts.large) {
+                    if (fData.size < Consts.IMAGE_SIZE_LARGE_IN_PX) {
                         sizes = ['s', 'm']
                     } else {
                         sizes = ['s', 'm', 'l']
@@ -45,10 +45,6 @@ module.exports = function (BaseImages) {
         ctx.data = fData;
         next();
     });
-
-
-
-
 
     /** 
     This function gets url and data of online image, and copies this image to our server.
@@ -132,10 +128,6 @@ module.exports = function (BaseImages) {
         returns: { arg: 'res', type: 'object', root: true }
     });
 };
-
-
-
-
 
 // ~~~~ EXAMPLE OF USAGE ~~~~ 
 
