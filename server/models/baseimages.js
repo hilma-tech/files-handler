@@ -16,7 +16,6 @@ module.exports = function (BaseImages) {
         }
         else {
             const hostName = EnvHandler.getHostName();
-            console.log("hostName",hostName)
             fData = ctx.data;
             let sizes;
             if (fData.size) {
