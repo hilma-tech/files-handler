@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Auth from '../../../auth/Auth'
+import Auth from '../../../auth/Auth';
 import FileUploader from '../../client/components/FileUploader';
 import AudioUploader from '../../client/components/AudioUploader';
 import ImageUploader from '../../client/components/ImageUploader';
@@ -20,6 +20,7 @@ export default class FileUploaderView extends Component {
     }
 
     handleFileChange = (fileEvent) => {
+        console.log(fileEvent)
         let name = (fileEvent.target && fileEvent.target.name) || null;
         let value = (fileEvent.target && fileEvent.target.value) || null;
         if (name && value) {
@@ -38,6 +39,7 @@ export default class FileUploaderView extends Component {
         return fieldsToSaveObj;
     }
 
+    
     upload = () => {
         let filesData = this.getFilesData();
 
@@ -65,7 +67,7 @@ export default class FileUploaderView extends Component {
     render() {
         let FileExample = " <FileUploader\n         category = 'uploaded_files'\n         name = 'fileSampleId'\n         required ={true}\n         onChange ={this.handleFileChange}\n         label = 'קורות חיים'\n/> ";
         let adiuoExample = " <AudioUploader \n category='uploaded_audio' \n name='audioSampleId' \n required={false} \n onChange={this.handleFileChange} \n label='Choose ur favorite song'\n/>"
-        let ingExample = " <ImageUploader \n category='uploaded_images' \n  name='imageSampleId' \n required={false} \n onChange={this.handleFileChange}\n label='Show us your dog'\n/>"
+        let ingExample = " <ImageUploader \n category='uploaded_images' \n  name='imageSampleId' \n required={false} \n onChange={this.handleFileChange}\n label='Show us your dog'\n multipleSizes=true \n maxSize={625}\n/>"
         let importFile="import FileUploader from '/src/modules/fileshandler/client/components/FileUploader.js'\n"
         let importAdiuo="import AudioUploader from '/src/modules/fileshandler/client/components/AudioUploader.js\n'"
         let importImage="import ImageUploader from '/src/modules/samples/ImageUploaderView.js'\n"
@@ -242,6 +244,8 @@ export default class FileUploaderView extends Component {
                             required={false}
                             onChange={this.handleFileChange}
                             label='תראה לנו את הכלב שלך'
+                            maxSize={625}
+                            multipleSizes={true}
                         // defaultThumbnailImageSrc=[PATH_TO_YOUR_DEFAULT_IMAGE]//a path in public, example:'/images/mydefaultimg.png'
                         />
                     </div>
@@ -306,6 +310,20 @@ export default class FileUploaderView extends Component {
                                     <td>String</td>
                                     <td>[PATH_TO_YOUR_DEFAULT_IMAGE] a path in public, example:'/images/mydefaultimg.png'</td>
                                     <td>-</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">7</th>
+                                    <td>maxSize</td>
+                                    <td>int</td>
+                                    <td>max size of img in kb</td>
+                                    <td>625kb</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">8</th>
+                                    <td>multipleSizes</td>
+                                    <td>boolean</td>
+                                    <td>save three sizes of img</td>
+                                    <td>false</td>
                                 </tr>
                             </tbody>
                         </table>
