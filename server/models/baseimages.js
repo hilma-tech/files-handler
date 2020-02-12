@@ -4,7 +4,8 @@ var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
 const EnvHandler = require('./../../../tools/server/lib/EnvHandler');
-const consts = require('../../consts/Consts.json')
+const consts = require('../../consts/Consts.json');
+
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
