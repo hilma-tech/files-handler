@@ -1,10 +1,26 @@
 [
     {
-        "filePath": "/FileUploaderView.js",
+        "filePath": "file-uploader-view/FileUploaderView.js",
         "componentName": "FileUploaderView",
         "route": "file-uploader",
-        "title":"File Uploader, Image Uploader, Audio Uploader"
-
+        "title": "File Uploader, Image Uploader, Audio Uploader"
+    },
+    {
+        "filePath": "/image-handler-view/ImageHandlerView.js",
+        "componentName": "ImageHandlerView",
+        "route": "image-handler",
+        "title": "Image Handler (the new image uploader)"
+    },
+    {
+        "filePath": "/multi-images-handler-view/MultiImagesHandlerView.js",
+        "componentName": "MultiImagesHandlerView",
+        "route": "multi-images-handler",
+        "title": "Multi Images Handler"
+    },
+    {
+        "filePath": "/create-game/CreateGame.js",
+        "componentName": "CreateGame",
+        "route": "create-game",
+        "title": "Upload image to relative model (by creating a new game)"
     }
-    
 ]

@@ -1,0 +1,45 @@
+.multi-images-handler-sample {
+  direction: ltr;
+
+  .image-input-samples {
+    display: flex;
+    justify-content: center;
+  }
+
+  p {
+    font-size: 1.5em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  .explanation {
+    text-align: left;
+  }
+
+  em {
+    background-color: lightgray;
+  }
+
+  .image-input-sample {
+    border: 3px black solid;
+    width: 50%;
+    margin: 2em;
+    margin-top: 1em;
+  }
+
+  .uploaded-images {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .figure-container img {
+    height: 15%;
+    margin: 2em;
+    margin-top: 1em;
+  }
+
+  button {
+    margin-bottom: 2em;
+  }
+}

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import Auth from "./../../auth/Auth";
-import ImageHandler from '../client/components/image-handler/ImageHandler';
-import PreviewWidget from '../client/components/PreviewWidget';
+import Auth from '../../../auth/Auth';
+import ImageHandler from '../../client/components/image-handler/ImageHandler';
+import PreviewWidget from '../../client/components/PreviewWidget';
 import './ImageHandlerView.scss';
 // import './Samples.scss';
 
@@ -22,7 +22,8 @@ export default class ImageHandlerView extends Component {
         super(props);
         this.state = {
             uploadedImages: [],
-            isSubmitDisabled: true
+            isSubmitDisabled: true,
+            isImgHandlerDisabled: false
         };
     }
 
@@ -47,7 +48,7 @@ export default class ImageHandlerView extends Component {
 
     upload = async () => {
 
-        this.setState({ isSubmitDisabled: true });
+        this.setState({ isSubmitDisabled: true, isImgHandlerDisabled: true });
 
         let filesData = this.getFilesData();
         console.log("about to upload files", filesData);
@@ -91,7 +92,7 @@ export default class ImageHandlerView extends Component {
                             name="imageSample1"
                             title="my-image"
                             onChange={this.handleFileChange}
-                            disabled={isSubmited}
+                            disabled={this.state.isImgHandlerDisabled}
                         />
                     </div>
 
@@ -103,7 +104,7 @@ export default class ImageHandlerView extends Component {
                             title="my-image"
                             theme="basic-theme"
                             onChange={this.handleFileChange}
-                            disabled={isSubmited}
+                            disabled={this.state.isImgHandlerDisabled}
                         />
                     </div>
 
@@ -115,7 +116,7 @@ export default class ImageHandlerView extends Component {
                             title="my-image"
                             theme="circle-theme"
                             onChange={this.handleFileChange}
-                            disabled={isSubmited}
+                            disabled={this.state.isImgHandlerDisabled}
                         />
                     </div>
                 </div>
@@ -137,7 +138,7 @@ export default class ImageHandlerView extends Component {
                             title="my-image"
                             previewWidget={<PreviewWidget />}
                             onChange={this.handleFileChange}
-                            disabled={isSubmited}
+                            disabled={this.state.isImgHandlerDisabled}
                         />
                     </div>
 
@@ -151,7 +152,7 @@ export default class ImageHandlerView extends Component {
                             theme="basic-theme"
                             previewWidget={<PreviewWidget enableEdit={true} />}
                             onChange={this.handleFileChange}
-                            disabled={isSubmited}
+                            disabled={this.state.isImgHandlerDisabled}
                         />
                     </div>
 
@@ -165,7 +166,7 @@ export default class ImageHandlerView extends Component {
                             theme="circle-theme"
                             previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                             onChange={this.handleFileChange}
-                            disabled={isSubmited}
+                            disabled={this.state.isImgHandlerDisabled}
                         />
                     </div>
                 </div>
@@ -177,7 +178,10 @@ export default class ImageHandlerView extends Component {
                 {!isSubmited ?
                     <button onClick={this.upload} disabled={this.state.isSubmitDisabled}>Submit</button> :
                     <div className="uploaded-images">
-                        {this.state.uploadedImages.map(uploadedImage => <UploadedImage key={uploadedImage.name} {...uploadedImage} />)}
+                        {this.state.uploadedImages.map((uploadedImage, i) =>
+                            <div key={i}>
+                                <UploadedImage {...uploadedImage} />
+                            </div>)}
                     </div>}
             </div>
         );

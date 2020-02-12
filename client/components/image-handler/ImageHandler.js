@@ -11,6 +11,8 @@ export default class ImageHandler extends Component {
 
         this.state = {
             thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || this.defaultThumbnail,
+            maxSize: this.props.maxSize || 625
+
         };
     }
 
@@ -39,6 +41,9 @@ export default class ImageHandler extends Component {
     }
 
     onChangeImg = async (e) => {
+        let sizeMB = e.target.files[0].size * 0.001;
+        if (sizeMB > this.state.maxSize) {console.error('img is to big'); return;}
+
         let base64String = await this.readFileToBase64(e.target.files[0]);
         this.setState({ thumbnail: base64String })
 
@@ -102,7 +107,7 @@ export default class ImageHandler extends Component {
 
         let [themeClassName, parentClassName, chosenImage, previewWidgetChosenImg] = this.getPropertiesForTheme();
 
-        if (!this.props.theme && !this.props.previewWidget) return( // Supports previous versions
+        if (!this.props.theme && !this.props.previewWidget) return ( // Supports previous versions
             <div>
                 {(this.state.thumbnail !== this.props.thumbnail)
                     && (this.state.thumbnail !== this.defaultThumbnail)

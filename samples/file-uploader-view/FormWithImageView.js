@@ -35,9 +35,9 @@ will be able to use it. (Not high priority)
 */
 
 import React, { Component } from 'react';
-import Auth from '../../auth/Auth';
-import Styles from './Samples.scss';
-import ImageUploader from './../client/components/ImageUploader';
+import Auth from '../../../auth/Auth';
+import Styles from '../Samples.scss';
+import ImageUploader from '../../client/components/ImageUploader';
 
 const UploadedImage=(props)=>{
     return(

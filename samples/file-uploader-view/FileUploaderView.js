@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import Auth from '../../auth/Auth'
-import FileUploader from '../client/components/FileUploader';
-import AudioUploader from '../client/components/AudioUploader';
-import ImageUploader from '../client/components/ImageUploader';
+import Auth from '../../../auth/Auth'
+import FileUploader from '../../client/components/FileUploader';
+import AudioUploader from '../../client/components/AudioUploader';
+import ImageUploader from '../../client/components/ImageUploader';
 import { renderToString } from 'react-dom/server'
 //import { UnControlled as CodeMirror } from 'react-codemirror2'
 import screenImg from "./screenShotImages.png"
