@@ -4,17 +4,19 @@ var path = require('path');
 var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
+const EnvHandler = require('./../../../tools/server/lib/EnvHandler');
+
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
-
         var fData;
         if (ctx.instance) {    //for first upload
             //  logImage("CTX.instance exists",ctx);
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';            
+            const hostName = EnvHandler.getHostName();
+            console.log("hostName",hostName)
             fData = ctx.data;
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
         };
