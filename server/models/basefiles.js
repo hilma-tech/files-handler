@@ -1,3 +1,4 @@
+const EnvHandler = require('./../../../tools/server/lib/EnvHandler');
 
 module.exports = function (BaseFiles) {
     BaseFiles.observe('loaded', function (ctx, next) {
@@ -7,7 +8,7 @@ module.exports = function (BaseFiles) {
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';
+            const hostName = EnvHandler.getHostName();
             fData = ctx.data;
             fData.path = `${hostName}/files/${fData.category}/${fData.id}.${fData.format}`;
         };
