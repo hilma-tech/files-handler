@@ -239,33 +239,43 @@ module.exports = function FilesHandler(Model) {
         (async () => {
             const argsKeys = Object.keys(args);
 
-
-            for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
+            // we are not using map funcs, because we cannot put async inside it.
+            for (let i = 0; i < argsKeys.length; i++) {
                 field = argsKeys[i];
                 if (field === "options") continue;
                 data = args[field];
-                if (typeof data !== "object" || !data || Array.isArray(data)) continue;
+                if (!data || typeof data !== "object" || Array.isArray(data)) continue;
                 const dataKeys = Object.keys(data);
 
-                for (let j = 0; j < dataKeys.length; j++) { // we are not using map func, because we cannot put async inside it.
+                for (let j = 0; j < dataKeys.length; j++) {
                     key = dataKeys[j];
                     let keyData = data[key];
-                    if (typeof keyData !== "object" || !keyData) continue;
-                    if (!Array.isArray(keyData) && !(keyData.src && keyData.type && !isImgTooSmall(keyData))) continue;
-                    if (Array.isArray(keyData) && !keyData.every(val =>
-                        (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
-                    // Array.isArray(keyData) && { keyData = keyData.filter(file => !isImgTooSmall(file)) };
+                    if (!keyData || typeof keyData !== "object") continue;
 
-                    keyData =Array.isArray(keyData)?keyData = keyData.filter(file => !isImgTooSmall(file)) :keyData;
+                    if (!Array.isArray(keyData)) {
+                        let isimgInRange = await isImgSizeInRange(keyData);
+                        if (!keyData.src || !keyData.type || !isimgInRange) continue;
+                    }
+                    else { // keyData is an array
+                        if (!keyData.every(val =>
+                            (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
 
-                    if (Array.isArray(keyData) && keyData.length === 0)continue;
-                        let filesToSave = ctx.args[field].filesToSave || {};
+                        let filteredKeyData = [];
+                        for (let z = 0; z < keyData.length; z++) {
+                            let isimgInRange = await isImgSizeInRange(keyData[z]);
+                            if (isimgInRange) filteredKeyData.push(keyData[z]);
+                        }
+
+                        keyData = filteredKeyData;
+                        if (keyData.length === 0) continue;
+                    }
+
+                    let filesToSave = ctx.args[field].filesToSave || {};
                     filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
                     //the lines above take the data in dataObj and put it in obj called filesToSave inside dataObj
                     //so we can later take it and add it to the file/img/audio table
-
                 };
             }
 
@@ -301,6 +311,7 @@ module.exports = function FilesHandler(Model) {
 
                 if (field === "options") continue;
 
+                logFile('files to save', Object.keys(args[field]))
                 if (!args[field] || !args[field].filesToSave) return next();
                 let filesToSave = args[field].filesToSave;
                 for (let fileKey in filesToSave) {
@@ -447,21 +458,21 @@ async function tripleimg(fileTargetPath, extension, width) {
 }
 
 
-async function isImgTooSmall(keyData) {
+async function isImgSizeInRange(keyData) {
     if (keyData.type === 'image') {
         let extension = getFileExtension(keyData.src);
-        if (!extension) return true;
+        if (!extension) return false;
         let regex = getRegex(extension);
-        if (!regex) return true;
+        if (!regex) return false;
         let base64Data = keyData.src.replace(regex, '');
         if ((await getImgWidth(base64Data)) < consts.small) {
             console.error('ERR: img is to small')
-            return true;
+            return false;
         }
 
 
     }
-    return false;
+    return true;
 }
 
 
