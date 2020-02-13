@@ -24,7 +24,7 @@
         "title": "Upload image to relative model (by creating a new game)"
     },
 	{
-		"filePath": "fileshandler/samples/multipleSizes/GetImg.js",
+		"filePath": "/multipleSizes/GetImg.js",
 		"componentName": "GetImg",
 		"route": "get-img",
 		"title": "get img in multiple sizes"

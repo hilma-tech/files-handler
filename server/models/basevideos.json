@@ -122,7 +122,7 @@
               "nullable": "Y"
             }
           },
-          "owner": {
+          "ownerId": {
             "type": "Number",
             "required": false,
             "length": null,

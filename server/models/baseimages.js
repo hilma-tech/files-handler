@@ -10,8 +10,7 @@ module.exports = function (BaseImages) {
     BaseImages.observe('loaded', function (ctx, next) {
 
         var fData;
-        if (ctx.instance) {    //for first upload
-            //  logImage("CTX.instance exists",ctx);
+        if (ctx.instance) { // For first upload
             fData = ctx.instance;
         }
         else {
