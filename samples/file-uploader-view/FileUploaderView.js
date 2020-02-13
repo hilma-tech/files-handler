@@ -244,7 +244,6 @@ export default class FileUploaderView extends Component {
                             required={false}
                             onChange={this.handleFileChange}
                             label='תראה לנו את הכלב שלך'
-                            maxSize={625}
                             multipleSizes={true}
                         // defaultThumbnailImageSrc=[PATH_TO_YOUR_DEFAULT_IMAGE]//a path in public, example:'/images/mydefaultimg.png'
                         />

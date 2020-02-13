@@ -122,6 +122,7 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false) {
+
         let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
 
         logFile("FileModel - Should be either Images/Files/Video", FileModelName);
@@ -218,33 +219,45 @@ module.exports = function FilesHandler(Model) {
         (async () => {
             const argsKeys = Object.keys(args);
 
-
-            for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
+            // we are not using map funcs, because we cannot put async inside it.
+            for (let i = 0; i < argsKeys.length; i++) {
                 field = argsKeys[i];
                 if (field === "options") continue;
                 data = args[field];
-                if (typeof data !== "object" || !data || Array.isArray(data)) continue;
+                if (!data || typeof data !== "object" || Array.isArray(data)) continue;
                 const dataKeys = Object.keys(data);
 
-                for (let j = 0; j < dataKeys.length; j++) { // we are not using map func, because we cannot put async inside it.
+                for (let j = 0; j < dataKeys.length; j++) {
                     key = dataKeys[j];
                     let keyData = data[key];
-                    if (typeof keyData !== "object" || !keyData) continue;
-                    if (!Array.isArray(keyData) && !(keyData.src && keyData.type && !isImgTooSmall(keyData))) continue;
-                    if (Array.isArray(keyData) && !keyData.every(val =>
-                        (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
-                    // Array.isArray(keyData) && { keyData = keyData.filter(file => !isImgTooSmall(file)) };
+                    if (!keyData || typeof keyData !== "object") continue;
 
-                    keyData = Array.isArray(keyData) ? keyData = keyData.filter(file => !isImgTooSmall(file)) : keyData;
+                    let isFileInRange = true;
 
-                    if (Array.isArray(keyData) && keyData.length === 0) continue;
+                    if (!Array.isArray(keyData)) {
+                        if (!keyData.src || !keyData.type) continue;
+                        if (keyData.type === Consts.FILE_TYPE_IMAGE) isFileInRange = await isImgSizeInRange(keyData);
+                    }
+                    else { // keyData is an array
+                        if (!keyData.every(val =>
+                            (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
+
+                        if (keyData.type === Consts.FILE_TYPE_IMAGE) {
+                            for (let z = 0; z < keyData.length; z++) {
+                                isFileInRange = await isImgSizeInRange(keyData[z]);
+                                if (!isFileInRange) keyData[z] = null;
+                            }
+                        }
+
+                        isFileInRange = !keyData.every(img => img === null);
+                    }
+
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    filesToSave[key] = keyData;
+                    filesToSave[key] = isFileInRange ? keyData : null;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
                     //the lines above take the data in dataObj and put it in obj called filesToSave inside dataObj
                     //so we can later take it and add it to the file/img/audio table
-
                 };
             }
 
@@ -280,19 +293,31 @@ module.exports = function FilesHandler(Model) {
 
                 if (field === "options") continue;
 
+                logFile('files to save', Object.keys(args[field]))
                 if (!args[field] || !args[field].filesToSave) return next();
                 let filesToSave = args[field].filesToSave;
+
+                // TODO 
+                // /* If all the files are not in range, and the current model is the same as the files model (AKA Images),
+                // delete the empty row that was created in the model at the remote method */  
+                // if (Model === Model.app.models.Images && Object.keys(filesToSave).every(key => filesToSave[key] === null)) {
+                //     let [modelErr, modelRes] = await to(Model.destroyById(modelInstance.id));
+                //     if (modelErr || !modelRes) return logFile("Error deleting empty row in Images model, aborting...", modelErr);
+                //     logFile("Empty row in Images model deleted");
+                // }
+
                 for (let fileKey in filesToSave) {
+
                     const fileOrFiles = filesToSave[fileKey];
 
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
-                            if (typeof fileOrFiles[j] !== "object") continue;
+                            if (!fileOrFiles[j] || typeof fileOrFiles[j] !== "object") continue;
                             await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
                         }
                     }
                     else {
-                        if (typeof fileOrFiles !== "object") continue;
+                        if (!fileOrFiles || typeof fileOrFiles !== "object") continue;
                         await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx);
                     }
                 }
@@ -303,9 +328,10 @@ module.exports = function FilesHandler(Model) {
 }
 
 function getSaveDir(type) {
+    logFile("type", type)
     try {
         const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
-        const saveDir = path.join(__dirname, `${baseFileDirPath}/${Consts.folders[type]}/`);
+        const saveDir = path.join(__dirname, `${baseFileDirPath}/${Consts.FOLDERS[type]}/`);
         if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
             fs.mkdirSync(saveDir, { recursive: true });
             logFile("New folder was created ", saveDir);
@@ -398,16 +424,14 @@ function base64MimeType(encoded) {
 }
 
 async function resizeImg(imgPath, width) {
-
-    logFile('width', width)
     const options = {
         images: [imgPath],
         width: width
     };
 
     await resizeOptimizeImages(options);
-
 }
+
 async function getImgWidth(base64Data) {
     let img = new Buffer(base64Data, 'base64');
     let dimensions = sizeOf(img)
@@ -425,22 +449,17 @@ async function tripleimg(fileTargetPath, extension, width) {
     return sizesPath;
 }
 
-
-async function isImgTooSmall(keyData) {
+async function isImgSizeInRange(keyData) {
     if (keyData.type === 'image') {
         let extension = getFileExtension(keyData.src);
-        if (!extension) return true;
+        if (!extension) return false;
         let regex = getRegex(extension);
-        if (!regex) return true;
+        if (!regex) return false;
         let base64Data = keyData.src.replace(regex, '');
         if ((await getImgWidth(base64Data)) < Consts.IMAGE_SIZE_SMALL_IN_PX) {
             console.error('ERR: img is to small')
-            return true;
+            return false;
         }
-
-
     }
-    return false;
+    return true;
 }
-
-

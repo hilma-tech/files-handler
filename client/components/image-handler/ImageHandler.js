@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './ImageHandler.scss';
+import Consts from '../../../consts/Consts.json';
 
 export default class ImageHandler extends Component {
 
@@ -11,8 +12,7 @@ export default class ImageHandler extends Component {
 
         this.state = {
             thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || this.defaultThumbnail,
-            maxSize: this.props.maxSize || 625
-
+            maxSize: this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB
         };
     }
 
@@ -52,7 +52,7 @@ export default class ImageHandler extends Component {
             type: 'image',
             title: this.props.title || "default_image_title",
             category: this.props.category || "default_image_category",
-            description: this.props.description || "default_image_description"
+            description: this.props.description || "default_image_description",
         };
 
         let eventObj = { target: { name: this.props.name, value: imageObj } }
