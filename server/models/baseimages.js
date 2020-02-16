@@ -1,9 +1,9 @@
-
+const EnvHandler = require('./../../../tools/server/lib/EnvHandler');
 var fs = require('fs');
 var path = require('path');
-var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
+
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
@@ -14,7 +14,7 @@ module.exports = function (BaseImages) {
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';            
+            const hostName = EnvHandler.getHostName();
             fData = ctx.data;
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
         };
@@ -33,7 +33,7 @@ module.exports = function (BaseImages) {
     BaseImages.downloadToServer = function (data, options, cb) {
 
         //DEPRECATED UNTIL WILL BE SECURED (Eran)
-        return cb(null,{});
+        return cb(null, {});
 
         let saveDir = path.join(__dirname, '../', '../', IMAGES_DIR, data.category);
         let extention = path.extname(data.url).substr(1);
