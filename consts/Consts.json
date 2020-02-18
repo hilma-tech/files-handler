@@ -6,7 +6,9 @@
 
     "FILE_ACCEPTED": "accepted",
     "FILE_REJECTED": "rejected",
-
+    
+    "FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE": 0,
+    
     "FILE_TYPES_AND_EXTENSIONS_AND_MIMES": {
         "file": {
             "pdf": "application/pdf",
@@ -32,21 +34,21 @@
             "webm": "video/webm"
         }
     },
-
+    
     "FOLDERS": {
         "file": "files",
         "image": "imgs",
         "video": "videos",
         "audio": "audios"
     },
-
+    
     "FILE_MIN_SIZE_IN_KB": 0,
     "FILE_MAX_SIZE_IN_KB": 5000,
-
+    
     "IMAGE_SIZE_SMALL_IN_PX": 200,
     "IMAGE_SIZE_MEDIUM_IN_PX": 800,
     "IMAGE_SIZE_LARGE_IN_PX": 1200,
-
+    
     "USER": "USER",
     "ALLOW": "ALLOW"
 }

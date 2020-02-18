@@ -134,10 +134,23 @@ module.exports = function FilesHandler(Model) {
 
         let oldFileId = null;
 
-        if (index === 0 && Model === FileModel) oldFileId = modelInstance.id;
-
         if (modelInstance[fileKey] && modelInstance[fileKey] !== {}) oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
         logFile("FileId right before saveFile is launched is", oldFileId);
+
+        // If the first file we want to upload (not update) to the same model as the remoteModel is not in size range,
+        // we need to delete the empty instance that was created in the model.
+        if (!file.src && index === 0 && Model === FileModel && oldFileId === null) {
+            let [modelErr, modelRes] = await to(Model.destroyById(modelInstance.id));
+            if (modelErr || !modelRes) return logFile("Error deleting empty row in Images model, aborting...", modelErr);
+            logFile("Empty row in FileModel is deleted");
+        }
+
+        if (!file.src) {
+            logFile("The size of file with key %s is not in range. Canceling...", fileKey);
+            return Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE;
+        }
+
+        if (oldFileId === null && index === 0 && Model === FileModel) oldFileId = modelInstance.id;
 
         let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
         if (!newFileId) return logFile("Couldn't create your file, aborting...");
@@ -249,11 +262,12 @@ module.exports = function FilesHandler(Model) {
                             }
                         }
 
-                        isFileInRange = !keyData.every(img => img === null);
+                        // isFileInRange = !keyData.every(img => img === null);
                     }
 
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    filesToSave[key] = isFileInRange ? keyData : null;
+                    keyData.src = isFileInRange ? keyData.src : null;
+                    filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
                     //the lines above take the data in dataObj and put it in obj called filesToSave inside dataObj
@@ -297,28 +311,21 @@ module.exports = function FilesHandler(Model) {
                 if (!args[field] || !args[field].filesToSave) return next();
                 let filesToSave = args[field].filesToSave;
 
-                // TODO 
-                // /* If all the files are not in range, and the current model is the same as the files model (AKA Images),
-                // delete the empty row that was created in the model at the remote method */  
-                // if (Model === Model.app.models.Images && Object.keys(filesToSave).every(key => filesToSave[key] === null)) {
-                //     let [modelErr, modelRes] = await to(Model.destroyById(modelInstance.id));
-                //     if (modelErr || !modelRes) return logFile("Error deleting empty row in Images model, aborting...", modelErr);
-                //     logFile("Empty row in Images model deleted");
-                // }
-
                 for (let fileKey in filesToSave) {
 
                     const fileOrFiles = filesToSave[fileKey];
 
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
-                            if (!fileOrFiles[j] || typeof fileOrFiles[j] !== "object") continue;
-                            await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
+                            if (typeof fileOrFiles[j] !== "object") continue;
+                            let isErr = await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
+                            if (isErr === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
                         }
                     }
                     else {
-                        if (!fileOrFiles || typeof fileOrFiles !== "object") continue;
-                        await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx);
+                        if (typeof fileOrFiles !== "object") continue;
+                        let isErr = await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx);
+                        if (isErr === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
                     }
                 }
             }
@@ -457,7 +464,7 @@ async function isImgSizeInRange(keyData) {
         if (!regex) return false;
         let base64Data = keyData.src.replace(regex, '');
         if ((await getImgWidth(base64Data)) < Consts.IMAGE_SIZE_SMALL_IN_PX) {
-            console.error('ERR: img is to small')
+            console.error('ERR: img is to small');
             return false;
         }
     }
