@@ -12,10 +12,10 @@
         "title": "Image Uploader"
     },
     {
-        "filePath": "/multi-images-handler-view/MultiImagesHandlerView.js",
-        "componentName": "MultiImagesHandlerView",
-        "route": "multi-images-handler",
-        "title": "Multi Images Handler"
+        "filePath": "/multi-files-uploader-view/MultiFilesUploaderView.js",
+        "componentName": "MultiFilesUploaderView",
+        "route": "multi-files-uploader",
+        "title": "Multi Files Uploader"
     },
     {
         "filePath": "/create-game/CreateGame.js",

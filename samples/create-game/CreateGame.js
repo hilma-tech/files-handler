@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
 import ImageUploader from '../../client/components/ImageUploader.jsx';
-import MultiImagesHandler from '../../client/components/multi-images-handler/MultiImagesHandler';
+import MultiFilesUploader from '../../client/components/multi-files-uploader/MultiFilesUploader';
 import './CreateGame.scss';
 
 export default class CreateGame extends Component {
@@ -101,7 +101,7 @@ export default class CreateGame extends Component {
                         </div>
                     </div>
 
-                    <MultiImagesHandler
+                    <MultiFilesUploader
                         name="imageId" // keyToSaveImgId
                         title="my-images"
                         category="games-images"

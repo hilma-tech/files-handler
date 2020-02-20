@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
-import MultiImagesHandler from '../../client/components/multi-images-handler/MultiImagesHandler';
-import './MultiImagesHandlerView.scss';
+import MultiFilesUploader from '../../client/components/multi-files-uploader/MultiFilesUploader';
+import './MultiFilesUploaderView.scss';
 
 const UploadedImage = (props) => {
     return (
@@ -14,7 +14,7 @@ const UploadedImage = (props) => {
     );
 }
 
-export default class MultiImagesHandlerView extends Component {
+export default class MultiFilesUploaderView extends Component {
 
     constructor(props) {
         super(props);
@@ -73,14 +73,14 @@ export default class MultiImagesHandlerView extends Component {
         let isSubmited = Object.keys(this.state.uploadedImages).length !== 0;
 
         return (
-            <div className="multi-images-handler-sample">
+            <div className="multi-files-uploader-sample">
 
-                <h1>Multi Images Handler</h1>
+                <h1>Multi Files Uploader</h1>
 
                 <div className="image-input-samples">
 
                     <div className="image-input-sample">
-                        <MultiImagesHandler
+                        <MultiFilesUploader
                             name="imgId" // keyToSaveImgId
                             title="my-images"
                             category="games-images"
@@ -89,11 +89,8 @@ export default class MultiImagesHandlerView extends Component {
                             disabled={isSubmited}
                             
                             type="image" // image, audio, video, file
-                            // accept=[".png", ".jpg"] // Accepting specific file types !mime types, one type!
-
                             // maxSizeInKB={}
-                            // minSizeInKB={}
-                            
+                        
                             // noClick=""
                             // noDrag=""
                             // noKeyBoard=""
