@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
-import ImageHandler from '../../client/components/image-handler/ImageHandler';
+import ImageUploader from '../../client/components/ImageUploader.jsx';
 import PreviewWidget from '../../client/components/PreviewWidget';
-import './ImageHandlerView.scss';
-// import './Samples.scss';
+import './ImageUploaderView.scss';
 
 const UploadedImage = (props) => {
     return (
@@ -16,14 +15,14 @@ const UploadedImage = (props) => {
     );
 }
 
-export default class ImageHandlerView extends Component {
+export default class ImageUploaderView extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             uploadedImages: [],
             isSubmitDisabled: true,
-            isImgHandlerDisabled: false
+            isImgUploaderDisabled: false
         };
     }
 
@@ -48,7 +47,7 @@ export default class ImageHandlerView extends Component {
 
     upload = async () => {
 
-        this.setState({ isSubmitDisabled: true, isImgHandlerDisabled: true });
+        this.setState({ isSubmitDisabled: true, isImgUploaderDisabled: true });
 
         let filesData = this.getFilesData();
         console.log("about to upload files", filesData);
@@ -75,9 +74,9 @@ export default class ImageHandlerView extends Component {
         let isSubmited = Object.keys(this.state.uploadedImages).length !== 0;
 
         return (
-            <div className="image-handler-sample">
+            <div className="image-uploader-sample">
 
-                <h1>Image Handler</h1>
+                <h1>Image Uploader</h1>
                 <p className="explanation"><strong>Note:</strong> When using multiple ImageUploader's,
                 make sure to give each one a unique <em>name</em> prop.</p>
 
@@ -87,36 +86,38 @@ export default class ImageHandlerView extends Component {
 
                     <div className="image-input-sample">
                         <p>This is the default-theme style. No <em>theme</em> prop is required.</p>
-                        <ImageHandler
+                        <ImageUploader
                             category="my-images" // image is saved into public/images/[category]
                             name="imageSample1"
                             title="my-image"
+                            //minSize
+                            //maxSize
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgHandlerDisabled}
+                            disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
 
                     <div className="image-input-sample">
                         <p>This is the basic-theme style. You can achieve it by adding <em>theme="basic-theme"</em> as a prop.</p>
-                        <ImageHandler
+                        <ImageUploader
                             category="my-images" // image is saved into public/images/[category]
                             name="imageSample2"
                             title="my-image"
                             theme="basic-theme"
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgHandlerDisabled}
+                            disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
 
                     <div className="image-input-sample">
                         <p>This is the circle-theme style. You can achieve it by adding <em>theme="circle-theme"</em> as a prop.</p>
-                        <ImageHandler
+                        <ImageUploader
                             category="my-images" // image is saved into public/images/[category]
                             name="imageSample3"
                             title="my-image"
                             theme="circle-theme"
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgHandlerDisabled}
+                            disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
                 </div>
@@ -132,41 +133,41 @@ export default class ImageHandlerView extends Component {
 
                     <div className="image-input-sample">
                         <p>This is previewWidget with the default-theme style.</p>
-                        <ImageHandler
+                        <ImageUploader
                             category="my-images" // image is saved into public/images/[category]
                             name="imageSample4"
                             title="my-image"
                             previewWidget={<PreviewWidget />}
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgHandlerDisabled}
+                            disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
 
                     <div className="image-input-sample">
                         <p>This is previewWidget with the basic-theme style.<br />
                             Only <em>enableEdit</em> is enabled.</p>
-                        <ImageHandler
+                        <ImageUploader
                             category="my-images" // image is saved into public/images/[category]
                             name="imageSample5"
                             title="my-image"
                             theme="basic-theme"
                             previewWidget={<PreviewWidget enableEdit={true} />}
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgHandlerDisabled}
+                            disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
 
                     <div className="image-input-sample">
                         <p>This is previewWidget with the circle-theme style.<br />
                             <em>enableEdit</em> and <em>enableDelete</em> props are enabled.</p>
-                        <ImageHandler
+                        <ImageUploader
                             category="my-images" // image is saved into public/images/[category]
                             name="imageSample6"
                             title="my-image"
                             theme="circle-theme"
                             previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgHandlerDisabled}
+                            disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
                 </div>

@@ -1,9 +1,17 @@
-.figure-container {
-  figure img {
-    margin-top: 2em;
-    margin-bottom: 1em;
-    max-height: 30vh;
-  }
+// .figure-container {
+//   figure img {
+//     margin-top: 2em;
+//     margin-bottom: 1em;
+//     max-height: 30vh;
+//   }
 
-  text-align: center;
+//   text-align: center;
+// }
+
+.explanation {
+  text-align: left;
+}
+
+em {
+  background-color: lightgray;
 }

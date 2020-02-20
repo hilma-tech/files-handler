@@ -6,10 +6,10 @@
         "title": "File Uploader, Image Uploader, Audio Uploader"
     },
     {
-        "filePath": "/image-handler-view/ImageHandlerView.js",
-        "componentName": "ImageHandlerView",
-        "route": "image-handler",
-        "title": "Image Handler (the new image uploader)"
+        "filePath": "/image-uploader-view/ImageUploaderView.js",
+        "componentName": "ImageUploaderView",
+        "route": "image-uploader",
+        "title": "Image Uploader"
     },
     {
         "filePath": "/multi-images-handler-view/MultiImagesHandlerView.js",

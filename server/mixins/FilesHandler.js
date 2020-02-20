@@ -122,6 +122,7 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false) {
+        logFile("Debug 6")
 
         let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
 
@@ -250,23 +251,22 @@ module.exports = function FilesHandler(Model) {
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
                         if (keyData.type === Consts.FILE_TYPE_IMAGE) isFileInRange = await isImgSizeInRange(keyData);
+                        keyData.src = isFileInRange ? keyData.src : null;
                     }
                     else { // keyData is an array
                         if (!keyData.every(val =>
                             (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
 
-                        if (keyData.type === Consts.FILE_TYPE_IMAGE) {
-                            for (let z = 0; z < keyData.length; z++) {
+                        for (let z = 0; z < keyData.length; z++) {
+                            if (keyData[z].type === Consts.FILE_TYPE_IMAGE) {
                                 isFileInRange = await isImgSizeInRange(keyData[z]);
-                                if (!isFileInRange) keyData[z] = null;
+                                logFile("isFileInRange", isFileInRange)
+                                keyData[z].src = isFileInRange ? keyData[z].src : null;
                             }
                         }
-
-                        // isFileInRange = !keyData.every(img => img === null);
                     }
 
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    keyData.src = isFileInRange ? keyData.src : null;
                     filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
@@ -309,15 +309,20 @@ module.exports = function FilesHandler(Model) {
 
                 logFile('files to save', Object.keys(args[field]))
                 if (!args[field] || !args[field].filesToSave) return next();
+
+                logFile("Debug 1")
                 let filesToSave = args[field].filesToSave;
 
                 for (let fileKey in filesToSave) {
-
+                    logFile("Debug 2")
                     const fileOrFiles = filesToSave[fileKey];
 
                     if (Array.isArray(fileOrFiles)) {
+                        logFile("Debug 3", fileOrFiles.length)
                         for (let j = 0; j < fileOrFiles.length; j++) {
+                            logFile("Debug 4")
                             if (typeof fileOrFiles[j] !== "object") continue;
+                            logFile("Debug 5")
                             let isErr = await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
                             if (isErr === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
                         }

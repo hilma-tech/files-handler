@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
-import ImageHandler from '../../client/components/image-handler/ImageHandler';
+import ImageUploader from '../../client/components/ImageUploader.jsx';
 import MultiImagesHandler from '../../client/components/multi-images-handler/MultiImagesHandler';
 import './CreateGame.scss';
 
@@ -89,7 +89,7 @@ export default class CreateGame extends Component {
                         </div>
 
                         <div className="col">
-                            <ImageHandler
+                            <ImageUploader
                                 category="games-cover-images" // image is saved into public/images/[category]
                                 name="imgId"
                                 title="cover-image"
