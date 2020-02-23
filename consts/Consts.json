@@ -43,6 +43,8 @@
     },
     
     "FILE_MAX_SIZE_IN_KB": 5000,
+
+    "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
     
     "IMAGE_SIZE_SMALL_IN_PX": 200,
     "IMAGE_SIZE_MEDIUM_IN_PX": 800,

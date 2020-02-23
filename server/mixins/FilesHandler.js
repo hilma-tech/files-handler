@@ -60,7 +60,7 @@ module.exports = function FilesHandler(Model) {
         logFile("Model.saveFile is launched with ownerId", ownerId);
         let saveDir = getSaveDir(file.type);
         if (!saveDir) return false;
-        let extension = getFileExtension(file.src);
+        let extension = getFileExtension(file.src, file.type);
         logFile("extension", extension);
         if (!extension) return false;
         let regex = getRegex(extension);
@@ -410,37 +410,16 @@ function getRegex(extension) {
     }
 }
 
-function getFileExtension(fileSrc) {
+function getFileExtension(fileSrc, fileType) {
     let mimeType = base64MimeType(fileSrc);
     logFile("Base64 mimeType of file", mimeType);
     if (!mimeType) return null;
 
-    const mimeTypes = {
-        //files
-        pdf: 'application/pdf',
-        doc: 'application/msword',
-        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        //images
-        png: 'image/png',
-        jpeg: 'image/jpeg', //jpeg & jpg
-        gif: 'image/gif',
-        svg: 'image/svg+xml',
-        //audio
-        mp3: 'audio/mp3',
-        wav: 'audio/wav',
-        //video
-        mp4: 'video/mp4',
-        ogg: 'video/ogg',
-        avi: 'video/avi',
-        //video+audio
-        webm: ['audio/webm', 'video/webm'],
-    };
-
-    // return Object.keys(mimeTypes).find(key => mimeTypes[key] === mimeType);
-    return Object.keys(mimeTypes).find(key => {
-        if (Array.isArray(mimeTypes[key]) && mimeTypes[key].includes(mimeType)) return key;
-        return mimeTypes[key] === mimeType;
-    });
+    let extensionsAndMimesOfType = Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[fileType];
+    let extensions = Object.keys(extensionsAndMimesOfType);
+    let extension = extensions.find(extension => extensionsAndMimesOfType[extension] === mimeType);
+    if (extension === 'jpg') extension = 'jpeg'; // necessary
+    return extension;
 }
 
 function base64MimeType(encoded) {
@@ -480,7 +459,7 @@ async function tripleimg(fileTargetPath, extension, width) {
 async function isImgSizeInRange(keyData) {
     if (keyData.type === 'image') {
         if (keyData.checkImgMinSize) {
-            let extension = getFileExtension(keyData.src);
+            let extension = getFileExtension(keyData.src,keyData.type);
             if (!extension) return false;
             let regex = getRegex(extension);
             if (!regex) return false;
