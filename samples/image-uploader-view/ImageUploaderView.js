@@ -59,7 +59,7 @@ export default class ImageUploaderView extends Component {
         });
 
         if (pErr) return console.log("ERR:", pErr);
-
+        console.log("resss",pRes)
         let filter = `filter[order]=id DESC&filter[limit]=${Object.keys(filesData).length}`;
         let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?' + filter);
 
@@ -94,6 +94,8 @@ export default class ImageUploaderView extends Component {
                             //maxSize
                             onChange={this.handleFileChange}
                             disabled={this.state.isImgUploaderDisabled}
+                            multipleSizes={true}
+                            checkImgMinSize={true}
                         />
                     </div>
 
@@ -106,6 +108,8 @@ export default class ImageUploaderView extends Component {
                             theme="basic-theme"
                             onChange={this.handleFileChange}
                             disabled={this.state.isImgUploaderDisabled}
+                            checkImgMinSize={true}
+
                         />
                     </div>
 
@@ -118,6 +122,8 @@ export default class ImageUploaderView extends Component {
                             theme="circle-theme"
                             onChange={this.handleFileChange}
                             disabled={this.state.isImgUploaderDisabled}
+                            checkImgMinSize={true}
+
                         />
                     </div>
                 </div>
@@ -139,6 +145,7 @@ export default class ImageUploaderView extends Component {
                             title="my-image"
                             previewWidget={<PreviewWidget />}
                             onChange={this.handleFileChange}
+                            checkImgMinSize={true}
                             disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
@@ -153,6 +160,7 @@ export default class ImageUploaderView extends Component {
                             theme="basic-theme"
                             previewWidget={<PreviewWidget enableEdit={true} />}
                             onChange={this.handleFileChange}
+                            checkImgMinSize={true}
                             disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>
@@ -167,6 +175,7 @@ export default class ImageUploaderView extends Component {
                             theme="circle-theme"
                             previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                             onChange={this.handleFileChange}
+                            checkImgMinSize={true}
                             disabled={this.state.isImgUploaderDisabled}
                         />
                     </div>

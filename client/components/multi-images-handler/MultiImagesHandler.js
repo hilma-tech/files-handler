@@ -11,13 +11,16 @@ export default class MultiImagesHandler extends Component { // change "image" to
         this.state = {
             files: []
         };
+        this.checkImgMinSize = this.props.checkImgMinSize || false;
+        this.checkImgMaxSize = this.props.checkImgMaxSize || true;
+        this.maxSize = this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB;
 
         this.type = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
             this.props.type : Consts.FILE_TYPE_IMAGE;
-        this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
-            this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB) * 1000;
-        // this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
-        //     this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
+        // this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
+        //     this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB) * 1000;
+        this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
+            this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
         // this.accept = this.props.accept && Array.isArray(this.props.accept) &&
         //     this.props.accept.every(extention => Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[this.type]).includes(extention) ?
         //         this.props.accept.joine(", ") : `${this.type}/*`;
@@ -28,6 +31,7 @@ export default class MultiImagesHandler extends Component { // change "image" to
         let acceptedFilesObjs = [];
 
         for (let i = 0; i < acceptedfiles.length; i++) {
+            let sizeKB = acceptedfiles[i] * 0.001;
             let base64String = await this.readFileToBase64(acceptedfiles[i]);
 
             let fileObj = {
@@ -36,7 +40,13 @@ export default class MultiImagesHandler extends Component { // change "image" to
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
                 description: this.props.description || "default_description",
-                relatedModelToSaveImgId: this.props.relatedModelToSaveImgId || {}
+                relatedModelToSaveImgId: this.props.relatedModelToSaveImgId || {},
+                checkImgMinSize: this.checkImgMinSize,
+                checkImgMaxSize: this.checkImgMaxSize,
+                maxSize: this.maxSize,
+                size: sizeKB,
+                multipleSizes: this.props.multipleSizes || false
+
             };
 
             files.push({ preview: base64String, status: Consts.FILE_ACCEPTED, errMsg: null });
@@ -82,7 +92,7 @@ export default class MultiImagesHandler extends Component { // change "image" to
     }
 
     getRejectedFileErrorMsg = (file) => {
-        if (file.size < this.minSizeInBytes) return "Error: the file is too small";
+        // if (file.size < this.minSizeInBytes) return "Error: the file is too small";
         if (file.size > this.maxSizeInBytes) return "Error: the file is too big";
 
 

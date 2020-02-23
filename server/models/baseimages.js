@@ -1,6 +1,5 @@
 var fs = require('fs');
 var path = require('path');
-var logImage = require('debug')('model:image');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
 const EnvHandler = require('./../../../tools/server/lib/EnvHandler');

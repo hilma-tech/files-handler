@@ -56,7 +56,7 @@ export default class ImageUploader extends Component {
             title: this.props.title || "default_image_title",
             category: this.props.category || "default_image_category",
             description: this.props.description || "default_image_description",
-            multipleSizes: this.props.multipleSizes ? true : false,
+            multipleSizes: this.props.multipleSizes ||false,
             checkImgMinSize: this.checkImgMinSize,
             checkImgMaxSize: this.checkImgMaxSize,
             maxSize:this.maxSize,

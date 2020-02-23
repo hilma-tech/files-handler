@@ -121,8 +121,7 @@ module.exports = function FilesHandler(Model) {
         return newFile.id;
     }
 
-    Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false) {
-        logFile("Debug 6")
+    Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false, newRes) {
 
         let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
 
@@ -146,8 +145,21 @@ module.exports = function FilesHandler(Model) {
             logFile("Empty row in FileModel is deleted");
         }
         if (!file.src) {
+            if (Array.isArray(filesToSave[fileKey])) {
 
-            logFile("The size of file with key %s is not in range. Canceling...", fileKey);
+                let fileKeyIndex = newRes.rejectedImges.findIndex(arrKeyName => Object.keys(arrKeyName).includes(fileKey))
+                
+                if (fileKeyIndex===-1) {
+                    fileKeyIndex = newRes.rejectedImges.push({ [fileKey]: [] })-1;
+                }
+                newRes.rejectedImges[fileKeyIndex][fileKey].push(index)
+
+            }
+            else {
+                newRes.rejectedImges.push(fileKey)
+
+            }
+            logFile("The size of file with key %s is not in range. Canceling...", fileKey, "file", file);
             return Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE;
         }
 
@@ -155,6 +167,7 @@ module.exports = function FilesHandler(Model) {
 
         let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
         if (!newFileId) return logFile("Couldn't create your file, aborting...");
+        newRes.acceseptedImges.push(newFileId);
 
         if (isMultiFilesSave) {
             let relations = Model.relations;
@@ -251,9 +264,9 @@ module.exports = function FilesHandler(Model) {
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
                         logFile('keyData.checkImgMinSize', keyData.checkImgMinSize)
-                        if (keyData.checkImgMinSize && keyData.type === Consts.FILE_TYPE_IMAGE) isFileInRange = await isImgSizeInRange(keyData);
+                        if (keyData.type === Consts.FILE_TYPE_IMAGE)
+                            isFileInRange = await isImgSizeInRange(keyData);
                         keyData.src = isFileInRange ? keyData.src : null;
-                        if (keyData.checkImgMaxSize && keyData.size > keyData.maxSize) keyData.src = null;
                         logFile('isFileInRange', isFileInRange)
                     }
                     else { // keyData is an array
@@ -265,6 +278,7 @@ module.exports = function FilesHandler(Model) {
                                 isFileInRange = await isImgSizeInRange(keyData[z]);
                                 logFile("isFileInRange", isFileInRange)
                                 keyData[z].src = isFileInRange ? keyData[z].src : null;
+
                             }
                         }
                     }
@@ -301,6 +315,7 @@ module.exports = function FilesHandler(Model) {
 
         (async () => {
             const argsKeys = Object.keys(args);
+            let newRes = { acceseptedImges: [], rejectedImges: [] };
 
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
 
@@ -321,18 +336,20 @@ module.exports = function FilesHandler(Model) {
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
                             if (typeof fileOrFiles[j] !== "object") continue;
-                            let isErr = await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
-                            if (isErr === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
-                            ///////////////////////////////ענבל
+                            let isFileNotInRange = await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true, newRes);
+                            if (isFileNotInRange === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
                         }
                     }
                     else {
                         if (typeof fileOrFiles !== "object") continue;
-                        let isErr = await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx);
-                        if (isErr === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
+                        let isFileNotInRange = await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, false, newRes);
+                        if (isFileNotInRange === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
                     }
                 }
             }
+            let res = (ctx.result && ctx.result.__data) || ctx.result;
+            res.acceseptedImgesID=newRes.acceseptedImges;
+            res.rejectedImgesKeys = newRes.rejectedImges;
             return next();
         })();
     });
@@ -462,15 +479,18 @@ async function tripleimg(fileTargetPath, extension, width) {
 
 async function isImgSizeInRange(keyData) {
     if (keyData.type === 'image') {
-        let extension = getFileExtension(keyData.src);
-        if (!extension) return false;
-        let regex = getRegex(extension);
-        if (!regex) return false;
-        let base64Data = keyData.src.replace(regex, '');
-        if ((await getImgWidth(base64Data)) < Consts.IMAGE_SIZE_SMALL_IN_PX) {
-            console.error('ERR: img is to small');
-            return false;
+        if (keyData.checkImgMinSize) {
+            let extension = getFileExtension(keyData.src);
+            if (!extension) return false;
+            let regex = getRegex(extension);
+            if (!regex) return false;
+            let base64Data = keyData.src.replace(regex, '');
+            if ((await getImgWidth(base64Data)) < Consts.IMAGE_SIZE_SMALL_IN_PX) {
+                console.error('ERR: img is to small');
+                return false;
+            }
         }
+        if (keyData.checkImgMaxSize && keyData.size > keyData.maxSize) return false;
     }
     return true;
 }

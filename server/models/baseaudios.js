@@ -7,7 +7,7 @@ module.exports = function (BaseAudios) {
             fData = ctx.instance;
         }
         else {
-            const hostName = EnvHandler.getHostName();        
+            const hostName = EnvHandler.getHostName();
             fData = ctx.data;
             fData.path = `${hostName}/audios/${fData.category}/${fData.id}.${fData.format}`;
         };
