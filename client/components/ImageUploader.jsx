@@ -12,10 +12,11 @@ export default class ImageUploader extends Component {
 
         this.state = {
             thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || this.defaultThumbnail,
+            // defaultValue: this.props.defaultValue || defaultThumbnail
         };
-
+        this.checkImgMinSize = this.props.checkImgMinSize || false;
+        this.checkImgMaxSize = this.props.checkImgMaxSize || true;
         this.maxSize = this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB;
-        this.minSize = this.props.minSize || Consts.FILE_MIN_SIZE_IN_KB;
     }
 
     readFileToBase64 = (fileInfo) => {
@@ -43,10 +44,9 @@ export default class ImageUploader extends Component {
     }
 
     onChangeImg = async (e) => {
-        let sizeMB = e.target.files[0].size * 0.001;
-        if (sizeMB < this.minSize) { console.log('img is too samll'); return; }
-        if (sizeMB > this.maxSize) { console.log('img is too big'); return; }
-
+        if (!e.target || !e.target.files || !e.target.files[0]) return;
+        let sizeKB = e.target.files[0].size * 0.001;
+        if (this.checkImgMaxSize && sizeKB > this.state.maxSize) { console.error('img is to big'); return; }
         let base64String = await this.readFileToBase64(e.target.files[0]);
         this.setState({ thumbnail: base64String })
 
@@ -56,6 +56,11 @@ export default class ImageUploader extends Component {
             title: this.props.title || "default_image_title",
             category: this.props.category || "default_image_category",
             description: this.props.description || "default_image_description",
+            multipleSizes: this.props.multipleSizes ? true : false,
+            checkImgMinSize: this.checkImgMinSize,
+            checkImgMaxSize: this.checkImgMaxSize,
+            maxSize:this.maxSize,
+            size: sizeKB
         };
 
         let eventObj = { target: { name: this.props.name, value: imageObj } }

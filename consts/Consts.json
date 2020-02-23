@@ -42,7 +42,6 @@
         "audio": "audios"
     },
     
-    "FILE_MIN_SIZE_IN_KB": 0,
     "FILE_MAX_SIZE_IN_KB": 5000,
     
     "IMAGE_SIZE_SMALL_IN_PX": 200,

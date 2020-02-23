@@ -226,6 +226,9 @@ export default class FileUploaderView extends Component {
                             onChange={this.handleFileChange}
                             label='Show us your dog'
                             multipleSizes={true}
+                            checkImgMinSize={true}
+                            checkImgMaxSize={true}
+                        // defaultThumbnailImageSrc=[PATH_TO_YOUR_DEFAULT_IMAGE]//a path in public, example:'/images/mydefaultimg.png'
                         />
                     </div>
                     <div dir="ltr" style={{ textAlign: "left", whiteSpace: "pre-wrap", background: "#f0f0f0", width: "80%", marginLeft: "10%", marginRight: "10%" }}>

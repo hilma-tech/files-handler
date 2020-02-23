@@ -145,8 +145,8 @@ module.exports = function FilesHandler(Model) {
             if (modelErr || !modelRes) return logFile("Error deleting empty row in Images model, aborting...", modelErr);
             logFile("Empty row in FileModel is deleted");
         }
-
         if (!file.src) {
+
             logFile("The size of file with key %s is not in range. Canceling...", fileKey);
             return Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE;
         }
@@ -250,8 +250,11 @@ module.exports = function FilesHandler(Model) {
 
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
-                        if (keyData.type === Consts.FILE_TYPE_IMAGE) isFileInRange = await isImgSizeInRange(keyData);
+                        logFile('keyData.checkImgMinSize', keyData.checkImgMinSize)
+                        if (keyData.checkImgMinSize && keyData.type === Consts.FILE_TYPE_IMAGE) isFileInRange = await isImgSizeInRange(keyData);
                         keyData.src = isFileInRange ? keyData.src : null;
+                        if (keyData.checkImgMaxSize && keyData.size > keyData.maxSize) keyData.src = null;
+                        logFile('isFileInRange', isFileInRange)
                     }
                     else { // keyData is an array
                         if (!keyData.every(val =>
@@ -310,21 +313,17 @@ module.exports = function FilesHandler(Model) {
                 logFile('files to save', Object.keys(args[field]))
                 if (!args[field] || !args[field].filesToSave) return next();
 
-                logFile("Debug 1")
                 let filesToSave = args[field].filesToSave;
 
                 for (let fileKey in filesToSave) {
-                    logFile("Debug 2")
                     const fileOrFiles = filesToSave[fileKey];
 
                     if (Array.isArray(fileOrFiles)) {
-                        logFile("Debug 3", fileOrFiles.length)
                         for (let j = 0; j < fileOrFiles.length; j++) {
-                            logFile("Debug 4")
                             if (typeof fileOrFiles[j] !== "object") continue;
-                            logFile("Debug 5")
                             let isErr = await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true);
                             if (isErr === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
+                            ///////////////////////////////ענבל
                         }
                     }
                     else {

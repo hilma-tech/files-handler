@@ -16,8 +16,8 @@ export default class MultiImagesHandler extends Component { // change "image" to
             this.props.type : Consts.FILE_TYPE_IMAGE;
         this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
             this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB) * 1000;
-        this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
-            this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
+        // this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
+        //     this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
         // this.accept = this.props.accept && Array.isArray(this.props.accept) &&
         //     this.props.accept.every(extention => Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[this.type]).includes(extention) ?
         //         this.props.accept.joine(", ") : `${this.type}/*`;
@@ -63,6 +63,7 @@ export default class MultiImagesHandler extends Component { // change "image" to
 
     onDropRejected = async (files) => {
         console.log("onDropRejected", files)
+        console.log("max", this.maxSizeInBytes, "min", this.minSizeInBytes)
     }
 
     readFileToBase64 = (fileInfo) => {
@@ -126,7 +127,7 @@ export default class MultiImagesHandler extends Component { // change "image" to
                     onDropAccepted={this.onDropAccepted}
                     onDropRejected={this.onDropRejected}
                     accept={this.accept}
-                    minSize={this.minSizeInBytes}
+                    // minSize={this.minSizeInBytes}
                     maxSize={this.maxSizeInBytes}
                     noClick={this.props.onClick}
                     noDrag={this.props.noDrag}
