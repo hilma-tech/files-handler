@@ -1,7 +1,13 @@
 {
   "name": "BaseImages",
   "isPublic":"false",
-  "mixins": {"FilesHandler":true},
+  "mixins": {
+    "FilesHandler":true,
+    "ExcludeModelFields": true
+  },
+  "excludeFields": [
+    "owner"
+  ],
   "http": {
     "path": "BaseImages"
   },

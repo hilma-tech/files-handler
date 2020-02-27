@@ -31,7 +31,8 @@ module.exports = function FilesHandler(Model) {
         if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
 
         const isProd = process.env.NODE_ENV == 'production';
-        const baseFileDirPath = isProd ? '../../../../../build' : '../../../../../public';
+        //also on production we save into public (and not to build because the file can get delete from 'build')
+        const baseFileDirPath = '../../../../../public';
         let filePath = prevFileRes.path;
         if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
 
@@ -252,7 +253,8 @@ module.exports = function FilesHandler(Model) {
 
 function getSaveDir(type) {
     try {
-        const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
+        //also on production we save into public (and not to build because the file can get delete from 'build')
+        const baseFileDirPath = '../../../../../public';
         const saveDir = path.join(__dirname, `${baseFileDirPath}/${folders[type]}/`);
         if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
             fs.mkdirSync(saveDir, { recursive: true });
@@ -285,16 +287,10 @@ function getRegex(extension) {
             return /^data:audio+\/mp3?;base64,/;
         case 'wav':
             return /^data:audio+\/wav?;base64,/;
-        // TODO Shira: uncomment this when we start handling webm
-        // case 'webm':
-        //     //TODO Shira: make the following regex be valid for both "video" and "audio"
-        //     return /^data:video\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/; 
         case 'webm':
             return /^data:(video|audio)\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/;
         case 'mp4':
             return /^data:video+\/mp4?;base64,/;
-        // case 'webm':
-        //     return /^data:video+\/webm?;base64,/; // return /^data:(\bvideo\b)|(\baudio\b)+\/webm?;base64,/
         case 'ogg':
             return /^data:video+\/ogg?;base64,/;
         case 'avi':
@@ -330,7 +326,6 @@ function getFileExtension(fileSrc) {
         webm: ['audio/webm', 'video/webm'],
     };
 
-    // return Object.keys(mimeTypes).find(key => mimeTypes[key] === mimeType);
     return Object.keys(mimeTypes).find(key => {
         if (Array.isArray(mimeTypes[key]) && mimeTypes[key].includes(mimeType)) return key;
         return mimeTypes[key] === mimeType;

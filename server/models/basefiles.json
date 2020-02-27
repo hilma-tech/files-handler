@@ -2,8 +2,12 @@
   "name": "BaseFiles",
   "isPublic": false,
   "mixins": {
-    "FilesHandler": true
+    "FilesHandler": true,
+    "ExcludeModelFields": true
   },
+  "excludeFields": [
+    "owner"
+  ],
   "http": {
     "path": "BaseFiles"
   },

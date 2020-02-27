@@ -1,6 +1,12 @@
 {
     "name": "RecordsPermissions",
     "isPublic": true,
+    "mixins": {
+        "ExcludeModelFields": true
+    },
+    "excludeFields": [
+        "principalId"
+    ],
     "hidden": [
         "principalId"
     ],
