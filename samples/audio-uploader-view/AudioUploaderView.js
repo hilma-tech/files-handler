@@ -1,17 +1,17 @@
 import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
-import FileUploader from '../../client/components/FileUploader';
+import AudioUploader from '../../client/components/AudioUploader';
 import TableInfo from './TableInfo.json';
 import '../Samples.scss';
 
-export default class FileUploaderView extends Component {
+export default class AudioUploaderView extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             isTable: false,
             isSubmitDisabled: true,
-            isFileUploaderDisabled: false
+            isAudioUploaderDisabled: false
         };
     }
 
@@ -24,7 +24,7 @@ export default class FileUploaderView extends Component {
     }
 
     getFilesData = () => {
-        const fieldsToSave = ['fileSample'];
+        const fieldsToSave = ['audioSample'];
 
         let fieldsToSaveObj = {};
         for (let field of fieldsToSave) {
@@ -36,7 +36,7 @@ export default class FileUploaderView extends Component {
 
     upload = async () => {
 
-        this.setState({ isSubmitDisabled: true, isFileUploaderDisabled: true });
+        this.setState({ isSubmitDisabled: true, isAudioUploaderDisabled: true });
 
         let filesData = this.getFilesData();
         console.log("about to upload files", filesData);
@@ -62,30 +62,30 @@ export default class FileUploaderView extends Component {
                 <div className="file-uploader-sample">
 
                     <h1>File Uploader</h1>
-                    <h3>Supported file's formats: doc, docx, pdf</h3>
+                    <h3>Supported file's formats: mp3, wav, webm</h3>
 
                     <div className="uploader">
-                        <FileUploader
-                            category='uploaded_files' // file is saved into public/files/[category]
-                            name='fileSample' // [FILE_NAME_LIKE_IN_DATABASE]
-                            required={true}
+                        <AudioUploader
+                            category='uploaded_audio' // audio is saved into public/files/[category]
+                            name='audioSample' // [AUDIO_NAME_LIKE_IN_DATABASE]
+                            required={false}
                             onChange={this.handleFileChange}
-                            label='CV'
+                            label='Choose your favorite song'
                         />
                     </div>
 
                     <div className="usage">
                         <p>import FileUploader from '/src/modules/fileshandler/client/components/FileUploader.js</p>
-                        <p>{`<FileUploader
-                            category='uploaded_files'
-                            name='fileSampleId'
-                            required={true}
+                        <p>{`<AudioUploader
+                            category='uploaded_audio'
+                            name='audioSample'
+                            required={false}
                             onChange={this.handleFileChange}
-                            label='CV'
+                            label='Choose your favorite song'
                         />`}</p>
                     </div>
 
-                    <img className="sql-image" src={require('./files-sql.png')} />
+                    {/* <img className="sql-image" src={require('./audios-sql.png')} /> */}
 
                     <div className="description p-1">
 
@@ -112,8 +112,8 @@ export default class FileUploaderView extends Component {
                     </div>
 
                     <p className="explanation">
-                        <strong>Note:</strong> In this example the Submit button uploads all the chosen files to Files model<br />
-                        (without saving a reference file_id in another model like in "Upload image to relative model (by creating a new game)" sample).</p>
+                        <strong>Note:</strong> In this example the Submit button uploads all the chosen audios to Audios model<br />
+                        (without saving a reference audio_id in another model like in "Upload image to relative model (by creating a new game)" sample).</p>
 
                     <button onClick={this.upload} disabled={this.state.isSubmitDisabled}>Submit</button>
                 </div>

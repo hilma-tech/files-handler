@@ -29,8 +29,8 @@ module.exports = function (BaseImages) {
                     }
                 }
 
-                console.log('sizes',sizes)
-                fData.multiplesizes = []
+                console.log('sizes',sizes);
+                fData.multiplesizes = [];
                 for (let size of sizes) {
                     fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
                 }

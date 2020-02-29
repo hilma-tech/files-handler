@@ -1,17 +1,53 @@
-// .figure-container {
-//   figure img {
-//     margin-top: 2em;
-//     margin-bottom: 1em;
-//     max-height: 30vh;
-//   }
+.uploader-sample {
+  direction: ltr;
 
-//   text-align: center;
-// }
+  .uploader {
+    margin: 2em;
+    padding: 1em;
+    border: 3px solid black;
+  }
 
-.explanation {
-  text-align: left;
-}
+  .usage {
+    direction: ltr;
+    text-align: left;
+    white-space: pre-wrap;
+    background: #f0f0f0;
+    width: 80%;
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-bottom: 1em;
+  }
 
-em {
-  background-color: lightgray;
+  .props-details {
+    overflow-x: scroll;
+    border: 1px dashed gray;
+  }
+
+  .table {
+    text-align: left;
+  }
+
+  .sql-image {
+    margin: 1em;
+    height: 5em;
+  }
+
+  .explanation {
+    text-align: left;
+  }
+
+  p {
+    font-size: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+
+  em {
+    background-color: lightgray;
+  }
+
+  button {
+    margin: 1em;
+    margin-bottom: 2em;
+  }
 }

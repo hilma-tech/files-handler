@@ -3,13 +3,19 @@
         "filePath": "file-uploader-view/FileUploaderView.js",
         "componentName": "FileUploaderView",
         "route": "file-uploader",
-        "title": "File Uploader, Image Uploader, Audio Uploader"
+        "title": "File Uploader"
     },
     {
         "filePath": "/image-uploader-view/ImageUploaderView.js",
         "componentName": "ImageUploaderView",
         "route": "image-uploader",
         "title": "Image Uploader"
+    },
+    {
+        "filePath": "/audio-uploader-view/AudioUploaderView.js",
+        "componentName": "AudioUploaderView",
+        "route": "audio-uploader",
+        "title": "Audio Uploader"
     },
     {
         "filePath": "/multi-files-uploader-view/MultiFilesUploaderView.js",
@@ -22,11 +28,5 @@
         "componentName": "CreateGame",
         "route": "create-game",
         "title": "Upload image to relative model (by creating a new game)"
-    },
-	{
-		"filePath": "/multipleSizes/GetImg.js",
-		"componentName": "GetImg",
-		"route": "get-img",
-		"title": "get img in multiple sizes"
-	}
+    }
 ]

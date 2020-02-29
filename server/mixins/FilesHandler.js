@@ -68,16 +68,20 @@ module.exports = function FilesHandler(Model) {
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
+
         let size = file.multipleSizes === true ? await getImgWidth(base64Data) : null;
+        // let sizes = file.type === Consts.FILE_TYPE_IMAGE ? file.multipleSizes ? { sizes: [] } : 1 : {};
+
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
             owner: ownerId,
             format: extension,
             created: Date.now(),
-            dontSave: true,// dont let afterSave remote do anything- needed?
+            modified: Date.now(), // add ?
             title: file.title,
+            description: file.description,
             size: size,
-            description: file.description
+            dontSave: true,// dont let afterSave remote do anything- needed?
         };
 
         logFile("fileObj before save", fileObj);
@@ -101,7 +105,7 @@ module.exports = function FilesHandler(Model) {
             }
 
             if (file.type === "image" && file.multipleSizes === true) {
-                let sizes = await tripleimg(specificSaveDir + newFile.id, extension, size)
+                let sizes = await getMultiSizesPath(specificSaveDir + newFile.id, extension, size)
 
                 logFile("sizes", sizes)
                 sizes.map((size) => {
@@ -145,29 +149,15 @@ module.exports = function FilesHandler(Model) {
             logFile("Empty row in FileModel is deleted");
         }
         if (!file.src) {
-            if (Array.isArray(filesToSave[fileKey])) {
-
-                let fileKeyIndex = newRes.rejectedImges.findIndex(arrKeyName => Object.keys(arrKeyName).includes(fileKey))
-                
-                if (fileKeyIndex===-1) {
-                    fileKeyIndex = newRes.rejectedImges.push({ [fileKey]: [] })-1;
-                }
-                newRes.rejectedImges[fileKeyIndex][fileKey].push(index)
-
-            }
-            else {
-                newRes.rejectedImges.push(fileKey)
-
-            }
-            logFile("The size of file with key %s is not in range. Canceling...", fileKey, "file", file);
-            return Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE;
+            updateNewRes({ id: null, status: Consts.FILE_REJECTED }, fileKey, newRes, isMultiFilesSave);
+            return logFile("The size of file with key %s is not in range. Canceling...", fileKey, "file", file);
         }
 
         if (oldFileId === null && index === 0 && Model === FileModel) oldFileId = modelInstance.id;
 
         let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
         if (!newFileId) return logFile("Couldn't create your file, aborting...");
-        newRes.acceseptedImges.push(newFileId);
+        updateNewRes({ id: newFileId, status: Consts.FILE_ACCEPTED }, fileKey, newRes, isMultiFilesSave);
 
         if (isMultiFilesSave) {
             let relations = Model.relations;
@@ -315,7 +305,7 @@ module.exports = function FilesHandler(Model) {
 
         (async () => {
             const argsKeys = Object.keys(args);
-            let newRes = { acceseptedImges: [], rejectedImges: [] };
+            let newRes = {};
 
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
 
@@ -336,23 +326,42 @@ module.exports = function FilesHandler(Model) {
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
                             if (typeof fileOrFiles[j] !== "object") continue;
-                            let isFileNotInRange = await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true, newRes);
-                            if (isFileNotInRange === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
+                            await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true, newRes);
                         }
                     }
                     else {
                         if (typeof fileOrFiles !== "object") continue;
-                        let isFileNotInRange = await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, false, newRes);
-                        if (isFileNotInRange === Consts.FILE_UPLOAD_STATUS_ERROR_SIZE_NOT_IN_RANGE) logFile("Update the res with 'file not in range err'");
+                        await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, false, newRes);
                     }
                 }
             }
-            let res = (ctx.result && ctx.result.__data) || ctx.result;
-            res.acceseptedImgesID=newRes.acceseptedImges;
-            res.rejectedImgesKeys = newRes.rejectedImges;
+
+            updateRes(newRes, ctx);
             return next();
         })();
     });
+}
+
+function updateRes(newRes, ctx) {
+    let res = (ctx.result && ctx.result.__data) || ctx.result;
+    res.filesToSave = null;
+    // res.id = null;
+    delete res.filesToSave;
+    // delete res.id;
+    for (let fileKey in newRes) {
+        res[fileKey] = newRes[fileKey];
+    }
+    res.newRes = newRes;
+}
+
+function updateNewRes(fileRes, fileKey, newRes, isMultiFilesSave) {
+    if (isMultiFilesSave) {
+        if (!(fileKey in newRes)) newRes[fileKey] = [];
+        newRes[fileKey].push(fileRes);
+    }
+    else {
+        newRes[fileKey] = fileRes;
+    }
 }
 
 function getSaveDir(type) {
@@ -445,7 +454,7 @@ async function getImgWidth(base64Data) {
     return dimensions.width;
 }
 
-async function tripleimg(fileTargetPath, extension, width) {
+async function getMultiSizesPath(fileTargetPath, extension, width) {
     let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: Consts.IMAGE_SIZE_SMALL_IN_PX }]
     if (width >= Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
         sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: Consts.IMAGE_SIZE_MEDIUM_IN_PX })
@@ -457,15 +466,15 @@ async function tripleimg(fileTargetPath, extension, width) {
 }
 
 async function isImgSizeInRange(keyData) {
-    if (keyData.type === 'image') {
+    if (keyData.type === Consts.FILE_TYPE_IMAGE) {
         if (keyData.checkImgMinSize) {
-            let extension = getFileExtension(keyData.src,keyData.type);
+            let extension = getFileExtension(keyData.src, keyData.type);
             if (!extension) return false;
             let regex = getRegex(extension);
             if (!regex) return false;
             let base64Data = keyData.src.replace(regex, '');
             if ((await getImgWidth(base64Data)) < Consts.IMAGE_SIZE_SMALL_IN_PX) {
-                console.error('ERR: img is to small');
+                logFile('ERR: img is to small');
                 return false;
             }
         }

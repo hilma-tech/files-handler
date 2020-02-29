@@ -1,0 +1,58 @@
+{
+    "thead": [
+        "Property",
+        "Type",
+        "Description",
+        "Default"
+    ],
+    "tbody": [
+        {
+            "Property": "name",
+            "Type": "string",
+            "Description": "Has to be uniqe to each uploader. If the model we are POSTing to has a property with the same name as name: The uploaded audio's id reference will be saved there. (Example for value: CVId)",
+            "Default": "-"
+        },
+        {
+            "Property": "title",
+            "Type": "string",
+            "Description": "The audio's title in database at Images model",
+            "Default": "default_audio_title"
+        },
+        {
+            "Property": "description",
+            "Type": "string",
+            "Description": "he audio's description in database at Images model",
+            "Default": "default_audio_description"
+        },
+        {
+            "Property": "category",
+            "Type": "string",
+            "Description": "Image is saved into public/audios/[category]",
+            "Default": "default_audio_category"
+        },
+        {
+            "Property": "label",
+            "Type": "string",
+            "Description": "Description of what you whant the user will upload",
+            "Default": "Choose audio"
+        },
+        {
+            "Property": "removeaudioIcon",
+            "Type": "string",
+            "Description": "Image's path in public, example:'/audios/myImage.png",
+            "Default": "src/modules/audioshandler/imgs/x-icon.png"
+        },
+        {
+            "Property": "required",
+            "Type": "boolean",
+            "Description": "Is it required to fill the input or not",
+            "Default": "false"
+        },
+        {
+            "Property": "onChange",
+            "Type": "function",
+            "Description": "Send onChange method to get the data from the audioUploader and use it for your uses",
+            "Default": "-"
+        }
+    ]
+}
