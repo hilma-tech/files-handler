@@ -68,7 +68,6 @@ module.exports = function FilesHandler(Model) {
             category: file.category ? file.category : 'uploaded',
             owner: ownerId,
             format: extension,
-            created: Date.now(),
             dontSave: true,// dont let afterSave remote do anything- needed?
             title: file.title,
             description: file.description
@@ -188,7 +187,6 @@ module.exports = function FilesHandler(Model) {
                             ModelToSave = Model.app.models.Video;
                             ModelToSaveName = `${FILE_TYPE_VIDEO}s`;
                             break;
-                        // TODO Shira ? - add Audio model and a case for it ?
                         case FILE_TYPE_AUDIO:
                             ModelToSave = Model.app.models.Audio;
                             ModelToSaveName = `${FILE_TYPE_AUDIO}s`;

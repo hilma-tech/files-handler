@@ -2,8 +2,9 @@
     "name": "BaseAudios",
     "isPublic": "false",
     "mixins": {
-        "FilesHandler": true,
-        "ExcludeModelFields": true
+      "FilesHandler": true,
+      "ExcludeModelFields": true,
+      "GenerateInstanceTimes": true
     },
     "excludeFields": [
       "owner"
