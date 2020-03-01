@@ -9,30 +9,30 @@ export default class MultiFilesUploader extends Component {
         super(props);
 
         this.state = {
-            filesPreviews: []
+            filesData: []
         };
 
-        this.checkImgMinSize = this.props.checkImgMinSize || false;
-        this.checkImgMaxSize = this.props.checkImgMaxSize || true;
-        this.maxSize = this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB;
+        this.filesPreviews = [];
 
         this.type = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
             this.props.type : Consts.FILE_TYPE_IMAGE;
 
+        this.acceptedExtensions = this.getAcceptedExtensions();
+        this.acceptedMimes = this.getAcceptedMimes();
+
+        this.maxSize = this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB;
         this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
             this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
 
-        this.acceptedExtensions = this.getAcceptedExtensions();
-        this.acceptedMimes = this.getAcceptedMimes();
-        this.filesPreviews = [];
+        this.checkImgMinSize = this.props.checkImgMinSize || false;
+        this.checkImgMaxSize = this.props.checkImgMaxSize || true;
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
         console.log("acceptedfiles", acceptedfiles)
         console.log("rejectedFiles", rejectedFiles)
 
-        let filesPreviews = [];
-        let acceptedFilesObjs = [];
+        let filesData = [...this.state.filesData];
 
         for (let i = 0; i < acceptedfiles.length; i++) {
             let sizeKB = acceptedfiles[i] * 0.001;
@@ -53,25 +53,34 @@ export default class MultiFilesUploader extends Component {
             };
 
             let filePreview = await this.getFilePreviewObj(acceptedfiles[i], base64String, Consts.FILE_ACCEPTED);
-            filesPreviews.push(filePreview);
-            acceptedFilesObjs.push(fileObj);
+
+            filesData.push({ previewObj: filePreview, acceptedObj: fileObj });
         }
 
         for (let i = 0; i < rejectedFiles.length; i++) {
             if (!this.acceptedMimes.includes(rejectedFiles[i].type)) continue;
 
             let filePreview = await this.getFilePreviewObj(rejectedFiles[i], null, Consts.FILE_REJECTED, Consts.ERROR_MSG_FILE_TOO_BIG);
-            filesPreviews.push(filePreview);
+
+            filesData.push({ previewObj: filePreview });
         }
 
         // Display previews of dropped files
-        filesPreviews = [...this.state.filesPreviews, ...filesPreviews];
-        this.setState({ filesPreviews });
+        this.setState({ filesData }, this.parentOnChange);
 
         // Calls the onChange callback with the accepted files
-        let eventObj = { target: { name: this.props.name || "multiImagesHandler", value: acceptedFilesObjs } };
-        this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     };
+
+    getAcceptedFilesObjs = (filesData) => {
+        let acceptedFilesObj = [];
+
+        for (let i = 0; i < filesData.length; i++) {
+            if (filesData[i].acceptedObj)
+                acceptedFilesObj.push(filesData[i].acceptedObj);
+        }
+
+        return acceptedFilesObj;
+    }
 
     readFileToBase64 = (fileInfo) => {
         return new Promise((resolve, reject) => {
@@ -130,8 +139,7 @@ export default class MultiFilesUploader extends Component {
         return filePreview;
     }
 
-    getFilePreview = (file) => {
-        console.log("getFilePreview", file)
+    getFilePreview = (file, index) => {
         let filePreview = null;
 
         switch (this.type) {
@@ -139,7 +147,7 @@ export default class MultiFilesUploader extends Component {
                 filePreview =
                     <div>
                         <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} />
-                        <h2>{file.preview.length <= 11? file.preview : (file.preview.slice(0, 8) + "...")}</h2>
+                        <h2>{file.preview.length <= 11 ? file.preview : (file.preview.slice(0, 8) + "...")}</h2>
                     </div>;
                 break;
 
@@ -149,7 +157,7 @@ export default class MultiFilesUploader extends Component {
 
 
             case Consts.FILE_TYPE_VIDEO:
-                filePreview = <video controls src={file.preview} type={"video/*"} />;
+                filePreview = <video src={file.preview} type={"video/*"} />;
                 break;
 
 
@@ -164,13 +172,13 @@ export default class MultiFilesUploader extends Component {
         }
 
         return (
-            <div className="file-preview">
+            <div className="file-preview ">
                 <div className={`thumb ${this.type}-thumb`}>
                     <div className='thumb-inner'>
                         {filePreview}
                     </div>
                 </div>
-                <div className="remove-icon" onClick={this.removeFile}>
+                <div className="remove-icon" onClick={() => this.removeFile(index)}>
                     <img src={require('../../../imgs/x-icon.png')} alt="x" />
                 </div>
                 {file.status === Consts.FILE_REJECTED &&
@@ -183,13 +191,26 @@ export default class MultiFilesUploader extends Component {
         )
     }
 
+
+    removeFile = (fileIndex) => {
+        let filesData = this.state.filesData;
+        filesData.splice(fileIndex, 1);
+        this.setState({ filesData }, this.parentOnChange);
+    }
+
+    parentOnChange = () => {
+        // Calls the onChange callback with the accepted files
+        let eventObj = { target: { name: this.props.name || "multiImagesHandler", value: this.getAcceptedFilesObjs(this.state.filesData) } };
+        this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
+    }
+
     render() {
         /* After every drop, the component is rendered twicw due to usage of Dropzone,
-        the following condition is to prevent unnecessary updates of filesPreviews*/
-        this.filesPreviews = this.state.filesPreviews.length > this.filesPreviews.length ?
-            this.state.filesPreviews.map((file, i) => (
+        the following condition is to prevent unnecessary updates of filesPreviews */
+        this.filesPreviews = this.state.filesData.length !== this.filesPreviews.length ?
+            this.state.filesData.map((file, i) => (
                 <div key={i}>
-                    {this.getFilePreview(file)}
+                    {this.getFilePreview(file.previewObj, i)}
                 </div>
             )) : this.filesPreviews;
 

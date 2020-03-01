@@ -88,6 +88,31 @@
         }
       }
 
+      .video-thumb {
+        width: 14em;
+        height: 8em;
+
+        .thumb-inner {
+          overflow: hidden;
+        }
+
+        .thumb-inner video {
+          height: 100%;
+        }
+      }
+
+      .audio-thumb {
+        width: fit-content;
+        height: auto;
+        border: none;
+
+        .thumb-inner audio {
+          width: 17em;
+          border: 1px solid gray;
+          border-radius: 70px;
+        }
+      }
+
       .remove-icon img {
         position: absolute;
         right: -0.5em;
