@@ -354,14 +354,18 @@ module.exports = function FilesHandler(Model) {
 
 function updateRes(newRes, ctx) {
     let res = (ctx.result && ctx.result.__data) || ctx.result;
-    res.filesToSave = null;
-    // res.id = null;
-    delete res.filesToSave;
-    // delete res.id;
-    for (let fileKey in newRes) {
-        res[fileKey] = newRes[fileKey];
+    logFile("res", res)
+    if (!res) return;
+    if (res.filesToSave) {
+        res.filesToSave = null;
+        // res.id = null;
+        delete res.filesToSave;
+        // delete res.id;
+        for (let fileKey in newRes) {
+            res[fileKey] = newRes[fileKey];
+        }
+        // res.newRes = newRes;
     }
-    // res.newRes = newRes;
 }
 
 function updateNewRes(fileRes, fileKey, newRes, isMultiFilesSave) {
