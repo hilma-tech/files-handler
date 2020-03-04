@@ -20,12 +20,11 @@ export default class MultiFilesUploader extends Component {
         this.acceptedExtensions = this.getAcceptedExtensions();
         this.acceptedMimes = this.getAcceptedMimes();
 
-        this.maxSize = this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB;
+        this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
+            this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB) * 1000;
+
         this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
             this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
-
-        this.checkImgMinSize = this.props.checkImgMinSize || false;
-        this.checkImgMaxSize = this.props.checkImgMaxSize || true;
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
@@ -44,12 +43,8 @@ export default class MultiFilesUploader extends Component {
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
                 description: this.props.description || "default_description",
-                relatedModelToSaveImgId: this.props.relatedModelToSaveImgId || {},
-                checkImgMinSize: this.checkImgMinSize,
-                checkImgMaxSize: this.checkImgMaxSize,
-                maxSize: this.maxSize,
-                size: sizeKB,
-                multipleSizes: this.props.multipleSizes || false
+                multipleSizes: this.props.multipleSizes || false,
+                sizeKB: sizeKB
             };
 
             let filePreview = await this.getFilePreviewObj(acceptedfiles[i], base64String, Consts.FILE_ACCEPTED);
@@ -178,9 +173,9 @@ export default class MultiFilesUploader extends Component {
                         {filePreview}
                     </div>
                 </div>
-                <div className="remove-icon" onClick={() => this.removeFile(index)}>
+                {!this.props.disabled && <div className="remove-icon" onClick={() => this.removeFile(index)}>
                     <img src={require('../../../imgs/x-icon.png')} alt="x" />
-                </div>
+                </div>}
                 {file.status === Consts.FILE_REJECTED &&
                     <div className="error-icon">
                         <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
@@ -190,7 +185,6 @@ export default class MultiFilesUploader extends Component {
             </div>
         )
     }
-
 
     removeFile = (fileIndex) => {
         let filesData = this.state.filesData;
@@ -207,7 +201,7 @@ export default class MultiFilesUploader extends Component {
     render() {
         /* After every drop, the component is rendered twicw due to usage of Dropzone,
         the following condition is to prevent unnecessary updates of filesPreviews */
-        this.filesPreviews = this.state.filesData.length !== this.filesPreviews.length ?
+        this.filesPreviews = this.state.filesData.length !== this.filesPreviews.length || this.props.disabled ?
             this.state.filesData.map((file, i) => (
                 <div key={i}>
                     {this.getFilePreview(file.previewObj, i)}
@@ -219,8 +213,9 @@ export default class MultiFilesUploader extends Component {
                 <Dropzone
                     onDrop={this.onDrop}
                     accept={this.acceptedExtensions}
+                    minSize={this.minSizeInBytes}
                     maxSize={this.maxSizeInBytes}
-                    noClick={this.props.onClick}
+                    noClick={this.props.noClick}
                     noDrag={this.props.noDrag}
                     noKeyBoard={this.props.noKeyBoard}
                     disabled={this.props.disabled}>

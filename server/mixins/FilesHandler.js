@@ -14,6 +14,8 @@ const to = (promise) => {
 
 module.exports = function FilesHandler(Model) {
 
+    // TODO: When deleting file: delete it's relations to ImagesSizes
+
     Model.getFileModelOfFile = function (file) {
         switch (file.type) {
             case Consts.FILE_TYPE_IMAGE:
@@ -69,8 +71,9 @@ module.exports = function FilesHandler(Model) {
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
 
-        let size = file.multipleSizes === true ? await getImgWidth(base64Data) : null;
-        // let sizes = file.type === Consts.FILE_TYPE_IMAGE ? file.multipleSizes ? { sizes: [] } : 1 : {};
+        let width = file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes ? await getImgWidth(base64Data) : null;
+        // TODO: remove following after changing "size":
+        let sizesArr = file.multipleSizes ? getMultiSizesArr(file, width) : [];
 
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
@@ -80,8 +83,8 @@ module.exports = function FilesHandler(Model) {
             modified: Date.now(), // add ?
             title: file.title,
             description: file.description,
-            size: size,
-            dontSave: true,// dont let afterSave remote do anything- needed?
+            dontSave: true, // don't let afterSave remote do anything- needed?
+            width: sizesArr.length === 0 ? null : width
         };
 
         logFile("fileObj before save", fileObj);
@@ -97,23 +100,30 @@ module.exports = function FilesHandler(Model) {
         if (errr) { console.error("Error creating file, aborting...", errr); return false }
         logFile("New entry created for model ", file.type, newFile);
 
-        let fileTargetPath = null;
         try {
             if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
                 fs.mkdirSync(specificSaveDir, { recursive: true });
                 logFile("New folder was created ", specificSaveDir);
             }
 
-            if (file.type === "image" && file.multipleSizes === true) {
-                let sizes = await getMultiSizesPath(specificSaveDir + newFile.id, extension, size)
-
-                logFile("sizes", sizes)
-                sizes.map((size) => {
-                    fs.writeFileSync(size.filePath, base64Data, 'base64');
-                    resizeImg(size.filePath, size.width)
-                })
-            } else {
-                fileTargetPath = specificSaveDir + newFile.id + "." + extension;
+            if (file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes) {
+                let sizePaths = await getMultiSizesPaths(specificSaveDir + newFile.id, extension, width);
+                
+                if (sizePaths.length === 0) {
+                    logFile("ERROR: Image is too small for multipleSizes, saving the original version");
+                    let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
+                    fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+                }
+                else {
+                    logFile("The image will be saved at pathes", sizePaths);
+                    sizePaths.map((sizePath) => {
+                        fs.writeFileSync(sizePath.filePath, base64Data, 'base64');
+                        resizeImg(sizePath.filePath, sizePath.width);
+                    })
+                }
+            }
+            else {
+                let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
                 fs.writeFileSync(fileTargetPath, base64Data, 'base64');
             }
         } catch (err) {
@@ -157,6 +167,7 @@ module.exports = function FilesHandler(Model) {
 
         let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
         if (!newFileId) return logFile("Couldn't create your file, aborting...");
+
         updateNewRes({ id: newFileId, status: Consts.FILE_ACCEPTED }, fileKey, newRes, isMultiFilesSave);
 
         if (isMultiFilesSave) {
@@ -253,9 +264,8 @@ module.exports = function FilesHandler(Model) {
 
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
-                        logFile('keyData.checkImgMinSize', keyData.checkImgMinSize)
                         if (keyData.type === Consts.FILE_TYPE_IMAGE)
-                            isFileInRange = await isImgSizeInRange(keyData);
+                            isFileInRange = await isFileSizeInRange(keyData);
                         keyData.src = isFileInRange ? keyData.src : null;
                         logFile('isFileInRange', isFileInRange)
                     }
@@ -265,7 +275,7 @@ module.exports = function FilesHandler(Model) {
 
                         for (let z = 0; z < keyData.length; z++) {
                             if (keyData[z].type === Consts.FILE_TYPE_IMAGE) {
-                                isFileInRange = await isImgSizeInRange(keyData[z]);
+                                isFileInRange = await isFileSizeInRange(keyData[z]);
                                 logFile("isFileInRange", isFileInRange)
                                 keyData[z].src = isFileInRange ? keyData[z].src : null;
 
@@ -351,7 +361,7 @@ function updateRes(newRes, ctx) {
     for (let fileKey in newRes) {
         res[fileKey] = newRes[fileKey];
     }
-    res.newRes = newRes;
+    // res.newRes = newRes;
 }
 
 function updateNewRes(fileRes, fileKey, newRes, isMultiFilesSave) {
@@ -431,12 +441,25 @@ function getFileExtension(fileSrc, fileType) {
     return extension;
 }
 
-function base64MimeType(encoded) {
-    if (typeof encoded !== 'string') return null;
+function base64MimeType(encodedString) {
+    if (typeof encodedString !== 'string') return null;
 
-    var mime = encoded.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
+    var mime = encodedString.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
     if (mime && mime.length) return mime[1];
     return null;
+}
+
+function base64FileSizeInKB(encodedString) {
+    if (typeof encodedString !== 'string') return null;
+
+    let length = encodedString.length;
+    let twoLastChars = encodedString.slice(length - 2, length);
+    let count = 0;
+    for (let char in twoLastChars) if (char === "=") count++;
+    let sizeInBytes = (3 * (length / 4)) - count;
+    let sizeInKB = sizeInBytes / 1000;
+
+    return sizeInKB;
 }
 
 async function resizeImg(imgPath, width) {
@@ -454,31 +477,56 @@ async function getImgWidth(base64Data) {
     return dimensions.width;
 }
 
-async function getMultiSizesPath(fileTargetPath, extension, width) {
-    let sizesPath = [{ filePath: fileTargetPath + '.s.' + extension, width: Consts.IMAGE_SIZE_SMALL_IN_PX }]
+async function getMultiSizesPaths(fileTargetPath, extension, width) {
+    let sizePaths = [];
+
+    if (width >= Consts.IMAGE_SIZE_SMALL_IN_PX) {
+        sizePaths.push({ filePath: `${fileTargetPath}.${Consts.IMAGE_SIZE_SMALL_SIGN}.${extension}`, width: Consts.IMAGE_SIZE_SMALL_IN_PX });
+    }
     if (width >= Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
-        sizesPath.push({ filePath: fileTargetPath + '.m.' + extension, width: Consts.IMAGE_SIZE_MEDIUM_IN_PX })
+        sizePaths.push({ filePath: `${fileTargetPath}.${Consts.IMAGE_SIZE_MEDIUM_SIGN}.${extension}`, width: Consts.IMAGE_SIZE_MEDIUM_IN_PX });
     }
     if (width >= Consts.IMAGE_SIZE_LARGE_IN_PX) {
-        sizesPath.push({ filePath: fileTargetPath + '.l.' + extension, width: Consts.IMAGE_SIZE_LARGE_IN_PX })
+        sizePaths.push({ filePath: `${fileTargetPath}.${Consts.IMAGE_SIZE_LARGE_SIGN}.${extension}`, width: Consts.IMAGE_SIZE_LARGE_IN_PX });
     }
-    return sizesPath;
+    return sizePaths;
 }
 
-async function isImgSizeInRange(keyData) {
-    if (keyData.type === Consts.FILE_TYPE_IMAGE) {
-        if (keyData.checkImgMinSize) {
-            let extension = getFileExtension(keyData.src, keyData.type);
-            if (!extension) return false;
-            let regex = getRegex(extension);
-            if (!regex) return false;
-            let base64Data = keyData.src.replace(regex, '');
-            if ((await getImgWidth(base64Data)) < Consts.IMAGE_SIZE_SMALL_IN_PX) {
-                logFile('ERR: img is to small');
-                return false;
-            }
+function getMultiSizesArr(file, width) {
+    let sizes = [];
+
+    if (!file.multipleSizes) {
+        sizes.push(Consts.IMAGE_SIZE_ORIGINAL_SIGN);
+        return sizes;
+    }
+    if (width >= Consts.IMAGE_SIZE_SMALL_IN_PX) {
+        sizes.push(Consts.IMAGE_SIZE_SMALL_SIGN);
+    }
+    if (width >= Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
+        sizes.push(Consts.IMAGE_SIZE_MEDIUM_SIGN);
+    }
+    if (width >= Consts.IMAGE_SIZE_LARGE_IN_PX) {
+        sizes.push(Consts.IMAGE_SIZE_LARGE_SIGN);
+    }
+    return sizes;
+}
+
+async function isFileSizeInRange(file) {
+    if (file.type === Consts.FILE_TYPE_IMAGE) {
+        let extension = getFileExtension(file.src, file.type);
+        if (!extension) return false;
+        let regex = getRegex(extension);
+        if (!regex) return false;
+
+        if (file.sizeKB < Consts.FILE_MIN_SIZE_IN_KB) {
+            logFile("ERROR: Image is too small");
+            return false;
         }
-        if (keyData.checkImgMaxSize && keyData.size > keyData.maxSize) return false;
+
+        if (file.sizeKB > Consts.FILE_MAX_SIZE_IN_KB) {
+            logFile("ERROR: Image is too big");
+            return false;
+        }
     }
     return true;
 }

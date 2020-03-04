@@ -37,13 +37,13 @@
             "Default": "Choose image"
         },
         {
-            "Property": "minSize",
+            "Property": "minSizeInKB",
             "Type": "int",
             "Description": "Minimum image's size in KB",
             "Default": "0"
         },
         {
-            "Property": "maxSize",
+            "Property": "maxSizeInKB",
             "Type": "int",
             "Description": "Maximum image's size in KB",
             "Default": "5000"

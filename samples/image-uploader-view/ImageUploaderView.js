@@ -3,30 +3,9 @@ import Auth from '../../../auth/Auth';
 import ImageUploader from '../../client/components/ImageUploader.jsx';
 import PreviewWidget from '../../client/components/PreviewWidget';
 import TableInfo from './TableInfo.json';
+import UploadedImage from '../UploadedImage.js';
 import './ImageUploaderView.scss';
 import '../Samples.scss';
-
-const UploadedImage = (props) => {
-    let uploadedImage = props.multiplesizes && props.multiplesizes.length > 0 ?
-        <div>
-            {props.multiplesizes.map((path, i) =>
-                <div key={i} className='figure-container'>
-                    <figure>
-                        <img src={path} alt={props.title} title={props.title} />
-                        {/* <figcaption>{props.description}</figcaption> */}
-                    </figure>
-                </div>)}
-        </div>
-        :
-        <div className='figure-container'>
-            <figure>
-                <img src={props.path} alt={props.title} title={props.title} />
-                <figcaption>{props.description}</figcaption>
-            </figure>
-        </div>;
-
-    return uploadedImage;
-}
 
 export default class ImageUploaderView extends Component {
 
@@ -49,7 +28,7 @@ export default class ImageUploaderView extends Component {
     }
 
     getFilesData = () => {
-        const fieldsToSave = ['imageSample1', 'imageSample1', 'imageSample2', 'imageSample3', 'imageSample4', 'imageSample5', 'imageSample6', 'imageSample7'];
+        const fieldsToSave = ['imageSample', 'imageSample1', 'imageSample1', 'imageSample2', 'imageSample3', 'imageSample4', 'imageSample5', 'imageSample6', 'imageSample7'];
 
         let fieldsToSaveObj = {};
         for (let field of fieldsToSave) {
@@ -108,7 +87,7 @@ export default class ImageUploaderView extends Component {
                             theme="basic-theme"
                             onChange={this.handleFileChange}
                             disabled={this.state.isImgUploaderDisabled}
-                            checkImgMinSize={true} />
+                        />
                     </div>
 
                     <div className="usage">
@@ -159,12 +138,8 @@ export default class ImageUploaderView extends Component {
                                 category="my-images" // image is saved into public/images/[category]
                                 name="imageSample1"
                                 title="my-image"
-                                //minSize
-                                //maxSize
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isImgUploaderDisabled}
-                                multipleSizes={true}
-                                checkImgMinSize={true}
                             />
                         </div>
 
@@ -177,7 +152,6 @@ export default class ImageUploaderView extends Component {
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isImgUploaderDisabled}
-                                checkImgMinSize={true}
                             />
                         </div>
 
@@ -190,7 +164,6 @@ export default class ImageUploaderView extends Component {
                                 theme="circle-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isImgUploaderDisabled}
-                                checkImgMinSize={true}
 
                             />
                         </div>
@@ -213,7 +186,6 @@ export default class ImageUploaderView extends Component {
                                 title="my-image"
                                 previewWidget={<PreviewWidget />}
                                 onChange={this.handleFileChange}
-                                checkImgMinSize={true}
                                 disabled={this.state.isImgUploaderDisabled}
                             />
                         </div>
@@ -228,7 +200,6 @@ export default class ImageUploaderView extends Component {
                                 theme="basic-theme"
                                 previewWidget={<PreviewWidget enableEdit={true} />}
                                 onChange={this.handleFileChange}
-                                checkImgMinSize={true}
                                 disabled={this.state.isImgUploaderDisabled}
                             />
                         </div>
@@ -243,18 +214,17 @@ export default class ImageUploaderView extends Component {
                                 theme="circle-theme"
                                 previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                                 onChange={this.handleFileChange}
-                                checkImgMinSize={true}
                                 disabled={this.state.isImgUploaderDisabled}
                             />
                         </div>
                     </div>
 
-                    <p className="explanation">When <em>multipleSizes</em> is true (like in this example), the chosen images is resized and uploaded in maximum 3 different versions: small, mediuim and large.<br/>
-                    The images are saved at public/imgs/[category]/[image_id].[s/m/l].[format]<br/>
-                    The original image is resized only to smaller versions, which means that in some cases the image will have only medium and small versions, and in others only small.<br/>
-                    When the image and it's versions are uploaded, only 1 new instance is created at Images model.<br/>
-                    At the res of GETing the image, there will be a <em>multipleSizes</em> prop (in addition to the <em>path</em> prop).<br/>
-                    At <em>multipleSizes</em> there is an array with all the existing pathes of the different versions of the spesific image.</p>
+                    <p className="explanation">When <em>multipleSizes</em> is true (like in this example), the chosen images is resized and uploaded in maximum 3 different versions: small, mediuim and large.<br />
+                        The images are saved at public/imgs/[category]/[image_id].[s/m/l].[format]<br />
+                        The original image is resized only to smaller versions, which means that in some cases the image will have only medium and small versions, and in others only small.<br />
+                        When the image and it's versions are uploaded, only 1 new instance is created at Images model.<br />
+                        At the res of GETing the image, there will be a <em>multipleSizes</em> prop (in addition to the <em>path</em> prop).<br />
+                        At <em>multipleSizes</em> there is an array with all the existing pathes of the different versions of the spesific image.</p>
 
                     <div className="image-input-samples">
 
@@ -265,7 +235,6 @@ export default class ImageUploaderView extends Component {
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
-                                checkImgMinSize={true}
                                 multipleSizes={true}
                                 disabled={this.state.isImgUploaderDisabled}
                             />

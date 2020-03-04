@@ -16,13 +16,13 @@ module.exports = function (BaseImages) {
             const hostName = EnvHandler.getHostName();
             fData = ctx.data;
             let sizes;
-            if (fData.size) {
-                if (fData.size < Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
+            if (fData.width) {
+                if (fData.width < Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
                     sizes = ['s']
                     fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.s.${fData.format}`;
                 } else {
                     fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.m.${fData.format}`;
-                    if (fData.size < Consts.IMAGE_SIZE_LARGE_IN_PX) {
+                    if (fData.width < Consts.IMAGE_SIZE_LARGE_IN_PX) {
                         sizes = ['s', 'm']
                     } else {
                         sizes = ['s', 'm', 'l']

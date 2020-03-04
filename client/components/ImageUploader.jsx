@@ -14,9 +14,12 @@ export default class ImageUploader extends Component {
             thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || this.defaultThumbnail,
             // defaultValue: this.props.defaultValue || defaultThumbnail
         };
-        this.checkImgMinSize = this.props.checkImgMinSize || false;
-        this.checkImgMaxSize = this.props.checkImgMaxSize || true;
-        this.maxSize = this.props.maxSize || Consts.FILE_MAX_SIZE_IN_KB;
+
+        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
+            this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB;
+
+        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
+            this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB;
     }
 
     readFileToBase64 = (fileInfo) => {
@@ -46,21 +49,19 @@ export default class ImageUploader extends Component {
     onChangeImg = async (e) => {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let sizeKB = e.target.files[0].size * 0.001;
-        if (this.checkImgMaxSize && sizeKB > this.state.maxSize) { console.error('img is to big'); return; }
+        if (sizeKB < this.minSizeInKB) return console.log("ERROR: Image is too small");
+        if (sizeKB > this.maxSizeInKB) return console.log("ERROR: Image is too big");
         let base64String = await this.readFileToBase64(e.target.files[0]);
         this.setState({ thumbnail: base64String })
 
         let imageObj = {
             src: base64String,
-            type: 'image',
+            type: Consts.FILE_TYPE_IMAGE,
             title: this.props.title || "default_image_title",
             category: this.props.category || "default_image_category",
             description: this.props.description || "default_image_description",
-            multipleSizes: this.props.multipleSizes ||false,
-            checkImgMinSize: this.checkImgMinSize,
-            checkImgMaxSize: this.checkImgMaxSize,
-            maxSize:this.maxSize,
-            size: sizeKB
+            multipleSizes: this.props.multipleSizes || false,
+            sizeKB: sizeKB
         };
 
         let eventObj = { target: { name: this.props.name, value: imageObj } }

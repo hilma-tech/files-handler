@@ -39,7 +39,8 @@
         "video": "videos",
         "audio": "audios"
     },
-    
+
+    "FILE_MIN_SIZE_IN_KB": 0,
     "FILE_MAX_SIZE_IN_KB": 5000,
 
     "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
@@ -47,6 +48,11 @@
     "IMAGE_SIZE_SMALL_IN_PX": 200,
     "IMAGE_SIZE_MEDIUM_IN_PX": 800,
     "IMAGE_SIZE_LARGE_IN_PX": 1200,
+
+    "IMAGE_SIZE_SMALL_SIGN": "s",
+    "IMAGE_SIZE_MEDIUM_SIGN": "m",
+    "IMAGE_SIZE_LARGE_SIGN": "l",
+    "IMAGE_SIZE_ORIGINAL_SIGN": "o", 
     
     "USER": "USER",
     "ALLOW": "ALLOW"
