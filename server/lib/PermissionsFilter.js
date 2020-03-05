@@ -12,11 +12,10 @@ async function exeQuery(sql, app) { return await to(new Promise(function (resolv
 
 module.exports = class PermissionsFilter {
 
-    constructor(req, app, userId = null, fileModel) {
+    constructor(req, app, fileModel) {
         this.request = req;
         this.app = app;
         this.pRecords = [];
-        this.userId = userId;
         this.fileModel = fileModel;
     }
 
@@ -45,19 +44,13 @@ module.exports = class PermissionsFilter {
         logFile("Permissions.Filter.filterByPermissions is launched");
         let authStatus = NOT_AUTHENTICATED;
 
-        if (!this.userId) {
-            //extract access token and find out user id
-            // logFile("this.request.accessToken", this.request)
-            let userId = this.request.accessToken && this.request.accessToken.userId;
-            if (!userId) {
-                logFile("no user id (user is logged out), aborting...");
-                authStatus = NOT_AUTHENTICATED;
-            }
-            else {
-                this.userId = userId;
-                authStatus = AUTHENTICATED;
-            }
-        }
+        //extract access token and find out user id
+        logFile("this.request.accessToken", this.request.accessToken)
+        const userId = this.request.accessToken && this.request.accessToken.userId;
+        if (!userId) {
+            logFile("no user id (user is logged out), aborting...");
+            authStatus = NOT_AUTHENTICATED;
+        } else authStatus = AUTHENTICATED;
 
         const filePath = this.request.path ? this.request.path.split('/') : this.request.params[0].split('/');
         const fileName = filePath[filePath.length - 1];
@@ -66,7 +59,7 @@ module.exports = class PermissionsFilter {
         const model = this.fileModel;
 
         const [rmRoleErr, rmRole] = await to(this.app.models.RoleMapping.findOne({
-            where: { principalId: this.userId },
+            where: { principalId: userId },
             fields: { roleId: true },
             include: 'role'
         }));
@@ -96,7 +89,7 @@ module.exports = class PermissionsFilter {
             .where(
                 squel.expr()
                     .and("principalId is null")
-                    .or("principalId=?", this.userId)
+                    .or("principalId=?", userId)
                     .or("principalId=?", userRole)
                     .or("principalId=?", EVERYONE)
                     .or("principalId=?", authStatus)
@@ -140,11 +133,11 @@ module.exports = class PermissionsFilter {
 
         logFile("Step 3 (userRole: " + userRole + ") is allowed?", allow);
 
-        record = this.findByKeys({ principalType: USER, principalId: this.userId });
+        record = this.findByKeys({ principalType: USER, principalId: userId });
         if ((record && record.permission == ALLOW) || (allow && !record)) allow = true;
         else allow = false;
 
-        logFile("Step 4 Final (principalId " + this.userId + ") is allowed?", allow);
+        logFile("Step 4 Final (principalId " + userId + ") is allowed?", allow);
 
         return allow;
     }

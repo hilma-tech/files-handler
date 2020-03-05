@@ -48,7 +48,7 @@ module.exports = function (app) {
 
         (async () => {
 
-            const permissionsFilter = new PermissionsFilter(req, app, null, fileModel);
+            const permissionsFilter = new PermissionsFilter(req, app, fileModel);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
 
 
@@ -59,7 +59,8 @@ module.exports = function (app) {
                 logFile("Access is allowed for this specific user, for further info see records_permissions table");
             }
 
-            const baseFileDirPath = process.env.NODE_ENV == 'production' ? 'build' : 'public';
+            //also on production we save into public (and not to build because the file can get delete from 'build')
+            const baseFileDirPath = 'public';
             const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/${folders[fileModel]}/${req.params[0]}`;
             let ext=req.params[0].split('.');
             const fileExtension = ext[ext.length-1]; //pdf, mp3, wav...

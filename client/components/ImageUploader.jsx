@@ -131,6 +131,7 @@ export default class ImageUploader extends Component {
                         type="file"
                         accept=".png, .jpg, .jpeg, .gif, .svg"
                         ref="imageUploaderInputRef"
+                        disabled={this.props.disabled || false}
                     />
                     <img
                         src={this.state.thumbnail}

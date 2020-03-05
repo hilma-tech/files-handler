@@ -192,8 +192,32 @@ This was a small taste of what the FilesHandler mixin does.
 
     c. Make sure the method is one of the following: POST, PATCH, PUT. (otherwise the fileshandler won't launch)
 
-    d. Read the documentation, you might be missing something... 
-    
+       d. Make sure that the name of the column you want to save the image to is not the same as the name (key) of one of the relations
+
+        ex.
+
+        Bad:
+       
+            "relations": {
+                "mainImage": {...}
+            },
+            "properties": {
+                "mainImage": "number",
+                ...
+            }, ...
+
+        Good:
+
+            "relations": {
+                "MainImage": {...}
+            },
+            "properties": {
+                "mainImage": "number",
+                ...
+            }, ...
+
+    e. Read the documentation, you might be missing something...
+   
        Or come to me (Shira R), I can try help you
 
 
