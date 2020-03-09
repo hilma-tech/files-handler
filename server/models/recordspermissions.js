@@ -12,9 +12,10 @@ module.exports = function (RecordsPermissions) {
         (async (cb) => {
             const token = options && options.accessToken;
             const userId = token && token.userId;
-            if (!userId) return cb({});
+            if (!userId) return cb("AUTHORIZATION_ERROR", null);
 
-            const permissionsFilter = new PermissionsFilter(fileInfo, RecordsPermissions.app, userId, fileInfo.model);
+            fileInfo.accessToken = { userId };
+            const permissionsFilter = new PermissionsFilter(fileInfo, RecordsPermissions.app, fileInfo.model);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
             if (!allowAccess) { return cb(null, false) }
 

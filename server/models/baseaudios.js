@@ -1,3 +1,4 @@
+const EnvHandler = require('./../../../tools/server/lib/EnvHandler');
 
 module.exports = function (BaseAudios) {
     BaseAudios.observe('loaded', function (ctx, next) {
@@ -6,7 +7,7 @@ module.exports = function (BaseAudios) {
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ? '.' : 'http://localhost:8080';        
+            const hostName = EnvHandler.getHostName();
             fData = ctx.data;
             fData.path = `${hostName}/audios/${fData.category}/${fData.id}.${fData.format}`;
         };

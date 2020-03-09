@@ -1,7 +1,14 @@
 {
   "name": "BaseImages",
   "isPublic":"false",
-  "mixins": {"FilesHandler":true},
+  "mixins": {
+    "FilesHandler":true,
+    "ExcludeModelFields": true,
+    "GenerateInstanceTimes": true
+  },
+  "excludeFields": [
+    "owner"
+  ],
   "http": {
     "path": "BaseImages"
   },
@@ -127,6 +134,21 @@
         "dataScale": 0,
         "nullable": "Y"
       }
+    },
+    "width": {
+      "type": "Number",
+      "required": false,
+      "length": null,
+      "precision": 10,
+      "scale": 0,
+      "mysql": {
+        "columnName": "width",
+        "dataType": "int",
+        "dataLength": null,
+        "dataPrecision": 10,
+        "dataScale": 0,
+        "nullable": "Y"
+      }
     }
   },
   "acls": [
@@ -137,7 +159,7 @@
       "permission": "DENY"
     },
     {
-      "accessType": "WRITE",
+      "accessType": "*",
       "principalType": "ROLE",
       "principalId": "$authenticated",
       "permission": "ALLOW"

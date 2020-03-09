@@ -1,0 +1,59 @@
+{
+    "FILE_TYPE_FILE": "file",
+    "FILE_TYPE_IMAGE": "image",
+    "FILE_TYPE_VIDEO": "video",
+    "FILE_TYPE_AUDIO": "audio",
+
+    "FILE_ACCEPTED": "accepted",
+    "FILE_REJECTED": "rejected",
+        
+    "FILE_TYPES_AND_EXTENSIONS_AND_MIMES": {
+        "file": {
+            "pdf": "application/pdf",
+            "doc": "application/msword",
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        "image": {
+            "jpg": "image/jpeg",
+            "png": "image/png",
+            "jpeg": "image/jpeg",
+            "gif": "image/gif",
+            "svg": "image/svg+xml"
+        },
+        "audio": {
+            "mp3": "audio/mp3",
+            "wav": "audio/wav",
+            "webm": "audio/webm"
+        },
+        "video": {
+            "mp4": "video/mp4",
+            "ogg": "video/ogg",
+            "avi": "video/avi",
+            "webm": "video/webm"
+        }
+    },
+    
+    "FOLDERS": {
+        "file": "files",
+        "image": "imgs",
+        "video": "videos",
+        "audio": "audios"
+    },
+
+    "FILE_MIN_SIZE_IN_KB": 0,
+    "FILE_MAX_SIZE_IN_KB": 5000,
+
+    "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
+    
+    "IMAGE_SIZE_SMALL_IN_PX": 200,
+    "IMAGE_SIZE_MEDIUM_IN_PX": 800,
+    "IMAGE_SIZE_LARGE_IN_PX": 1200,
+
+    "IMAGE_SIZE_SMALL_SIGN": "s",
+    "IMAGE_SIZE_MEDIUM_SIGN": "m",
+    "IMAGE_SIZE_LARGE_SIGN": "l",
+    "IMAGE_SIZE_ORIGINAL_SIGN": "o", 
+    
+    "USER": "USER",
+    "ALLOW": "ALLOW"
+}

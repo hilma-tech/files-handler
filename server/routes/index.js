@@ -7,10 +7,12 @@ const logFile = require('debug')('model:file');
 const FILE_MODEL = 'files';
 const IMAGE_MODEL = 'images';
 const VIDEO_MODEL = 'videos';
+const AUDIO_MODEL = 'audios';
 const folders = {
     [FILE_MODEL]: 'files',
     [IMAGE_MODEL]: 'imgs',
-    [VIDEO_MODEL]: 'videos'
+    [VIDEO_MODEL]: 'videos',
+    [AUDIO_MODEL]: 'audios'
 };
 
 module.exports = function (app) {
@@ -46,7 +48,7 @@ module.exports = function (app) {
 
         (async () => {
 
-            const permissionsFilter = new PermissionsFilter(req, app, null, fileModel);
+            const permissionsFilter = new PermissionsFilter(req, app, fileModel);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
 
 
@@ -57,14 +59,16 @@ module.exports = function (app) {
                 logFile("Access is allowed for this specific user, for further info see records_permissions table");
             }
 
-            const baseFileDirPath = process.env.NODE_ENV == 'production' ? 'build' : 'public';
+            //also on production we save into public (and not to build because the file can get delete from 'build')
+            const baseFileDirPath = 'public';
             const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/${folders[fileModel]}/${req.params[0]}`;
-            const fileExtension = req.params[0].split('.')[1]; //pdf, mp3, wav...
+            let ext=req.params[0].split('.');
+            const fileExtension = ext[ext.length-1]; //pdf, mp3, wav...
 
             logFile("filePath?", filePath);
 
             let contentType = getContentType(fileExtension);
-            if (!contentType) { res.sendStatus(404); return; }
+            if (!contentType) {logFile(contentType); res.sendStatus(404); return; }
 
             fs.readFile(filePath, function (err, data) {
                 if (err) return res.sendStatus(404);
@@ -91,5 +95,10 @@ module.exports = function (app) {
     app.get(`/${folders[VIDEO_MODEL]}/*`, function (req, res) {
         logFile("fileshandler routes for verb GET with /imgs/* is launched");
         allowFileAccess(req, res, VIDEO_MODEL);
+    });
+
+    app.get(`/${folders[AUDIO_MODEL]}/*`, function (req, res) {
+        logFile("fileshandler routes for verb GET with /audios/* is launched");
+        allowFileAccess(req, res, AUDIO_MODEL);
     });
 }
