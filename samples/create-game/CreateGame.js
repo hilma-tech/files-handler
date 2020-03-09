@@ -46,6 +46,7 @@ export default class CreateGame extends Component {
         });
 
         if (err) return console.log("ERR:", err);
+        console.log("POST res", res)
 
         await this.previewImg();
     };
@@ -55,6 +56,7 @@ export default class CreateGame extends Component {
         let [res, err] = await Auth.superAuthFetch('/api/Images?' + filter);
 
         if (err) return console.log("ERR:", err);
+        console.log("GET res", res)
 
         this.setState({ uploadedImage: res[0] });
     }
