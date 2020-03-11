@@ -107,7 +107,7 @@ module.exports = function FilesHandler(Model) {
 
             if (file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes) {
                 let sizePaths = await getMultiSizesPaths(specificSaveDir + newFile.id, extension, width);
-                
+
                 if (sizePaths.length === 0) {
                     logFile("ERROR: Image is too small for multipleSizes, saving the original version");
                     let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
@@ -147,7 +147,7 @@ module.exports = function FilesHandler(Model) {
 
         let oldFileId = null;
 
-        if (modelInstance[fileKey] && modelInstance[fileKey] !== {}) oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
+        if (modelInstance[fileKey] && typeof modelInstance[fileKey] === "number") oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
         logFile("FileId right before saveFile is launched is", oldFileId);
 
         // If the first file we want to upload (not update) to the same model as the remoteModel is not in size range,
@@ -230,7 +230,7 @@ module.exports = function FilesHandler(Model) {
         if (rpErr) return logFile(`Error granting permissions to file owner, aborting...`, rpErr);
 
         //calling a custom remote method after FilesHandler is done
-        let afhData = { model: FileModelName, recordId: newFileId, principalId: fileOwnerId };
+        let afhData = { model: FileModelName, recordId: newFileId, principalId: fileOwnerId, fileKey };
         Model.afterFilesHandler && await Model.afterFilesHandler(afhData, oldFileId, modelInstance, ctx);
     }
 
