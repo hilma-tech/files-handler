@@ -3,6 +3,7 @@ import Auth from '../../../auth/Auth';
 import MultiFilesUploader from '../../client/components/multi-files-uploader/MultiFilesUploader';
 import TableInfo from './TableInfo.json';
 import UploadedImage from '../UploadedImage';
+import Consts from "../../consts/Consts";
 import './MultiFilesUploaderView.scss';
 import '../Samples.scss';
 
@@ -39,7 +40,6 @@ export default class MultiFilesUploaderView extends Component {
 
     upload = async () => {
         this.setState({ isSubmitDisabled: true, isUploaderDisabled: true });
-
         let filesData = this.getFilesData();
         console.log("about to upload files", filesData);
 
@@ -53,15 +53,42 @@ export default class MultiFilesUploaderView extends Component {
 
         if (pErr) return console.log("ERR:", pErr);
 
-        let filter = `filter[order]=id DESC&filter[limit]=${filesData["imgId"].length}`;
-        let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?' + filter);
+        await this.previewUploadedImages(pRes);
+    };
+
+    getUploadedFilesIds = (filesUploadStatus, filterByType = Consts.FILE_TYPE_IMAGE) => {
+        let fileIds = [];
+        for (let fileKeys in filesUploadStatus) {
+            let fileOrFiles = filesUploadStatus[fileKeys];
+
+            const pushToFileIds = (file) => {
+                if (file.status === Consts.FILE_ACCEPTED && file.type === filterByType) {
+                    fileIds.push(file.id)
+                }
+            }
+
+            if (Array.isArray(fileOrFiles)) {
+                fileOrFiles.forEach(file => pushToFileIds(file));
+            }
+            else {
+                pushToFileIds(fileOrFiles);
+            }
+        }
+
+        return fileIds;
+    }
+
+    previewUploadedImages = async (postRes) => {
+        if (!postRes || !postRes.filesUploadStatus) return;
+        let uploadedFilesIds = this.getUploadedFilesIds(postRes.filesUploadStatus, Consts.FILE_TYPE_IMAGE);
+        let filter = JSON.stringify({"where": {"id": {"inq": uploadedFilesIds}}});
+        let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?filter=' + filter);
 
         if (gErr) return console.log("ERR:", gErr);
-
-        console.log("res", gRes);
+        console.log("GET res", gRes);
 
         this.setState({ uploadedImages: gRes });
-    };
+    }
 
     toggleTable = () => {
         let isTable = !this.state.isTable;

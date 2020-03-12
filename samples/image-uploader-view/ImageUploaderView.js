@@ -4,6 +4,7 @@ import ImageUploader from '../../client/components/ImageUploader.jsx';
 import PreviewWidget from '../../client/components/PreviewWidget';
 import TableInfo from './TableInfo.json';
 import UploadedImage from '../UploadedImage.js';
+import Consts from '../../consts/Consts';
 import './ImageUploaderView.scss';
 import '../Samples.scss';
 
@@ -15,7 +16,8 @@ export default class ImageUploaderView extends Component {
             isTable: false,
             uploadedImages: [],
             isSubmitDisabled: true,
-            isImgUploaderDisabled: false
+            isImgUploaderDisabled: false,
+            filesToSave: {}
         };
     }
 
@@ -24,24 +26,17 @@ export default class ImageUploaderView extends Component {
         let value = (fileEvent.target && fileEvent.target.value) || null;
         let isSubmitDisabled = true;
         if (isSubmitDisabled && value) isSubmitDisabled = false;
-        this.setState({ [name]: value, isSubmitDisabled });
+        let filesToSave = { ...this.state.filesToSave };
+        filesToSave[name] = value;
+        this.setState({ filesToSave, isSubmitDisabled });
     }
 
     getFilesData = () => {
-        const fieldsToSave = ['imageSample', 'imageSample1', 'imageSample1', 'imageSample2', 'imageSample3', 'imageSample4', 'imageSample5', 'imageSample6', 'imageSample7'];
-
-        let fieldsToSaveObj = {};
-        for (let field of fieldsToSave) {
-            if (this.state[field]) fieldsToSaveObj[field] = this.state[field];
-        }
-
-        return fieldsToSaveObj;
+        return { ...this.state.filesToSave };
     }
 
     upload = async () => {
-
         this.setState({ isSubmitDisabled: true, isImgUploaderDisabled: true });
-
         let filesData = this.getFilesData();
         console.log("about to upload files", filesData);
 
@@ -54,15 +49,42 @@ export default class ImageUploaderView extends Component {
         if (pErr) return console.log("ERR:", pErr);
         console.log("POST res", pRes)
 
-        let filter = `filter[order]=id DESC&filter[limit]=${Object.keys(filesData).length}`;
-        let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?' + filter);
+        await this.previewUploadedImages(pRes);
+    };
+
+    getUploadedFilesIds = (filesUploadStatus, filterByType = Consts.FILE_TYPE_IMAGE) => {
+        let fileIds = [];
+        for (let fileKeys in filesUploadStatus) {
+            let fileOrFiles = filesUploadStatus[fileKeys];
+
+            const pushToFileIds = (file) => {
+                if (file.status === Consts.FILE_ACCEPTED && file.type === filterByType) {
+                    fileIds.push(file.id)
+                }
+            }
+
+            if (Array.isArray(fileOrFiles)) {
+                fileOrFiles.forEach(file => pushToFileIds(file));
+            }
+            else {
+                pushToFileIds(fileOrFiles);
+            }
+        }
+
+        return fileIds;
+    }
+
+    previewUploadedImages = async (postRes) => {
+        if (!postRes || !postRes.filesUploadStatus) return;
+        let uploadedFilesIds = this.getUploadedFilesIds(postRes.filesUploadStatus, Consts.FILE_TYPE_IMAGE);
+        let filter = JSON.stringify({"where": {"id": {"inq": uploadedFilesIds}}});
+        let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?filter=' + filter);
 
         if (gErr) return console.log("ERR:", gErr);
-
         console.log("GET res", gRes);
 
         this.setState({ uploadedImages: gRes });
-    };
+    }
 
     toggleTable = () => {
         let isTable = !this.state.isTable;

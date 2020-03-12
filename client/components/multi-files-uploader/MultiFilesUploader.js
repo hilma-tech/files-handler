@@ -60,10 +60,8 @@ export default class MultiFilesUploader extends Component {
             filesData.push({ previewObj: filePreview });
         }
 
-        // Display previews of dropped files
+        // Display previews of dropped files and calls the onChange callback with the accepted files
         this.setState({ filesData }, this.parentOnChange);
-
-        // Calls the onChange callback with the accepted files
     };
 
     getAcceptedFilesObjs = (filesData) => {

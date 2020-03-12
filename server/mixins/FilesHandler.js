@@ -86,12 +86,11 @@ module.exports = function FilesHandler(Model) {
             width: sizesArr.length === 0 ? null : width
         };
 
-        logFile("fileObj before save", fileObj);
-
         // If we are posting to and from the same model,
         // the instance was already created in the remote so we just update it 
         if (/*Model === FileModel && */fileId !== null)
             fileObj.id = fileId;
+
         logFile("fileObj before save", fileObj);
 
         let specificSaveDir = saveDir + fileObj.category + "/";
@@ -107,7 +106,7 @@ module.exports = function FilesHandler(Model) {
 
             if (file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes) {
                 let sizePaths = await getMultiSizesPaths(specificSaveDir + newFile.id, extension, width);
-                
+
                 if (sizePaths.length === 0) {
                     logFile("ERROR: Image is too small for multipleSizes, saving the original version");
                     let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
@@ -158,7 +157,7 @@ module.exports = function FilesHandler(Model) {
             logFile("Empty row in FileModel is deleted");
         }
         if (!file.src) {
-            updateNewRes({ id: null, status: Consts.FILE_REJECTED }, fileKey, newRes, isMultiFilesSave);
+            updateNewRes({ id: null, type: file.type, status: Consts.FILE_REJECTED }, fileKey, newRes, isMultiFilesSave);
             return logFile("The size of file with key %s is not in range. Canceling...", fileKey, "file", file);
         }
 
@@ -167,7 +166,7 @@ module.exports = function FilesHandler(Model) {
         let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
         if (!newFileId) return logFile("Couldn't create your file, aborting...");
 
-        updateNewRes({ id: newFileId, status: Consts.FILE_ACCEPTED }, fileKey, newRes, isMultiFilesSave);
+        updateNewRes({ id: newFileId, type: file.type, status: Consts.FILE_ACCEPTED }, fileKey, newRes, isMultiFilesSave);
 
         if (isMultiFilesSave) {
             let relations = Model.relations;
@@ -324,7 +323,6 @@ module.exports = function FilesHandler(Model) {
 
                 if (field === "options") continue;
 
-                logFile('files to save', Object.keys(args[field]))
                 if (!args[field] || !args[field].filesToSave) return next();
 
                 let filesToSave = args[field].filesToSave;
@@ -353,16 +351,13 @@ module.exports = function FilesHandler(Model) {
 
 function updateRes(newRes, ctx) {
     let res = (ctx.result && ctx.result.__data) || ctx.result;
-    if (!res) return;
-    if (res.filesToSave) {
-        res.filesToSave = null;
-        res.id = null;
-        delete res.filesToSave;
-        delete res.id;
-        for (let fileKey in newRes) {
-            res[fileKey] = newRes[fileKey];
-        }
+    if (!res || !res.filesToSave) return;
+    delete res.filesToSave;
+    delete res.id;
+    for (let fileKey in newRes) {
+        delete res[fileKey];
     }
+    res.filesUploadStatus = newRes;
     ctx.result = res;
 }
 
