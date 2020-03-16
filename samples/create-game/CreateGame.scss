@@ -1,5 +1,4 @@
 .create-game-sample {
-  direction: ltr;
   width: 100%;
   overflow: hidden;
   text-align: center;
@@ -35,25 +34,6 @@
 
     .col {
       margin: 1em;
-    }
-  }
-
-  p {
-    font-size: 1.5em;
-    padding-left: 1em;
-    padding-right: 1em;
-  }
-
-  .explanation {
-    margin-top: 1em;
-    text-align: left;
-  }
-
-  .uploaded-image {
-    margin: 5%;
-
-    div img {
-      width: 30vw;
     }
   }
 }
