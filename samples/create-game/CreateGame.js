@@ -2,14 +2,17 @@ import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
 import ImageUploader from '../../client/components/ImageUploader.jsx';
 import MultiFilesUploader from '../../client/components/multi-files-uploader/MultiFilesUploader';
+import UploadedImage from '../UploadedImage';
+import Consts from "../../consts/Consts";
 import './CreateGame.scss';
+import '../Samples.scss';
 
 export default class CreateGame extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            uploadedImages: null,
+            uploadedImages: [],
             isSubmitDisabled: true,
             isInputDisabled: false
         };
@@ -48,22 +51,46 @@ export default class CreateGame extends Component {
         if (err) return console.log("ERR:", err);
         console.log("POST res", res)
 
-        await this.previewImg();
+        await this.previewUploadedImages(res);
     };
 
-    previewImg = async () => {
-        let filter = "filter[order]=id DESC&filter[limit]=1";
-        let [res, err] = await Auth.superAuthFetch('/api/Images?' + filter);
+    getUploadedFilesIds = (filesUploadStatus, filterByType = Consts.FILE_TYPE_IMAGE) => {
+        let fileIds = [];
+        for (let fileKeys in filesUploadStatus) {
+            let fileOrFiles = filesUploadStatus[fileKeys];
 
-        if (err) return console.log("ERR:", err);
-        console.log("GET res", res)
+            const pushToFileIds = (file) => {
+                if (file.status === Consts.FILE_ACCEPTED && file.type === filterByType) {
+                    fileIds.push(file.id)
+                }
+            }
 
-        this.setState({ uploadedImage: res[0] });
+            if (Array.isArray(fileOrFiles)) {
+                fileOrFiles.forEach(file => pushToFileIds(file));
+            }
+            else {
+                pushToFileIds(fileOrFiles);
+            }
+        }
+
+        return fileIds;
+    }
+
+    previewUploadedImages = async (postRes) => {
+        if (!postRes || !postRes.filesUploadStatus) return;
+        let uploadedFilesIds = this.getUploadedFilesIds(postRes.filesUploadStatus, Consts.FILE_TYPE_IMAGE);
+        let filter = JSON.stringify({ "where": { "id": { "inq": uploadedFilesIds } } });
+        let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?filter=' + filter);
+
+        if (gErr) return console.log("ERR:", gErr);
+        console.log("GET res", gRes);
+
+        this.setState({ uploadedImages: gRes }, () => console.log("state", this.state.uploadedImages));
     }
 
     render() {
         return (
-            <div className="create-game-sample">
+            <div className="create-game-sample uploader-sample">
 
                 <h2>Create a new game</h2>
 
@@ -120,19 +147,13 @@ export default class CreateGame extends Component {
                     It saves the reference of cover-image id at imgId field in games model.<br />
                     It saves the references of game-process-images at games-images model.</p>
 
-                {this.state.uploadedImage && <UploadedImage {...this.state.uploadedImage} />}
-            </div >
+                <div className="uploaded-images">
+                    {this.state.uploadedImages.map((uploadedImage, i) =>
+                        <div key={i}>
+                            <UploadedImage {...uploadedImage} />
+                        </div>)}
+                </div>
+            </div>
         );
     }
-}
-
-const UploadedImage = (props) => {
-    return (
-        <div className='uploaded-image'>
-            <div>
-                <img src={props.path} alt={props.title} title={props.title} />
-                <label>{props.description}</label>
-            </div>
-        </div>
-    );
 }
