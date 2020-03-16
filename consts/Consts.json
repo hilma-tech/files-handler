@@ -53,6 +53,9 @@
     "IMAGE_SIZE_MEDIUM_SIGN": "m",
     "IMAGE_SIZE_LARGE_SIGN": "l",
     "IMAGE_SIZE_ORIGINAL_SIGN": "o", 
+
+    "IMAGE_SIZES_IN_PX":[200,800,1200],
+    "IMAGE_SIZE_SIGNS":["s","m","l"],
     
     "USER": "USER",
     "ALLOW": "ALLOW"
