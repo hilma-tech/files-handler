@@ -51,7 +51,6 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.saveFile = async function (file, FileModel, ownerId = null, fileId = null) {
-
         logFile("Model.saveFile is launched with ownerId", ownerId);
         let saveDir = getSaveDir(file.type);
         if (!saveDir) return false;
@@ -66,7 +65,6 @@ module.exports = function FilesHandler(Model) {
 
         let width = file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes ? await getImgWidth(base64Data) : null;
         // TODO: remove following after changing "size":
-        let sizesArr = file.multipleSizes ? getMultiSizesArr(file, width) : [];
 
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
@@ -75,7 +73,7 @@ module.exports = function FilesHandler(Model) {
             title: file.title,
             description: file.description,
             dontSave: true, // don't let afterSave remote do anything- needed?
-            width: sizesArr.length === 0 ? null : width
+            width: width ? width : null
         };
 
         // If we are posting to and from the same model,
@@ -86,8 +84,8 @@ module.exports = function FilesHandler(Model) {
         logFile("fileObj before save", fileObj);
 
         let specificSaveDir = saveDir + fileObj.category + "/";
-        let [errr, newFile] = await to(FileModel.upsert(fileObj));
-        if (errr) { console.error("Error creating file, aborting...", errr); return false }
+        let [err, newFile] = await to(FileModel.upsert(fileObj));
+        if (err) { console.error("Error creating file, aborting...", err); return false }
         logFile("New entry created for model ", file.type, newFile);
 
         try {
@@ -97,25 +95,20 @@ module.exports = function FilesHandler(Model) {
             }
 
             if (file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes) {
-                let sizePaths = await getMultiSizesPaths(specificSaveDir + newFile.id, extension, width);
-
-                if (sizePaths.length === 0) {
-                    logFile("ERROR: Image is too small for multipleSizes, saving the original version");
-                    let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
-                    fs.writeFileSync(fileTargetPath, base64Data, 'base64');
-                }
+                if (width < Consts.IMAGE_SIZE_MEDIUM_IN_PX)
+                    logFile("ERROR: Image is too small for multipleSizes");
                 else {
-                    logFile("The image will be saved at pathes", sizePaths);
-                    sizePaths.map((sizePath) => {
-                        fs.writeFileSync(sizePath.filePath, base64Data, 'base64');
-                        resizeImg(sizePath.filePath, sizePath.width);
-                    })
+                    for (let size in Consts.IMAGE_SIZE_SIGNS) {
+                        let fileTargetPath = `${specificSaveDir + newFile.id}.${Consts.IMAGE_SIZE_SIGNS[size]}.${extension}`
+                        fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+                        resizeImg(fileTargetPath, Consts.IMAGE_SIZES_IN_PX[size]);
+                    }
                 }
+
             }
-            else {
-                let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
-                fs.writeFileSync(fileTargetPath, base64Data, 'base64');
-            }
+            let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
+            fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+
         } catch (err) {
             logFile("Err", err);
         }
@@ -457,39 +450,6 @@ async function getImgWidth(base64Data) {
     return dimensions.width;
 }
 
-async function getMultiSizesPaths(fileTargetPath, extension, width) {
-    let sizePaths = [];
-
-    if (width >= Consts.IMAGE_SIZE_SMALL_IN_PX) {
-        sizePaths.push({ filePath: `${fileTargetPath}.${Consts.IMAGE_SIZE_SMALL_SIGN}.${extension}`, width: Consts.IMAGE_SIZE_SMALL_IN_PX });
-    }
-    if (width >= Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
-        sizePaths.push({ filePath: `${fileTargetPath}.${Consts.IMAGE_SIZE_MEDIUM_SIGN}.${extension}`, width: Consts.IMAGE_SIZE_MEDIUM_IN_PX });
-    }
-    if (width >= Consts.IMAGE_SIZE_LARGE_IN_PX) {
-        sizePaths.push({ filePath: `${fileTargetPath}.${Consts.IMAGE_SIZE_LARGE_SIGN}.${extension}`, width: Consts.IMAGE_SIZE_LARGE_IN_PX });
-    }
-    return sizePaths;
-}
-
-function getMultiSizesArr(file, width) {
-    let sizes = [];
-
-    if (!file.multipleSizes) {
-        sizes.push(Consts.IMAGE_SIZE_ORIGINAL_SIGN);
-        return sizes;
-    }
-    if (width >= Consts.IMAGE_SIZE_SMALL_IN_PX) {
-        sizes.push(Consts.IMAGE_SIZE_SMALL_SIGN);
-    }
-    if (width >= Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
-        sizes.push(Consts.IMAGE_SIZE_MEDIUM_SIGN);
-    }
-    if (width >= Consts.IMAGE_SIZE_LARGE_IN_PX) {
-        sizes.push(Consts.IMAGE_SIZE_LARGE_SIGN);
-    }
-    return sizes;
-}
 
 async function isFileSizeInRange(file) {
     let extension = getFileExtension(file.src, file.type);

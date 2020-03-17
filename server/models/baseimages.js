@@ -15,29 +15,16 @@ module.exports = function (BaseImages) {
         else {
             const hostName = EnvHandler.getHostName();
             fData = ctx.data;
-            let sizes;
-            if (fData.width) {
-                if (fData.width < Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
-                    sizes = ['s']
-                    fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.s.${fData.format}`;
-                } else {
-                    fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.m.${fData.format}`;
-                    if (fData.width < Consts.IMAGE_SIZE_LARGE_IN_PX) {
-                        sizes = ['s', 'm']
-                    } else {
-                        sizes = ['s', 'm', 'l']
-                    }
-                }
-
-                console.log('sizes',sizes);
+            fData.multiplesizes = [];
+            
+            if (fData.width&&fData.width > Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
                 fData.multiplesizes = [];
-                for (let size of sizes) {
+                for (let size of Consts.IMAGE_SIZE_SIGNS) {
                     fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
                 }
-            } else {
-                fData.multiplesizes = [];
-                fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
             }
+            fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
+
 
         };
         ctx.data = fData;
