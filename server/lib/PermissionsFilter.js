@@ -1,11 +1,6 @@
 const squel = require('squel');
 const logFile = require('debug')('model:file');
-const ROLE = 'ROLE';
-const USER = 'USER';
-const ALLOW = 'ALLOW';
-const AUTHENTICATED = '$authenticated';
-const NOT_AUTHENTICATED = "$unauthenticated";
-const EVERYONE = '$everyone';
+const Consts = require('../../consts/Consts.json');
 
 function to(promise) { return promise.then(data => { return [null, data]; }).catch(err => [err]); }
 async function exeQuery(sql, app) { return await to(new Promise(function (resolve, reject) { let ds = app.dataSources['msql']; ds.connector.execute(sql, [], function (err, res) { if (err) reject(res); else resolve(res); }); })); }
@@ -42,15 +37,15 @@ module.exports = class PermissionsFilter {
     async filterByPermissions() {
 
         logFile("Permissions.Filter.filterByPermissions is launched");
-        let authStatus = NOT_AUTHENTICATED;
+        let authStatus = Consts.NOT_AUTHENTICATED;
 
         //extract access token and find out user id
         logFile("this.request.accessToken", this.request.accessToken)
         const userId = this.request.accessToken && this.request.accessToken.userId;
         if (!userId) {
             logFile("no user id (user is logged out), aborting...");
-            authStatus = NOT_AUTHENTICATED;
-        } else authStatus = AUTHENTICATED;
+            authStatus = Consts.NOT_AUTHENTICATED;
+        } else authStatus = Consts.AUTHENTICATED;
 
         const filePath = this.request.path ? this.request.path.split('/') : this.request.params[0].split('/');
         const fileName = filePath[filePath.length - 1];
@@ -91,7 +86,7 @@ module.exports = class PermissionsFilter {
                     .and("principalId is null")
                     .or("principalId=?", userId)
                     .or("principalId=?", userRole)
-                    .or("principalId=?", EVERYONE)
+                    .or("principalId=?", Consts.EVERYONE)
                     .or("principalId=?", authStatus)
             )
             .where(
@@ -114,27 +109,27 @@ module.exports = class PermissionsFilter {
         let record = null;
 
         record = this.findByKeys({ recordId: null });
-        if ((record && record.permission == ALLOW)) allow = true;
+        if ((record && record.permission == Consts.ALLOW)) allow = true;
 
         logFile("Step 0 (all " + model + ") are allowed?", allow);
 
-        record = this.findByKeys({ principalType: ROLE, principalId: EVERYONE });
-        if (record && record.permission == ALLOW) allow = true;
+        record = this.findByKeys({ principalType: Consts.ROLE, principalId: Consts.EVERYONE });
+        if (record && record.permission == Consts.ALLOW) allow = true;
 
         logFile("Step 1 ($everyone) is allowed?", allow);
 
-        record = this.findByKeys({ principalType: ROLE, principalId: authStatus });
-        if ((record && record.permission == ALLOW) || (allow && !record)) allow = true;
+        record = this.findByKeys({ principalType: Consts.ROLE, principalId: authStatus });
+        if ((record && record.permission == Consts.ALLOW) || (allow && !record)) allow = true;
 
         logFile("Step 2 (authenticated/unathenticated) is allowed?", allow);
 
-        record = this.findByKeys({ principalType: ROLE, principalId: userRole });
-        if ((record && record.permission == ALLOW) || (allow && !record)) allow = true;
+        record = this.findByKeys({ principalType: Consts.ROLE, principalId: userRole });
+        if ((record && record.permission == Consts.ALLOW) || (allow && !record)) allow = true;
 
         logFile("Step 3 (userRole: " + userRole + ") is allowed?", allow);
 
-        record = this.findByKeys({ principalType: USER, principalId: userId });
-        if ((record && record.permission == ALLOW) || (allow && !record)) allow = true;
+        record = this.findByKeys({ principalType: Consts.USER, principalId: userId });
+        if ((record && record.permission == Consts.ALLOW) || (allow && !record)) allow = true;
         else allow = false;
 
         logFile("Step 4 Final (principalId " + userId + ") is allowed?", allow);

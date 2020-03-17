@@ -20,11 +20,11 @@ export default class MultiFilesUploader extends Component {
         this.acceptedExtensions = this.getAcceptedExtensions();
         this.acceptedMimes = this.getAcceptedMimes();
 
-        this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
-            this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB) * 1000;
+        this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE ?
+            this.props.minSizeInKB : Consts.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE) * 1000;
 
-        this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
-            this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB) * 1000;
+        this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
+            this.props.maxSizeInKB : Consts.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE) * 1000;
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
@@ -34,7 +34,6 @@ export default class MultiFilesUploader extends Component {
         let filesData = [...this.state.filesData];
 
         for (let i = 0; i < acceptedfiles.length; i++) {
-            let sizeKB = acceptedfiles[i] * 0.001;
             let base64String = await this.readFileToBase64(acceptedfiles[i]);
 
             let fileObj = {
@@ -43,8 +42,7 @@ export default class MultiFilesUploader extends Component {
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
                 description: this.props.description || "default_description",
-                multipleSizes: this.props.multipleSizes || false,
-                sizeKB: sizeKB
+                multipleSizes: this.props.multipleSizes || false
             };
 
             let filePreview = await this.getFilePreviewObj(acceptedfiles[i], base64String, Consts.FILE_ACCEPTED);

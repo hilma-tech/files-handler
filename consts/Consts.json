@@ -4,9 +4,27 @@
     "FILE_TYPE_VIDEO": "video",
     "FILE_TYPE_AUDIO": "audio",
 
-    "FILE_ACCEPTED": "accepted",
-    "FILE_REJECTED": "rejected",
+    "FILE_MODEL_NAME": {
+        "file": "files",
+        "image": "images",
+        "video": "videos",
+        "audio": "audios"
+    },
+
+    "FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS": {
+        "file": "Files",
+        "image": "Images",
+        "video": "Video",
+        "audio": "Audio"
+    },
         
+    "FOLDERS": {
+        "file": "files",
+        "image": "imgs",
+        "video": "videos",
+        "audio": "audios"
+    },
+
     "FILE_TYPES_AND_EXTENSIONS_AND_MIMES": {
         "file": {
             "pdf": "application/pdf",
@@ -32,18 +50,25 @@
             "webm": "video/webm"
         }
     },
-    
-    "FOLDERS": {
-        "file": "files",
-        "image": "imgs",
-        "video": "videos",
-        "audio": "audios"
+
+    "FILE_SIZE_RANGE_IN_KB": {
+        "file": {
+            "MIN_SIZE": 0,
+            "MAX_SIZE": 5000
+        },
+        "image":{
+            "MIN_SIZE": 50,
+            "MAX_SIZE": 5000
+        },
+        "video": {
+            "MIN_SIZE": 0,
+            "MAX_SIZE": 50000
+        },
+        "audio": {
+            "MIN_SIZE": 0,
+            "MAX_SIZE": 50000
+        }
     },
-
-    "FILE_MIN_SIZE_IN_KB": 0,
-    "FILE_MAX_SIZE_IN_KB": 5000,
-
-    "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
     
     "IMAGE_SIZE_SMALL_IN_PX": 200,
     "IMAGE_SIZE_MEDIUM_IN_PX": 800,
@@ -54,6 +79,16 @@
     "IMAGE_SIZE_LARGE_SIGN": "l",
     "IMAGE_SIZE_ORIGINAL_SIGN": "o", 
     
+    "FILE_ACCEPTED": "accepted",
+    "FILE_REJECTED": "rejected",
+
+    "ERROR_MSG_FILE_TOO_SMALL": "ERROR: File is smaller than minimum size",
+    "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
+
+    "ROLE": "ROLE",
     "USER": "USER",
-    "ALLOW": "ALLOW"
+    "ALLOW": "ALLOW",
+    "AUTHENTICATED": "$authenticated",
+    "NOT_AUTHENTICATED": "$unauthenticated",
+    "EVERYONE": "$everyone"
 }

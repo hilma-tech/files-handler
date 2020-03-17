@@ -1,4 +1,5 @@
 ALTER TABLE Images MODIFY COLUMN `format` enum('png','jpg','jpeg','gif', 'svg') CHARACTER SET utf8 DEFAULT NULL;
+ALTER TABLE Files MODIFY COLUMN `format` enum('pdf','doc','docx') CHARACTER SET utf8 DEFAULT NULL;
 
 CREATE TABLE `games_images` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -11,12 +12,17 @@ CREATE TABLE `games_images` (
 
 ALTER TABLE Images ADD width int;
 
+--__________________________________________________
+
+-- *******************BELOW IS OPTIONAL*****************
+--__________________________________________________
+
 -- CREATE TABLE `Audio` (
 --   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 --   `title` varchar(200) DEFAULT NULL,
 --   `description` text,
 --   `created` datetime DEFAULT NULL,
---   `format` enum('docx','doc','pdf','mp3','wav') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `format` enum('mp3','wav','webm') CHARACTER SET utf8 DEFAULT NULL,
 --   `category` varchar(100) DEFAULT NULL,
 --   `modified` datetime DEFAULT NULL,
 --   `owner` int(11) DEFAULT NULL,
@@ -28,7 +34,7 @@ ALTER TABLE Images ADD width int;
 --   `title` varchar(200) DEFAULT NULL,
 --   `description` text,
 --   `created` datetime DEFAULT NULL,
---   `format` enum('docx','doc','pdf','mp3','wav') CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `format` enum('mp4','ogg','avi','webm') CHARACTER SET utf8 DEFAULT NULL,
 --   `category` varchar(100) DEFAULT NULL,
 --   `modified` datetime DEFAULT NULL,
 --   `owner` int(11) DEFAULT NULL,
@@ -36,16 +42,9 @@ ALTER TABLE Images ADD width int;
 -- ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8
 
 
--- *******************DON'T DO!!!!*****************
+--__________________________________________________
+
+-- *******************BELOW IS DEPRECATED*****************
 --__________________________________________________
 
 --ALTER TABLE Images DROP COLUMN width;
-
--- CREATE TABLE `ImagesSizes` (
---   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
---   `imageId` int(11) unsigned NOT NULL,
---   `size` ENUM('s', 'm', 'l', 'o') NOT NULL,
---   `created` datetime DEFAULT NULL,
---   `modified` datetime DEFAULT NULL,
---   PRIMARY KEY (`id`)
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

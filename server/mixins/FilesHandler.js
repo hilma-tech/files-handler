@@ -17,18 +17,10 @@ module.exports = function FilesHandler(Model) {
     // TODO: When deleting file: delete it's relations to ImagesSizes
 
     Model.getFileModelOfFile = function (file) {
-        switch (file.type) {
-            case Consts.FILE_TYPE_IMAGE:
-                return [Model.app.models.Images, `${Consts.FILE_TYPE_IMAGE}s`]
-            case Consts.FILE_TYPE_FILE:
-                return [Model.app.models.Files, `${Consts.FILE_TYPE_FILE}s`]
-            case Consts.FILE_TYPE_VIDEO:
-                return [Model.app.models.Video, `${Consts.FILE_TYPE_VIDEO}s`]
-            case Consts.FILE_TYPE_AUDIO:
-                return [Model.app.models.Audio, `${Consts.FILE_TYPE_AUDIO}s`]
-            default:
-                return [null, null];
-        }
+        if (!file.type) return logFile("ERROR: No file type");
+        let FileModel = Model.app.models[Consts.FILE_MODEL_NAME[file.type]];
+        let fileModelName = Consts.FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS[file.type];
+        return [FileModel, fileModelName]; 
     }
 
     Model.deleteFile = async function (prevFileId, FileModel) {
@@ -236,7 +228,7 @@ module.exports = function FilesHandler(Model) {
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
 
         logFile("Model.beforeRemote is launched", ctx.req.method);
-        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH"/* && !modelInstance.id*/)
+        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
             return next()
 
         let args = ctx.args;
@@ -262,8 +254,7 @@ module.exports = function FilesHandler(Model) {
 
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
-                        if (keyData.type === Consts.FILE_TYPE_IMAGE)
-                            isFileInRange = await isFileSizeInRange(keyData);
+                        isFileInRange = await isFileSizeInRange(keyData);
                         keyData.src = isFileInRange ? keyData.src : null;
                         logFile('isFileInRange', isFileInRange)
                     }
@@ -272,12 +263,9 @@ module.exports = function FilesHandler(Model) {
                             (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
 
                         for (let z = 0; z < keyData.length; z++) {
-                            if (keyData[z].type === Consts.FILE_TYPE_IMAGE) {
-                                isFileInRange = await isFileSizeInRange(keyData[z]);
-                                logFile("isFileInRange", isFileInRange)
-                                keyData[z].src = isFileInRange ? keyData[z].src : null;
-
-                            }
+                            isFileInRange = await isFileSizeInRange(keyData[z]);
+                            keyData[z].src = isFileInRange ? keyData[z].src : null;
+                            logFile("isFileInRange", isFileInRange)
                         }
                     }
 
@@ -296,7 +284,7 @@ module.exports = function FilesHandler(Model) {
 
     Model.afterRemote('*', function (ctx, modelInstance, next) {
         logFile("Model.afterRemote(*) is launched", ctx.req.method);
-        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH" /*&& !modelInstance.id*/)
+        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
             return next();
 
         let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
@@ -504,21 +492,21 @@ function getMultiSizesArr(file, width) {
 }
 
 async function isFileSizeInRange(file) {
-    if (file.type === Consts.FILE_TYPE_IMAGE) {
-        let extension = getFileExtension(file.src, file.type);
-        if (!extension) return false;
-        let regex = getRegex(extension);
-        if (!regex) return false;
+    let extension = getFileExtension(file.src, file.type);
+    if (!extension) return false;
+    let regex = getRegex(extension);
+    if (!regex) return false;
 
-        if (file.sizeKB < Consts.FILE_MIN_SIZE_IN_KB) {
-            logFile("ERROR: Image is too small");
-            return false;
-        }
+    let sizeKB = base64FileSizeInKB(file.src);
+    
+    if (sizeKB < Consts.FILE_SIZE_RANGE_IN_KB[file.type].MIN_SIZE) {
+        logFile("ERROR: File is too small");
+        return false;
+    }
 
-        if (file.sizeKB > Consts.FILE_MAX_SIZE_IN_KB) {
-            logFile("ERROR: Image is too big");
-            return false;
-        }
+    if (sizeKB > Consts.FILE_SIZE_RANGE_IN_KB[file.type].MAX_SIZE) {
+        logFile("ERROR: File is too big");
+        return false;
     }
     return true;
 }

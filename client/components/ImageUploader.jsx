@@ -61,8 +61,7 @@ export default class ImageUploader extends Component {
             title: this.props.title || "default_image_title",
             category: this.props.category || "default_image_category",
             description: this.props.description || "default_image_description",
-            multipleSizes: this.props.multipleSizes || false,
-            sizeKB: sizeKB
+            multipleSizes: this.props.multipleSizes || false
         };
 
         let eventObj = { target: { name: this.props.name, value: imageObj } }

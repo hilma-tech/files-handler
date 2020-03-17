@@ -12,7 +12,7 @@ _______________________________________________________________
 
 
 The files types are: - Images (png, jpg, jpeg, gif, svg)
-					 - Files  (docx, doc, pdf, mp3, wav)
+					 - Files  (docx, doc, pdf, wav)
 				  	 - Audio  (mp3, webm, wav)
 				  	 - Video  (mp4, webm, ogg, avi)
 
