@@ -5,17 +5,17 @@
     "FILE_TYPE_AUDIO": "audio",
 
     "FILE_MODEL_NAME": {
-        "file": "files",
-        "image": "images",
-        "video": "videos",
-        "audio": "audios"
-    },
-
-    "FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS": {
         "file": "Files",
         "image": "Images",
         "video": "Video",
         "audio": "Audio"
+    },
+
+    "FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS": {
+        "file": "files",
+        "image": "images",
+        "video": "videos",
+        "audio": "audios"
     },
         
     "FOLDERS": {
