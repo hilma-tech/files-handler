@@ -104,7 +104,6 @@ module.exports = function FilesHandler(Model) {
                         resizeImg(fileTargetPath, Consts.IMAGE_SIZES_IN_PX[size]);
                     }
                 }
-
             }
             let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
             fs.writeFileSync(fileTargetPath, base64Data, 'base64');
@@ -131,7 +130,7 @@ module.exports = function FilesHandler(Model) {
 
         let oldFileId = null;
 
-        if (modelInstance[fileKey] && modelInstance[fileKey] !== {}) oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
+        if (modelInstance[fileKey] && typeof modelInstance[fileKey] === "number") oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
         logFile("FileId right before saveFile is launched is", oldFileId);
 
         // If the first file we want to upload (not update) to the same model as the remoteModel is not in size range,
@@ -214,7 +213,7 @@ module.exports = function FilesHandler(Model) {
         if (rpErr) return logFile(`Error granting permissions to file owner, aborting...`, rpErr);
 
         //calling a custom remote method after FilesHandler is done
-        let afhData = { model: FileModelName, recordId: newFileId, principalId: fileOwnerId };
+        let afhData = { model: FileModelName, recordId: newFileId, principalId: fileOwnerId, fileKey };
         Model.afterFilesHandler && await Model.afterFilesHandler(afhData, oldFileId, modelInstance, ctx);
     }
 
