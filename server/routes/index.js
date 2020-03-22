@@ -16,7 +16,7 @@ module.exports = function (app) {
 
         (async () => {
 
-            const permissionsFilter = new PermissionsFilter(req, app, `${fileType}s`);
+            const permissionsFilter = new PermissionsFilter(req, app, Consts.FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS[fileType]);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
 
 

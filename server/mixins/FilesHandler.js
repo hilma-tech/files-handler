@@ -1,10 +1,9 @@
 'use strict';
 const path = require('path');
-const resizeOptimizeImages = require('resize-optimize-images');
-const sizeOf = require('image-size');
-const Consts = require('../../consts/Consts.json');
 const fs = require('fs');
+const Consts = require('../../consts/Consts.json');
 const logFile = require('debug')('model:file');
+const FileProperties = require('../lib/FileProperties');
 const to = (promise) => {
     return promise.then(data => {
         return [null, data];
@@ -14,15 +13,14 @@ const to = (promise) => {
 
 module.exports = function FilesHandler(Model) {
 
-    // TODO: When deleting file: delete it's relations to ImagesSizes
-
     Model.getFileModelOfFile = function (file) {
         if (!file.type) return logFile("ERROR: No file type");
         let FileModel = Model.app.models[Consts.FILE_MODEL_NAME[file.type]];
         let fileModelName = Consts.FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS[file.type];
-        return [FileModel, fileModelName]; 
+        return [FileModel, fileModelName];
     }
 
+    // Deletes file from direcory and not it's reference at models
     Model.deleteFile = async function (prevFileId, FileModel) {
         logFile("Model.deleteFile is launched now with prevFileId: ", prevFileId);
 
@@ -50,21 +48,19 @@ module.exports = function FilesHandler(Model) {
         }
     }
 
+    // Saves file at directory and create a reference at FileModel
     Model.saveFile = async function (file, FileModel, ownerId = null, fileId = null) {
         logFile("Model.saveFile is launched with ownerId", ownerId);
-        let saveDir = getSaveDir(file.type);
+        let saveDir = FileProperties.getSaveDir(file.type);
         if (!saveDir) return false;
-        let extension = getFileExtension(file.src, file.type);
+        let extension = FileProperties.getFileExtension(file.src, file.type);
         logFile("extension", extension);
         if (!extension) return false;
-        let regex = getRegex(extension);
+        let regex = FileProperties.getRegex(extension);
         logFile("regex", regex);
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
-
-        let width = file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes ? await getImgWidth(base64Data) : null;
-        // TODO: remove following after changing "size":
 
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
@@ -73,13 +69,11 @@ module.exports = function FilesHandler(Model) {
             title: file.title,
             description: file.description,
             dontSave: true, // don't let afterSave remote do anything- needed?
-            width: width ? width : null
         };
 
-        // If we are posting to and from the same model,
-        // the instance was already created in the remote so we just update it 
-        if (/*Model === FileModel && */fileId !== null)
-            fileObj.id = fileId;
+        /* If we are posting to and from the same model,
+        the instance was already created in the remote so we just update it */
+        if (fileId !== null) fileObj.id = fileId;
 
         logFile("fileObj before save", fileObj);
 
@@ -94,17 +88,6 @@ module.exports = function FilesHandler(Model) {
                 logFile("New folder was created ", specificSaveDir);
             }
 
-            if (file.type === Consts.FILE_TYPE_IMAGE && file.multipleSizes) {
-                if (width < Consts.IMAGE_SIZE_MEDIUM_IN_PX)
-                    logFile("ERROR: Image is too small for multipleSizes");
-                else {
-                    for (let size in Consts.IMAGE_SIZE_SIGNS) {
-                        let fileTargetPath = `${specificSaveDir + newFile.id}.${Consts.IMAGE_SIZE_SIGNS[size]}.${extension}`
-                        fs.writeFileSync(fileTargetPath, base64Data, 'base64');
-                        resizeImg(fileTargetPath, Consts.IMAGE_SIZES_IN_PX[size]);
-                    }
-                }
-            }
             let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
             fs.writeFileSync(fileTargetPath, base64Data, 'base64');
 
@@ -117,40 +100,61 @@ module.exports = function FilesHandler(Model) {
         return newFile.id;
     }
 
-    Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, isMultiFilesSave = false, newRes) {
-
-        let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
-
-        logFile("FileModel - Should be either Images/Files/Video", FileModelName);
-
-        // If we are posting to and from the same model more than 1 file.. 
-        // Example: posting from Files (table) to Files (table) 2 files
-        let index = Array.isArray(filesToSave[fileKey]) ?
-            filesToSave[fileKey].indexOf(file) : Object.keys(filesToSave).indexOf(fileKey);
-
+    Model.handleEmptyRow = async function (file, fileKey, modelInstance, FileModel, newRes, isMultiFilesSave, isEmptyRowHandled) {
+        let toHandleEmptyRow = !isEmptyRowHandled.val && FileModel === Model;
+        logFile("toHandleEmptyRow", toHandleEmptyRow)
+        let isUpdateFile = modelInstance[fileKey] && typeof modelInstance[fileKey] === "number";
+        logFile("isUpdateFile", isUpdateFile)
         let oldFileId = null;
 
-        if (modelInstance[fileKey] && typeof modelInstance[fileKey] === "number") oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
+        if (!file.src) { // file not in size range
+            if (isUpdateFile) toHandleEmptyRow = false;
+
+            if (toHandleEmptyRow) {
+                /* If the first file we want to upload (not update) to the same model as the remoteModel
+                is not in size range, we need to delete the empty instance */
+                let [modelErr, modelRes] = await to(Model.destroyById(modelInstance.id));
+                if (modelErr || !modelRes) return logFile("Error deleting empty row in Images model, aborting...", modelErr);
+                logFile("Empty row in FileModel is deleted");
+                isEmptyRowHandled.val = true;
+            }
+
+            Model.updateNewRes({ id: null, type: file.type, status: Consts.FILE_REJECTED }, fileKey, newRes, isMultiFilesSave);
+            logFile("The size of file with key %s is not in range. Canceling...", fileKey, "file", file);
+        }
+        else { // file in size range
+            if (isUpdateFile) {
+                oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
+                toHandleEmptyRow = false;
+            }
+
+            if (toHandleEmptyRow) {
+                oldFileId = modelInstance.id;
+                isEmptyRowHandled.val = true;
+            }
+        }
+
         logFile("FileId right before saveFile is launched is", oldFileId);
+        return oldFileId;
+    }
 
-        // If the first file we want to upload (not update) to the same model as the remoteModel is not in size range,
-        // we need to delete the empty instance that was created in the model.
-        if (!file.src && index === 0 && Model === FileModel && oldFileId === null) {
-            let [modelErr, modelRes] = await to(Model.destroyById(modelInstance.id));
-            if (modelErr || !modelRes) return logFile("Error deleting empty row in Images model, aborting...", modelErr);
-            logFile("Empty row in FileModel is deleted");
-        }
-        if (!file.src) {
-            updateNewRes({ id: null, type: file.type, status: Consts.FILE_REJECTED }, fileKey, newRes, isMultiFilesSave);
-            return logFile("The size of file with key %s is not in range. Canceling...", fileKey, "file", file);
-        }
+    Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, newRes, isEmptyRowHandled, isMultiFilesSave = false) {
 
-        if (oldFileId === null && index === 0 && Model === FileModel) oldFileId = modelInstance.id;
+        let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
+        logFile("FileModel - Should be either Images/Files/Audio/Video", FileModelName);
 
-        let newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
+        let oldFileId = await Model.handleEmptyRow(file, fileKey, modelInstance, FileModel, newRes, isMultiFilesSave, isEmptyRowHandled);
+        // if (!oldFileId) return logFile("Error: File not in size range, aborting...");
+
+        let newFileId = null;
+
+        FileModel.overrideSaveFile && typeof FileModel.overrideSaveFile === "function" ?
+            newFileId = await FileModel.overrideSaveFile(file, FileModel, fileOwnerId, oldFileId) :
+            newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
+
         if (!newFileId) return logFile("Couldn't create your file, aborting...");
 
-        updateNewRes({ id: newFileId, type: file.type, status: Consts.FILE_ACCEPTED }, fileKey, newRes, isMultiFilesSave);
+        Model.updateNewRes({ id: newFileId, type: file.type, status: Consts.FILE_ACCEPTED }, fileKey, newRes, isMultiFilesSave);
 
         if (isMultiFilesSave) {
             let relations = Model.relations;
@@ -246,7 +250,7 @@ module.exports = function FilesHandler(Model) {
 
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
-                        isFileInRange = await isFileSizeInRange(keyData);
+                        isFileInRange = await FileProperties.isFileSizeInRange(keyData);
                         keyData.src = isFileInRange ? keyData.src : null;
                         logFile('isFileInRange', isFileInRange)
                     }
@@ -255,18 +259,18 @@ module.exports = function FilesHandler(Model) {
                             (typeof val === "object" && val.src && val.type))) continue; // the arr is not from multiFilesHandler
 
                         for (let z = 0; z < keyData.length; z++) {
-                            isFileInRange = await isFileSizeInRange(keyData[z]);
+                            isFileInRange = await FileProperties.isFileSizeInRange(keyData[z]);
                             keyData[z].src = isFileInRange ? keyData[z].src : null;
                             logFile("isFileInRange", isFileInRange)
                         }
                     }
 
+                    // take the data in dataObj and put it in obj called filesToSave inside dataObj
+                    // so we can later take it and add it to the file/img/audio table
                     let filesToSave = ctx.args[field].filesToSave || {};
                     filesToSave[key] = keyData;
                     ctx.args[field]["filesToSave"] = filesToSave;
                     ctx.args[field][key] = null;
-                    //the lines above take the data in dataObj and put it in obj called filesToSave inside dataObj
-                    //so we can later take it and add it to the file/img/audio table
                 };
             }
 
@@ -294,6 +298,7 @@ module.exports = function FilesHandler(Model) {
         (async () => {
             const argsKeys = Object.keys(args);
             let newRes = {};
+            let isEmptyRowHandled = { val: false };
 
             for (let i = 0; i < argsKeys.length; i++) { // we are not using map func, because we cannot put async inside it.
 
@@ -313,159 +318,41 @@ module.exports = function FilesHandler(Model) {
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
                             if (typeof fileOrFiles[j] !== "object") continue;
-                            await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, true, newRes);
+                            await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, newRes, isEmptyRowHandled, true);
                         }
                     }
                     else {
                         if (typeof fileOrFiles !== "object") continue;
-                        await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, false, newRes);
+                        await Model.saveFileWithPermissions(fileOrFiles, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, newRes, isEmptyRowHandled, false);
+                        logFile("isEmptyRowHandled", isEmptyRowHandled)
                     }
                 }
             }
 
-            updateRes(newRes, ctx);
+            Model.updateRes(newRes, ctx);
             return next();
         })();
     });
-}
 
-function updateRes(newRes, ctx) {
-    let res = (ctx.result && ctx.result.__data) || ctx.result;
-    if (!res || !res.filesToSave) return;
-    delete res.filesToSave;
-    delete res.id;
-    for (let fileKey in newRes) {
-        delete res[fileKey];
-    }
-    res.filesUploadStatus = newRes;
-    ctx.result = res;
-}
-
-function updateNewRes(fileRes, fileKey, newRes, isMultiFilesSave) {
-    if (isMultiFilesSave) {
-        if (!(fileKey in newRes)) newRes[fileKey] = [];
-        newRes[fileKey].push(fileRes);
-    }
-    else {
-        newRes[fileKey] = fileRes;
-    }
-}
-
-function getSaveDir(type) {
-    logFile("type", type)
-    try {
-        //also on production we save into public (and not to build because the file can get delete from 'build')
-        const baseFileDirPath = '../../../../../public';
-        const saveDir = path.join(__dirname, `${baseFileDirPath}/${Consts.FOLDERS[type]}/`);
-        if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
-            fs.mkdirSync(saveDir, { recursive: true });
-            logFile("New folder was created ", saveDir);
+    Model.updateRes = function (newRes, ctx) {
+        let res = (ctx.result && ctx.result.__data) || ctx.result;
+        if (!res || !res.filesToSave) return;
+        delete res.filesToSave;
+        delete res.id;
+        for (let fileKey in newRes) {
+            delete res[fileKey];
         }
-        return saveDir;
-    } catch (err) {
-        logFile("Err creating a base folder for our files :(", err);
-        return;
-    }
-}
-
-function getRegex(extension) {
-    switch (extension) {
-        case 'pdf':
-            return /^data:application+\/pdf?;base64,/;
-        case 'doc':
-            return /^data:application+\/msword?;base64,/;
-        case 'docx':
-            return /^data:application+\/vnd.openxmlformats-officedocument.wordprocessingml.document?;base64,/;
-        case 'png':
-            return /^data:image+\/png?;base64,/;
-        case 'jpeg':
-            return /^data:image+\/jpeg?;base64,/;
-        case 'gif':
-            return /^data:image+\/gif?;base64,/;
-        case 'svg':
-            return /^data:image+\/svg+\++\xml;base64,?/;
-        case 'mp3':
-            return /^data:audio+\/mp3?;base64,/;
-        case 'wav':
-            return /^data:audio+\/wav?;base64,/;
-        case 'webm':
-            return /^data:(video|audio)\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/;
-        case 'mp4':
-            return /^data:video+\/mp4?;base64,/;
-        case 'ogg':
-            return /^data:video+\/ogg?;base64,/;
-        case 'avi':
-            return /^data:video+\/avi?;base64,/;
-        default:
-            return null;
-    }
-}
-
-function getFileExtension(fileSrc, fileType) {
-    let mimeType = base64MimeType(fileSrc);
-    logFile("Base64 mimeType of file", mimeType);
-    if (!mimeType) return null;
-
-    let extensionsAndMimesOfType = Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[fileType];
-    let extensions = Object.keys(extensionsAndMimesOfType);
-    let extension = extensions.find(extension => extensionsAndMimesOfType[extension] === mimeType);
-    if (extension === 'jpg') extension = 'jpeg'; // necessary
-    return extension;
-}
-
-function base64MimeType(encodedString) {
-    if (typeof encodedString !== 'string') return null;
-
-    var mime = encodedString.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
-    if (mime && mime.length) return mime[1];
-    return null;
-}
-
-function base64FileSizeInKB(encodedString) {
-    if (typeof encodedString !== 'string') return null;
-
-    let length = encodedString.length;
-    let twoLastChars = encodedString.slice(length - 2, length);
-    let count = 0;
-    for (let char in twoLastChars) if (char === "=") count++;
-    let sizeInBytes = (3 * (length / 4)) - count;
-    let sizeInKB = sizeInBytes / 1000;
-
-    return sizeInKB;
-}
-
-async function resizeImg(imgPath, width) {
-    const options = {
-        images: [imgPath],
-        width: width
-    };
-
-    await resizeOptimizeImages(options);
-}
-
-async function getImgWidth(base64Data) {
-    let img = new Buffer(base64Data, 'base64');
-    let dimensions = sizeOf(img)
-    return dimensions.width;
-}
-
-
-async function isFileSizeInRange(file) {
-    let extension = getFileExtension(file.src, file.type);
-    if (!extension) return false;
-    let regex = getRegex(extension);
-    if (!regex) return false;
-
-    let sizeKB = base64FileSizeInKB(file.src);
-    
-    if (sizeKB < Consts.FILE_SIZE_RANGE_IN_KB[file.type].MIN_SIZE) {
-        logFile("ERROR: File is too small");
-        return false;
+        res.filesUploadStatus = newRes;
+        ctx.result = res;
     }
 
-    if (sizeKB > Consts.FILE_SIZE_RANGE_IN_KB[file.type].MAX_SIZE) {
-        logFile("ERROR: File is too big");
-        return false;
+    Model.updateNewRes = function (fileRes, fileKey, newRes, isMultiFilesSave) {
+        if (isMultiFilesSave) {
+            if (!(fileKey in newRes)) newRes[fileKey] = [];
+            newRes[fileKey].push(fileRes);
+        }
+        else {
+            newRes[fileKey] = fileRes;
+        }
     }
-    return true;
 }

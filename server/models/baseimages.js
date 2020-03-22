@@ -1,9 +1,19 @@
 var fs = require('fs');
 var path = require('path');
+const Consts = require('../../consts/Consts.json');
+const logFile = require('debug')('model:file');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
 const EnvHandler = require('./../../../tools/server/lib/EnvHandler');
-const Consts = require('../../consts/Consts.json');
+const FileProperties = require('../lib/FileProperties');
+const resizeOptimizeImages = require('resize-optimize-images');
+const sizeOf = require('image-size');
+const to = (promise) => {
+    return promise.then(data => {
+        return [null, data];
+    })
+        .catch(err => [err]);
+}
 
 module.exports = function (BaseImages) {
 
@@ -16,25 +26,86 @@ module.exports = function (BaseImages) {
             const hostName = EnvHandler.getHostName();
             fData = ctx.data;
             fData.multiplesizes = [];
-            
-            if (fData.width&&fData.width > Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
+
+            if (fData.width && fData.width > Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
                 fData.multiplesizes = [];
                 for (let size of Consts.IMAGE_SIZE_SIGNS) {
                     fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
                 }
             }
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
-
-
         };
         ctx.data = fData;
         next();
     });
 
-    /** 
-    This function gets url and data of online image, and copies this image to our server.
-    It also register this image to Image table.
-    **/
+    BaseImages.overrideSaveFile = async function (file, FileModel, ownerId = null, fileId = null) {
+        logFile("BaseImages.overrideSaveFile is launched with ownerId", ownerId);
+        let saveDir = FileProperties.getSaveDir(file.type);
+        if (!saveDir) return false;
+        let extension = FileProperties.getFileExtension(file.src, file.type);
+        logFile("extension", extension);
+        if (!extension) return false;
+        let regex = FileProperties.getRegex(extension);
+        logFile("regex", regex);
+        if (!regex) return false;
+        let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
+        logFile("\nownerId", ownerId);
+
+        let width = file.multipleSizes ? await getImgWidth(base64Data) : null;
+
+        let fileObj = {
+            category: file.category ? file.category : 'uploaded',
+            owner: ownerId,
+            format: extension,
+            title: file.title,
+            description: file.description,
+            dontSave: true, // don't let afterSave remote do anything- needed?
+            width: width
+        };
+
+        /* If we are posting to and from the same model,
+        the instance was already created in the remote so we just update it */
+        if (fileId !== null) fileObj.id = fileId;
+
+        logFile("fileObj before save", fileObj);
+
+        let specificSaveDir = saveDir + fileObj.category + "/";
+        let [err, newFile] = await to(FileModel.upsert(fileObj));
+        if (err) { console.error("Error creating file, aborting...", err); return false }
+        logFile("New entry created for model ", file.type, newFile);
+
+        try {
+            if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
+                fs.mkdirSync(specificSaveDir, { recursive: true });
+                logFile("New folder was created ", specificSaveDir);
+            }
+
+            if (file.multipleSizes) {
+                if (width < Consts.IMAGE_SIZE_MEDIUM_IN_PX)
+                    logFile("ERROR: Image is too small for multipleSizes");
+                else {
+                    for (let size in Consts.IMAGE_SIZE_SIGNS) {
+                        let fileTargetPath = `${specificSaveDir + newFile.id}.${Consts.IMAGE_SIZE_SIGNS[size]}.${extension}`
+                        fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+                        resizeImg(fileTargetPath, Consts.IMAGE_SIZES_IN_PX[size]);
+                    }
+                }
+            }
+            let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
+            fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+
+        } catch (err) {
+            logFile("Err", err);
+        }
+
+        logFile("New file was created of type (%s) on path (%s)", file.type);
+        logFile("New file id", newFile.id)
+        return newFile.id;
+    }
+
+    /* This function gets url and data of online image, and copies this image to our server.
+    It also register this image to Image table. */
     BaseImages.downloadToServer = function (data, options, cb) {
 
         //DEPRECATED UNTIL WILL BE SECURED (Eran)
@@ -114,18 +185,17 @@ module.exports = function (BaseImages) {
     });
 };
 
-// ~~~~ EXAMPLE OF USAGE ~~~~ 
+async function resizeImg(imgPath, width) {
+    const options = {
+        images: [imgPath],
+        width: width
+    };
 
-// Model.saveImage = function (form, cb) {
-//     console.log("image-id", form.profile_image);
-//     cb(null, { success: 1 });
-// }
+    await resizeOptimizeImages(options);
+}
 
-// Model.remoteMethod('saveImage', {
-//     verb: "post",
-//     accepts: [
-//         { arg: 'form', type: 'object' },
-//     ],
-//     returns: { arg: 'res', type: 'object', root: true },
-//     description: "check."
-// });
+async function getImgWidth(base64Data) {
+    let img = new Buffer(base64Data, 'base64');
+    let dimensions = sizeOf(img)
+    return dimensions.width;
+}

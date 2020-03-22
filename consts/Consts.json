@@ -11,6 +11,13 @@
         "audio": "Audio"
     },
 
+    "FILE_BASE_MODEL_NAME": {
+        "file": "BaseFiles",
+        "image": "BaseImages",
+        "video": "BaseVideos",
+        "audio": "BaseAudios"
+    },
+
     "FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS": {
         "file": "files",
         "image": "images",
