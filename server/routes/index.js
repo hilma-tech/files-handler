@@ -8,7 +8,7 @@ module.exports = function (app) {
 
     function getContentType(extension, type) {
         if (!extension) return null;
-        return Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[type][extension];
+        return Consts.FILE_EXTENSIONS_AND_MIMES[type][extension];
     }
 
     function allowFileAccess(req, res, fileType) {

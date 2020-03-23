@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 const Consts = require('../../consts/Consts.json');
+const ModulesConfig = require('../../../../consts/ModulesConfig');
+const config = ModulesConfig.fileshandler;
 const logFile = require('debug')('model:file');
 
 module.exports = class FileProperties {
@@ -60,7 +62,7 @@ module.exports = class FileProperties {
         logFile("Base64 mimeType of file", mimeType);
         if (!mimeType) return null;
     
-        let extensionsAndMimesOfType = Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[fileType];
+        let extensionsAndMimesOfType = Consts.FILE_EXTENSIONS_AND_MIMES[fileType];
         let extensions = Object.keys(extensionsAndMimesOfType);
         let extension = extensions.find(extension => extensionsAndMimesOfType[extension] === mimeType);
         if (extension === 'jpg') extension = 'jpeg'; // necessary
@@ -96,12 +98,12 @@ module.exports = class FileProperties {
     
         let sizeKB = this.base64FileSizeInKB(file.src);
     
-        if (sizeKB < Consts.FILE_SIZE_RANGE_IN_KB[file.type].MIN_SIZE) {
+        if (sizeKB < config.FILE_SIZE_RANGE_IN_KB[file.type].MIN_SIZE) {
             logFile("ERROR: File is too small");
             return false;
         }
     
-        if (sizeKB > Consts.FILE_SIZE_RANGE_IN_KB[file.type].MAX_SIZE) {
+        if (sizeKB > config.FILE_SIZE_RANGE_IN_KB[file.type].MAX_SIZE) {
             logFile("ERROR: File is too big");
             return false;
         }

@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 const Consts = require('../../consts/Consts.json');
+const ModulesConfig = require('../../../../consts/ModulesConfig');
+const config = ModulesConfig.fileshandler;
 const logFile = require('debug')('model:file');
 const https = require('https');
 const IMAGES_DIR = 'public/images/';
@@ -25,12 +27,11 @@ module.exports = function (BaseImages) {
         else {
             const hostName = EnvHandler.getHostName();
             fData = ctx.data;
-            fData.multiplesizes = [];
 
-            if (fData.width && fData.width > Consts.IMAGE_SIZE_MEDIUM_IN_PX) {
+            if (fData.width && fData.width > config.IMAGE_SIZES_IN_PX[Consts.IMAGE_MEDIUM_SIGN]) {
                 fData.multiplesizes = [];
-                for (let size of Consts.IMAGE_SIZE_SIGNS) {
-                    fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${size}.${fData.format}`);
+                for (let sign in config.IMAGE_SIZES_IN_PX) {
+                    fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
                 }
             }
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
@@ -82,13 +83,13 @@ module.exports = function (BaseImages) {
             }
 
             if (file.multipleSizes) {
-                if (width < Consts.IMAGE_SIZE_MEDIUM_IN_PX)
+                if (width < config.IMAGE_SIZES_IN_PX[Consts.IMAGE_MEDIUM_SIGN])
                     logFile("ERROR: Image is too small for multipleSizes");
                 else {
-                    for (let size in Consts.IMAGE_SIZE_SIGNS) {
-                        let fileTargetPath = `${specificSaveDir + newFile.id}.${Consts.IMAGE_SIZE_SIGNS[size]}.${extension}`
+                    for (let sign in config.IMAGE_SIZES_IN_PX) {
+                        let fileTargetPath = `${specificSaveDir + newFile.id}.${sign}.${extension}`
                         fs.writeFileSync(fileTargetPath, base64Data, 'base64');
-                        resizeImg(fileTargetPath, Consts.IMAGE_SIZES_IN_PX[size]);
+                        resizeImg(fileTargetPath, config.IMAGE_SIZES_IN_PX[sign]);
                     }
                 }
             }

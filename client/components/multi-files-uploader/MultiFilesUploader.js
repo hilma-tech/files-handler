@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Dropzone from 'react-dropzone';
 import Consts from '../../../consts/Consts.json';
+import {fileshandler as config} from '../../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
 import './MultiFilesUploader.scss';
 
@@ -14,17 +15,17 @@ export default class MultiFilesUploader extends Component {
 
         this.filesPreviews = [];
 
-        this.type = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
+        this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
             this.props.type : Consts.FILE_TYPE_IMAGE;
 
         this.acceptedExtensions = this.getAcceptedExtensions();
         this.acceptedMimes = this.getAcceptedMimes();
 
-        this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE ?
-            this.props.minSizeInKB : Consts.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE) * 1000;
+        this.minSizeInBytes = (this.props.minSizeInKB && this.props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE ?
+            this.props.minSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE) * 1000;
 
-        this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
-            this.props.maxSizeInKB : Consts.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE) * 1000;
+        this.maxSizeInBytes = (this.props.maxSizeInKB && this.props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
+            this.props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE) * 1000;
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
@@ -89,19 +90,19 @@ export default class MultiFilesUploader extends Component {
     }
 
     getAcceptedExtensions = () => {
-        let accept = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[this.type]);
+        let accept = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES[this.type]);
         accept = "." + accept.join(", .");
         return accept;
     }
 
     getAcceptedMimes = () => {
-        let extensions = Object.keys(Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[this.type]);
-        let mimes = extensions.map(extension => Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[this.type][extension]);
+        let extensions = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES[this.type]);
+        let mimes = extensions.map(extension => Consts.FILE_EXTENSIONS_AND_MIMES[this.type][extension]);
         return mimes;
     }
 
     getExtension = (mime) => {
-        let extensionsAndMimesOfType = Consts.FILE_TYPES_AND_EXTENSIONS_AND_MIMES[this.type];
+        let extensionsAndMimesOfType = Consts.FILE_EXTENSIONS_AND_MIMES[this.type];
         let extensions = Object.keys(extensionsAndMimesOfType);
         let extension = extensions.find(extension => extensionsAndMimesOfType[extension] === mime);
         return extension;

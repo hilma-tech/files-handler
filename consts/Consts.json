@@ -3,36 +3,31 @@
     "FILE_TYPE_IMAGE": "image",
     "FILE_TYPE_VIDEO": "video",
     "FILE_TYPE_AUDIO": "audio",
-
     "FILE_MODEL_NAME": {
         "file": "Files",
         "image": "Images",
         "video": "Video",
         "audio": "Audio"
     },
-
     "FILE_BASE_MODEL_NAME": {
         "file": "BaseFiles",
         "image": "BaseImages",
         "video": "BaseVideos",
         "audio": "BaseAudios"
     },
-
     "FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS": {
         "file": "files",
         "image": "images",
         "video": "videos",
         "audio": "audios"
     },
-        
     "FOLDERS": {
         "file": "files",
         "image": "imgs",
         "video": "videos",
         "audio": "audios"
     },
-
-    "FILE_TYPES_AND_EXTENSIONS_AND_MIMES": {
+    "FILE_EXTENSIONS_AND_MIMES": {
         "file": {
             "pdf": "application/pdf",
             "doc": "application/msword",
@@ -57,44 +52,13 @@
             "webm": "video/webm"
         }
     },
-
-    "FILE_SIZE_RANGE_IN_KB": {
-        "file": {
-            "MIN_SIZE": 0,
-            "MAX_SIZE": 5000
-        },
-        "image":{
-            "MIN_SIZE": 50,
-            "MAX_SIZE": 5000
-        },
-        "video": {
-            "MIN_SIZE": 0,
-            "MAX_SIZE": 50000
-        },
-        "audio": {
-            "MIN_SIZE": 0,
-            "MAX_SIZE": 50000
-        }
-    },
-    
-    "IMAGE_SIZE_SMALL_IN_PX": 200,
-    "IMAGE_SIZE_MEDIUM_IN_PX": 800,
-    "IMAGE_SIZE_LARGE_IN_PX": 1200,
-
-    "IMAGE_SIZE_SMALL_SIGN": "s",
-    "IMAGE_SIZE_MEDIUM_SIGN": "m",
-    "IMAGE_SIZE_LARGE_SIGN": "l",
-    "IMAGE_SIZE_ORIGINAL_SIGN": "o", 
-
-    "IMAGE_SIZES_IN_PX":[200,800,1200],
-    "IMAGE_SIZE_SIGNS":["s","m","l"],
-    
+    "IMAGE_SMALL_SIGN": "s",
+    "IMAGE_MEDIUM_SIGN": "m",
+    "IMAGE_LARGE_SIGN": "l",
     "FILE_ACCEPTED": "accepted",
     "FILE_REJECTED": "rejected",
-
     "ERROR_MSG_FILE_TOO_SMALL": "ERROR: File is smaller than minimum size",
     "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
-
     "ROLE": "ROLE",
     "USER": "USER",
     "ALLOW": "ALLOW",

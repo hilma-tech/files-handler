@@ -11,6 +11,8 @@ CREATE TABLE `games_images` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE Images ADD width int;
+-- ALTER TABLE Images DROP COLUMN width;
+-- ALTER TABLE Images ADD isMultiSizes boolean DEFAULT FALSE;
 
 --__________________________________________________
 
@@ -40,11 +42,3 @@ ALTER TABLE Images ADD width int;
 --   `owner` int(11) DEFAULT NULL,
 --   PRIMARY KEY (`id`)
 -- ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8
-
-
---__________________________________________________
-
--- *******************BELOW IS DEPRECATED*****************
---__________________________________________________
-
---ALTER TABLE Images DROP COLUMN width;

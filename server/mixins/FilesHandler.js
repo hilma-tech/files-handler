@@ -144,7 +144,6 @@ module.exports = function FilesHandler(Model) {
         logFile("FileModel - Should be either Images/Files/Audio/Video", FileModelName);
 
         let oldFileId = await Model.handleEmptyRow(file, fileKey, modelInstance, FileModel, newRes, isMultiFilesSave, isEmptyRowHandled);
-        // if (!oldFileId) return logFile("Error: File not in size range, aborting...");
 
         let newFileId = null;
 
