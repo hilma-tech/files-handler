@@ -1,9 +1,9 @@
 import React from 'react';
 
 const UploadedImage = (props) => {
-    let uploadedImage = props.multiplesizes && props.multiplesizes.length > 0 ?
+    let uploadedImage = props.multipleSizes && props.multipleSizes.length > 0 ?
         <div>
-            {props.multiplesizes.map((path, i) =>
+            {props.multipleSizes.map((path, i) =>
                 <div key={i}>
                     <figure>
                         <img className='uploaded-image' src={path} alt={props.title} title={props.title} />

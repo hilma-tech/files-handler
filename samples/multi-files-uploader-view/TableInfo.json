@@ -67,7 +67,7 @@
             "Default": "false"  
         },
         {
-            "Property": "multipleSizes",
+            "Property": "isMultiSizes",
             "Type": "boolean",
             "Description": "Aveliable only when type is images. If true, saves the image in 3 versions: small, medium and large.",
             "Default": "false"

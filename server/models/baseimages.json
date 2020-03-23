@@ -1,8 +1,8 @@
 {
   "name": "BaseImages",
-  "isPublic":"false",
+  "isPublic": "false",
   "mixins": {
-    "FilesHandler":true,
+    "FilesHandler": true,
     "ExcludeModelFields": true,
     "GenerateInstanceTimes": true
   },
@@ -14,7 +14,9 @@
   },
   "options": {
     "idInjection": false,
-    "mysql": {"table": "Images"},
+    "mysql": {
+      "table": "Images"
+    },
     "relations": {
       "customUser": {
         "model": "CustomUser",
@@ -26,129 +28,31 @@
   "properties": {
     "id": {
       "type": "Number",
-      "required": false,
-      "generated": true,
-      "length": null,
-      "precision": 10,
-      "scale": 0,
-      "id": 1,
-      "mysql": {
-        "columnName": "id",
-        "dataType": "int",
-        "dataLength": null,
-        "dataPrecision": 10,
-        "dataScale": 0,
-        "nullable": "N"
-      }
+      "id": 1
     },
     "title": {
-      "type": "String",
-      "required": false,
-      "length": 200,
-      "precision": null,
-      "scale": null,
-      "mysql": {
-        "columnName": "title",
-        "dataType": "varchar",
-        "dataLength": 200,
-        "dataPrecision": null,
-        "dataScale": null,
-        "nullable": "Y"
-      }
+      "type": "String"
     },
     "created": {
-      "type": "Date",
-      "required": false,
-      "length": null,
-      "precision": null,
-      "scale": null,
-      "mysql": {
-        "columnName": "created",
-        "dataType": "datetime",
-        "dataLength": null,
-        "dataPrecision": null,
-        "dataScale": null,
-        "nullable": "Y"
-      }
+      "type": "Date"
     },
     "modified": {
-      "type": "Date",
-      "required": false,
-      "length": null,
-      "precision": null,
-      "scale": null,
-      "mysql": {
-        "columnName": "modified",
-        "dataType": "datetime",
-        "dataLength": null,
-        "dataPrecision": null,
-        "dataScale": null,
-        "nullable": "Y"
-      }
+      "type": "Date"
     },
     "category": {
-      "type": "String",
-      "required": false,
-      "length": 100,
-      "precision": null,
-      "scale": null,
-      "mysql": {
-        "columnName": "category",
-        "dataType": "varchar",
-        "dataLength": 100,
-        "dataPrecision": null,
-        "dataScale": null,
-        "nullable": "Y"
-      }
+      "type": "String"
     },
     "description": {
-      "type": "String",
-      "required": false,
-      "length": 65535,
-      "precision": null,
-      "scale": null,
-      "mysql": {
-        "columnName": "description",
-        "dataType": "text",
-        "dataLength": 65535,
-        "dataPrecision": null,
-        "dataScale": null,
-        "nullable": "Y"
-      }
+      "type": "String"
     },
     "format": {
-      "type": "String",
-      "required": false
+      "type": "String"
     },
     "owner": {
-      "type": "Number",
-      "required": false,
-      "length": null,
-      "precision": 10,
-      "scale": 0,
-      "mysql": {
-        "columnName": "owner",
-        "dataType": "int",
-        "dataLength": null,
-        "dataPrecision": 10,
-        "dataScale": 0,
-        "nullable": "Y"
-      }
+      "type": "Number"
     },
-    "width": {
-      "type": "Number",
-      "required": false,
-      "length": null,
-      "precision": 10,
-      "scale": 0,
-      "mysql": {
-        "columnName": "width",
-        "dataType": "int",
-        "dataLength": null,
-        "dataPrecision": 10,
-        "dataScale": 0,
-        "nullable": "Y"
-      }
+    "isMultiSizes": {
+      "type": "Number"
     }
   },
   "acls": [

@@ -28,10 +28,10 @@ module.exports = function (BaseImages) {
             const hostName = EnvHandler.getHostName();
             fData = ctx.data;
 
-            if (fData.width && fData.width > config.IMAGE_SIZES_IN_PX[Consts.IMAGE_MEDIUM_SIGN]) {
-                fData.multiplesizes = [];
+            if (fData.isMultiSizes) {
+                fData.multipleSizes = [];
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
-                    fData.multiplesizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
+                    fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
                 }
             }
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
@@ -53,7 +53,13 @@ module.exports = function (BaseImages) {
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
         logFile("\nownerId", ownerId);
 
-        let width = file.multipleSizes ? await getImgWidth(base64Data) : null;
+        if (file.isMultiSizes) {
+            let width = await getImgWidth(base64Data);
+            if (width < config.IMAGE_SIZES_IN_PX[Consts.IMAGE_MEDIUM_SIGN]) {
+                logFile("ERROR: Image is too small for multipleSizes");
+                file.isMultiSizes = false;
+            }
+        }
 
         let fileObj = {
             category: file.category ? file.category : 'uploaded',
@@ -61,8 +67,8 @@ module.exports = function (BaseImages) {
             format: extension,
             title: file.title,
             description: file.description,
-            dontSave: true, // don't let afterSave remote do anything- needed?
-            width: width
+            isMultiSizes: file.isMultiSizes ? true : false, // file.isMultiSizes might be undefiend
+            dontSave: true // don't let afterSave remote do anything- needed?
         };
 
         /* If we are posting to and from the same model,
@@ -82,15 +88,11 @@ module.exports = function (BaseImages) {
                 logFile("New folder was created ", specificSaveDir);
             }
 
-            if (file.multipleSizes) {
-                if (width < config.IMAGE_SIZES_IN_PX[Consts.IMAGE_MEDIUM_SIGN])
-                    logFile("ERROR: Image is too small for multipleSizes");
-                else {
-                    for (let sign in config.IMAGE_SIZES_IN_PX) {
-                        let fileTargetPath = `${specificSaveDir + newFile.id}.${sign}.${extension}`
-                        fs.writeFileSync(fileTargetPath, base64Data, 'base64');
-                        resizeImg(fileTargetPath, config.IMAGE_SIZES_IN_PX[sign]);
-                    }
+            if (file.isMultiSizes) {
+                for (let sign in config.IMAGE_SIZES_IN_PX) {
+                    let fileTargetPath = `${specificSaveDir + newFile.id}.${sign}.${extension}`
+                    fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+                    resizeImg(fileTargetPath, config.IMAGE_SIZES_IN_PX[sign]);
                 }
             }
             let fileTargetPath = specificSaveDir + newFile.id + "." + extension;

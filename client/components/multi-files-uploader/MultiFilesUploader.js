@@ -43,7 +43,7 @@ export default class MultiFilesUploader extends Component {
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
                 description: this.props.description || "default_description",
-                multipleSizes: this.props.multipleSizes || false
+                isMultiSizes: this.props.isMultiSizes || false
             };
 
             let filePreview = await this.getFilePreviewObj(acceptedfiles[i], base64String, Consts.FILE_ACCEPTED);

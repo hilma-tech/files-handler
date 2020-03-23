@@ -241,12 +241,12 @@ export default class ImageUploaderView extends Component {
                         </div>
                     </div>
 
-                    <p className="explanation">When <em>multipleSizes</em> is true (like in this example), the chosen images is resized and uploaded in maximum 3 different versions: small, mediuim and large.<br />
+                    <p className="explanation">When <em>isMultiSizes</em> is true (like in this example), the chosen images is resized and uploaded in maximum 3 different versions: small, mediuim and large.<br />
                         The images are saved at public/imgs/[category]/[image_id].[s/m/l].[format]<br />
                         The original image is resized only to smaller versions, which means that in some cases the image will have only medium and small versions, and in others only small.<br />
                         When the image and it's versions are uploaded, only 1 new instance is created at Images model.<br />
-                        At the res of GETing the image, there will be a <em>multipleSizes</em> prop (in addition to the <em>path</em> prop).<br />
-                        At <em>multipleSizes</em> there is an array with all the existing pathes of the different versions of the spesific image.</p>
+                        At the res of GETing the image, there will be a <em>isMultiSizes</em> prop (in addition to the <em>path</em> prop).<br />
+                        At <em>isMultiSizes</em> there is an array with all the existing pathes of the different versions of the spesific image.</p>
 
                     <div className="image-input-samples">
 
@@ -257,7 +257,7 @@ export default class ImageUploaderView extends Component {
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
-                                multipleSizes={true}
+                                isMultiSizes={true}
                                 disabled={this.state.isImgUploaderDisabled}
                             />
                         </div>

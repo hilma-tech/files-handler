@@ -49,7 +49,7 @@
             "Default": "5000"
         },
         {
-            "Property": "multipleSizes",
+            "Property": "isMultiSizes",
             "Type": "boolean",
             "Description": "If true, saves the image in 3 versions: small, medium and large.",
             "Default": "false"
