@@ -7,18 +7,17 @@ export default class ImageUploader extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultThumbnail = this.props.theme === "circle-theme" ?
-            require(`../../imgs/circle-theme-default-thumbnail.svg`) : require(`../../imgs/default-thumbnail.svg`);
+        this.propsDefaultTumbnail = this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc; // Suppport previous versions
+        this.defaultThumbnail = this.propsDefaultTumbnail || (this.props.theme === "circle-theme" ?
+            require(`../../imgs/circle-theme-default-thumbnail.svg`) : require(`../../imgs/default-thumbnail.svg`));
 
         this.state = {
-            thumbnail: this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc || this.defaultThumbnail,
-            // defaultValue: this.props.defaultValue || defaultThumbnail
+            thumbnail: this.defaultThumbnail
         };
-        this.onChangeImg = this.onChangeImg.bind(this);
 
+        this.onChangeImg = this.onChangeImg.bind(this); // Intentionally bind instead of arrow function
         this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
             this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB;
-
         this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
             this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB;
     }
@@ -40,9 +39,9 @@ export default class ImageUploader extends Component {
     }
 
     removeFile = () => {
-        if (this.state.thumbnail === (this.props.thumbnail || this.defaultThumbnail)) return;
+        if (this.state.thumbnail === this.defaultThumbnail) return;
         this.refs.imageUploaderInputRef.value = null;
-        this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
+        this.setState({ thumbnail: this.defaultThumbnail });
         let eventObj = { target: { name: this.props.name, value: null } }
         this.props.onChange(eventObj);
     }
@@ -77,7 +76,7 @@ export default class ImageUploader extends Component {
     }
 
     getPropertiesForTheme = () => {
-        let chosenImgStyle = { backgroundImage: `url(${this.state.thumbnail}), url(${this.props.thumbnail || this.defaultThumbnail})` }  // the second url is in case the first is failed to load
+        let chosenImgStyle = { backgroundImage: `url(${this.state.thumbnail})` }  // , url(${this.defaultThumbnail}) the second url is in case the first is failed to load
         let chosenImage = <div className="chosen-img" style={chosenImgStyle} onClick={this.props.previewWidget && this.toggleShowPopup} />;
         let previewWidgetChosenImg = <div className="chosen-img-preview" style={chosenImgStyle} />;
         let themeClassName, parentClassName;
@@ -103,8 +102,8 @@ export default class ImageUploader extends Component {
                     alt="uploading image"
                     onClick={this.props.previewWidget && this.toggleShowPopup}
                     onError={e => {
-                        e.target.src = this.props.thumbnail || this.defaultThumbnail;
-                        this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
+                        e.target.src = this.defaultThumbnail;
+                        this.setState({ thumbnail: this.defaultThumbnail });
                     }} />;
                 break;
         }
@@ -119,9 +118,7 @@ export default class ImageUploader extends Component {
         // Supports previous versions
         if (!this.props.theme && !this.props.previewWidget) return (
             <div>
-                {(this.state.thumbnail !== this.props.thumbnail)
-                    && (this.state.thumbnail !== this.defaultThumbnail)
-                    && (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
+                {(this.state.thumbnail !== this.defaultThumbnail) &&
                     <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
                 <label>
                     <input
@@ -139,8 +136,8 @@ export default class ImageUploader extends Component {
                         width="auto"
                         alt="uploading image"
                         onError={e => {
-                            e.target.src = this.props.thumbnail || this.defaultThumbnail;
-                            this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
+                            e.target.src = this.defaultThumbnail;
+                            this.setState({ thumbnail: this.defaultThumbnail });
                         }}
                     />
                     <div>{this.props.label || "Upload Image"}</div>
@@ -171,9 +168,7 @@ export default class ImageUploader extends Component {
                                 <div className="label">{this.props.label || "Choose image"}</div>
                             </label>
 
-                            {(this.state.thumbnail !== this.props.thumbnail) && (this.state.thumbnail !== this.defaultThumbnail) &&
-                                (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) && !this.props.disabled &&
-
+                            {(this.state.thumbnail !== this.defaultThumbnail) && !this.props.disabled &&
                                 <div onClick={this.removeFile}>
                                     {this.props.removeFileIcon ||
                                         <img className="remove-button" src={require('../../imgs/x-icon.png')} alt="x" />}
