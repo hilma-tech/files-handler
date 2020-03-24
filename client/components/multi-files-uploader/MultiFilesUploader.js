@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Dropzone from 'react-dropzone';
 import Consts from '../../../consts/Consts.json';
-import {fileshandler as config} from '../../../../../consts/ModulesConfig';
+import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
 import './MultiFilesUploader.scss';
 
@@ -14,6 +14,7 @@ export default class MultiFilesUploader extends Component {
         };
 
         this.filesPreviews = [];
+        this.isOverFilesNumLimit = false;
 
         this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
             this.props.type : Consts.FILE_TYPE_IMAGE;
@@ -35,6 +36,7 @@ export default class MultiFilesUploader extends Component {
         let filesData = [...this.state.filesData];
 
         for (let i = 0; i < acceptedfiles.length; i++) {
+            if (filesData.length >= config.MULTI_FILES_LIMIT) { this.isOverFilesNumLimit = true; break; }
             let base64String = await this.readFileToBase64(acceptedfiles[i]);
 
             let fileObj = {
@@ -52,6 +54,7 @@ export default class MultiFilesUploader extends Component {
         }
 
         for (let i = 0; i < rejectedFiles.length; i++) {
+            if (filesData.length >= config.MULTI_FILES_LIMIT) { this.isOverFilesNumLimit = true; break; }
             if (!this.acceptedMimes.includes(rejectedFiles[i].type)) continue;
 
             let filePreview = await this.getFilePreviewObj(rejectedFiles[i], null, Consts.FILE_REJECTED, Consts.ERROR_MSG_FILE_TOO_BIG);
@@ -186,6 +189,7 @@ export default class MultiFilesUploader extends Component {
     removeFile = (fileIndex) => {
         let filesData = this.state.filesData;
         filesData.splice(fileIndex, 1);
+        if (filesData.length < config.MULTI_FILES_LIMIT) this.isOverFilesNumLimit = false;
         this.setState({ filesData }, this.parentOnChange);
     }
 
@@ -195,8 +199,12 @@ export default class MultiFilesUploader extends Component {
         this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     }
 
+    replaceAll = (str, a, b) => {
+        return str.split(a).join(b);
+    }
+
     render() {
-        /* After every drop, the component is rendered twicw due to usage of Dropzone,
+        /* After every drop, the component is rendered twice due to usage of Dropzone,
         the following condition is to prevent unnecessary updates of filesPreviews */
         this.filesPreviews = this.state.filesData.length !== this.filesPreviews.length || this.props.disabled ?
             this.state.filesData.map((file, i) => (
@@ -215,16 +223,18 @@ export default class MultiFilesUploader extends Component {
                     noClick={this.props.noClick}
                     noDrag={this.props.noDrag}
                     noKeyBoard={this.props.noKeyBoard}
-                    disabled={this.props.disabled}>
+                    disabled={this.props.disabled || this.isOverFilesNumLimit}>
 
                     {({ getRootProps, getInputProps, isDragActive }) => {
-                        let classNames = `dropzone ${isDragActive && 'drag-active'} `;
+                        let classNames = `dropzone ${isDragActive && 'drag-active'}`;
 
                         return (
                             <section className="container">
                                 <div {...getRootProps({ className: classNames })}>
                                     <input {...getInputProps()} />
-                                    <p>{this.props.label || "Drag & drop some files here, or click to select files"}</p>
+                                    <p>{this.isOverFilesNumLimit ?
+                                        Consts.ERROR_MSG_FILES_NUM_LIMIT.replace('%', config.MULTI_FILES_LIMIT) :
+                                        (this.props.label || this.replaceAll(Consts.MULTI_FILES_DEFAULT_MSG, '%', this.type))}</p>
                                 </div>
                                 <aside className='file-previews-container'>
                                     {this.filesPreviews}

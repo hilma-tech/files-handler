@@ -59,6 +59,8 @@
     "FILE_REJECTED": "rejected",
     "ERROR_MSG_FILE_TOO_SMALL": "ERROR: File is smaller than minimum size",
     "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
+    "MULTI_FILES_DEFAULT_MSG": "Drag & drop some %s here, or click to select %s",
+    "ERROR_MSG_FILES_NUM_LIMIT": "Cannot upload more than % files",
     "ROLE": "ROLE",
     "USER": "USER",
     "ALLOW": "ALLOW",

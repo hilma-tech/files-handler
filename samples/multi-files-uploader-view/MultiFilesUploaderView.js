@@ -81,7 +81,7 @@ export default class MultiFilesUploaderView extends Component {
     previewUploadedImages = async (postRes) => {
         if (!postRes || !postRes.filesUploadStatus) return;
         let uploadedFilesIds = this.getUploadedFilesIds(postRes.filesUploadStatus, Consts.FILE_TYPE_IMAGE);
-        let filter = JSON.stringify({"where": {"id": {"inq": uploadedFilesIds}}});
+        let filter = JSON.stringify({ "where": { "id": { "inq": uploadedFilesIds } } });
         let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?filter=' + filter);
 
         if (gErr) return console.log("ERR:", gErr);
@@ -110,20 +110,12 @@ export default class MultiFilesUploaderView extends Component {
                             name="imgId" // keyToSaveImgId
                             title="my-images"
                             category="my-images"
-                            label="Drop your images"
                             onChange={this.onChange}
                             disabled={this.state.isUploaderDisabled}
                             type="image" // image, audio, video, file
 
                         // NOT SUPPORTED YET
                         // previewFiles={[accepted, rejected]}
-                        // onDragEnter=""
-                        // onDragLeave=""
-                        // onDragOver=""
-                        // onDrop=""
-                        // onDropAccepted=""
-                        // onDropRejected=""
-                        // onFileDialogCancel=""
                         />
                     </div>
                 </div>
