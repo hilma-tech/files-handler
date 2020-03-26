@@ -195,7 +195,7 @@ export default class MultiFilesUploader extends Component {
 
     parentOnChange = () => {
         // Calls the onChange callback with the accepted files
-        let eventObj = { target: { name: this.props.name || "multiImagesHandler", value: this.getAcceptedFilesObjs(this.state.filesData) } };
+        let eventObj = { target: { name: this.props.name || "multiFilesUploader", value: this.getAcceptedFilesObjs(this.state.filesData) } };
         this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     }
 

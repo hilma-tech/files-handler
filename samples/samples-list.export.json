@@ -24,6 +24,12 @@
         "title": "Multi Files Uploader"
     },
     {
+        "filePath": "/single-file-uploader-view/SingleFileUploaderView.js",
+        "componentName": "SingleFileUploaderView",
+        "route": "single-file-uploader",
+        "title": "Single File Uploader"
+    },
+    {
         "filePath": "/create-game/CreateGame.js",
         "componentName": "CreateGame",
         "route": "create-game",

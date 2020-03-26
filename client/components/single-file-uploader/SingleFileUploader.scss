@@ -1,0 +1,132 @@
+.single-file-uploader {
+  direction: ltr;
+
+  .single-file-preview {
+    position: relative;
+
+    .thumb {
+      margin-bottom: 0.5em;
+      height: 10em;
+      display: flex;
+      align-items: center;
+    }
+
+    .image-thumb {
+      .chosen-img {
+        width: 10em;
+        height: 10em;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+        border-radius: 5px;
+      }
+    }
+
+    .file-thumb {
+      display: flex;
+      min-width: 0;
+      overflow: hidden;
+
+      div {
+        display: flex;
+        flex-direction: column;
+      }
+
+      img {
+        display: block;
+        height: 5em;
+      }
+
+      h2 {
+        direction: rtl;
+        font-size: 1.25em;
+        margin: 0;
+        margin-top: 1em;
+        max-height: 1.5em;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    }
+
+    .video-thumb {
+      width: 18em;
+      height: 10em;
+      overflow: hidden;
+
+      video {
+        height: 100%;
+        border-radius: 5px;
+      }
+    }
+
+    .audio-thumb {
+      audio {
+        width: 17em;
+        border: 1px solid gray;
+        border-radius: 70px;
+      }
+    }
+
+    .remove-icon img {
+      position: absolute;
+      right: -0.5em;
+      top: 0em;
+      height: 1.8em;
+      background-color: white;
+      border-radius: 15px;
+    }
+
+    .error-icon img {
+      position: absolute;
+      left: -0.5em;
+      top: 0em;
+      height: 2em;
+    }
+
+    .tool-tip {
+      color: red;
+    }
+  }
+
+  .audio-preview {
+    .remove-icon img {
+      right: -0.5em;
+      top: 3em;
+    }
+
+    .error-icon img {
+      left: -1em;
+      top: 3em;
+    }
+  }
+
+  .file-preview {
+    .remove-icon img {
+      right: 5em;
+    }
+
+    .error-icon img {
+      left: 4.5em;
+    }
+  }
+
+  // Hides the "choose file" button
+  input[type="file"] {
+    position: absolute;
+    -webkit-appearance: none;
+    width: 0;
+    -moz-appearance: none;
+    appearance: none;
+    opacity: 0;
+    right: 0;
+    visibility: hidden;
+  }
+
+  .basic-theme {
+    margin: auto;
+    width: fit-content;
+    padding-top: 1em;
+    padding-bottom: 1em;
+  }
+}

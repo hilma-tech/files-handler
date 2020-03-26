@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
-import './ImageUploader.scss';
 import Consts from '../../consts/Consts.json';
+import { fileshandler as config } from '../../../../consts/ModulesConfig';
+import './ImageUploader.scss';
 
 export default class ImageUploader extends Component {
 
     constructor(props) {
         super(props);
 
-        this.propsDefaultTumbnail = this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc; // Suppport previous versions
-        this.defaultThumbnail = this.propsDefaultTumbnail || (this.props.theme === "circle-theme" ?
+        let propsDefaultTumbnail = this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc; // Suppport previous versions
+        this.defaultThumbnail = propsDefaultTumbnail || (this.props.theme === "circle-theme" ?
             require(`../../imgs/circle-theme-default-thumbnail.svg`) : require(`../../imgs/default-thumbnail.svg`));
 
         this.state = {
@@ -16,10 +17,10 @@ export default class ImageUploader extends Component {
         };
 
         this.onChangeImg = this.onChangeImg.bind(this); // Intentionally bind instead of arrow function
-        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
-            this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB;
-        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
-            this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB;
+        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MIN_SIZE ?
+            this.props.minSizeInKB : config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MIN_SIZE;
+        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MAX_SIZE ?
+            this.props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MAX_SIZE;
     }
 
     readFileToBase64 = (fileInfo) => {

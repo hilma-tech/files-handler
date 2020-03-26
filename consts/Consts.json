@@ -57,6 +57,7 @@
     "IMAGE_LARGE_SIGN": "l",
     "FILE_ACCEPTED": "accepted",
     "FILE_REJECTED": "rejected",
+    "DEFAULT_THUMBNAIL": "default-thumbnail",
     "ERROR_MSG_FILE_TOO_SMALL": "ERROR: File is smaller than minimum size",
     "ERROR_MSG_FILE_TOO_BIG": "ERROR: File exceeds maximum size",
     "MULTI_FILES_DEFAULT_MSG": "Drag & drop some %s here, or click to select %s",
