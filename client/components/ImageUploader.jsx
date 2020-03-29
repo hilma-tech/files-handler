@@ -100,7 +100,7 @@ export default class ImageUploader extends Component {
                     src={this.state.thumbnail}
                     height="100px"
                     width="auto"
-                    alt="uploading image"
+                    alt="uploading"
                     onClick={this.props.previewWidget && this.toggleShowPopup}
                     onError={e => {
                         e.target.src = this.props.thumbnail || this.defaultThumbnail;
@@ -137,7 +137,7 @@ export default class ImageUploader extends Component {
                         src={this.state.thumbnail}
                         height="100px"
                         width="auto"
-                        alt="uploading image"
+                        alt="uploading"
                         onError={e => {
                             e.target.src = this.props.thumbnail || this.defaultThumbnail;
                             this.setState({ thumbnail: this.props.thumbnail || this.defaultThumbnail });
