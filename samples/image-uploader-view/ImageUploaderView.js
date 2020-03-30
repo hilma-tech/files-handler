@@ -3,7 +3,7 @@ import Auth from '../../../auth/Auth';
 import ImageUploader from '../../client/components/ImageUploader.jsx';
 import PreviewWidget from '../../client/components/PreviewWidget';
 import TableInfo from './TableInfo.json';
-import UploadedImage from '../UploadedImage.js';
+import UploadedFile from '../uploaded-file/UploadedFile';
 import Consts from '../../consts/Consts';
 import './ImageUploaderView.scss';
 import '../Samples.scss';
@@ -272,7 +272,7 @@ export default class ImageUploaderView extends Component {
                         <div className="uploaded-images">
                             {this.state.uploadedImages.map((uploadedImage, i) =>
                                 <div key={i}>
-                                    <UploadedImage {...uploadedImage} />
+                                    <UploadedFile {...uploadedImage} type={Consts.FILE_TYPE_IMAGE}/>
                                 </div>)}
                         </div>}
                 </div>

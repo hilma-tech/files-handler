@@ -8,7 +8,7 @@ export default class SingleFileUploader extends Component {
     constructor(props) {
         super(props);
 
-        this.defaultTumbnail = this.getDefaultThumbnail();
+        this.initialValues(props);
         let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
 
         this.state = {
@@ -16,17 +16,30 @@ export default class SingleFileUploader extends Component {
         };
 
         this.onChange = this.onChange.bind(this); // Intentionally bind instead of arrow function
+    }
 
-        this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
-            this.props.type : Consts.FILE_TYPE_IMAGE;
+    initialValues = (props) => {
+        this.defaultTumbnail = this.getDefaultThumbnail();
+
+        this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(props.type) ?
+            props.type : Consts.FILE_TYPE_IMAGE;
 
         this.acceptedExtensions = this.getAcceptedExtensions();
 
-        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE ?
-            this.props.minSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE;
+        this.minSizeInKB = props.minSizeInKB && props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE ?
+            props.minSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE;
 
-        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
-            this.props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
+        this.maxSizeInKB = props.maxSizeInKB && props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
+            props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.type !== this.props.type) {
+            this.initialValues(nextProps);
+            let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
+            this.setState({fileData: { previewObj: defaltPreviewObj, acceptedObj: null }});
+        }
+        return true;
     }
 
     getDefaultThumbnail = () => {
@@ -125,7 +138,7 @@ export default class SingleFileUploader extends Component {
 
     getFilePreviewHtml = (file) => {
         let filePreview = null;
-        let type = file.status === Consts.DEFAULT_THUMBNAIL? Consts.FILE_TYPE_IMAGE : this.type;
+        let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
 
         switch (type) {
             case Consts.FILE_TYPE_FILE:
@@ -183,7 +196,7 @@ export default class SingleFileUploader extends Component {
     render() {
         let file = this.state.fileData.previewObj;
         let filePreviewHtml = this.getFilePreviewHtml(file);
-        let type = file.status === Consts.DEFAULT_THUMBNAIL? Consts.FILE_TYPE_IMAGE : this.type;
+        let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
 
         return (
             <div className="single-file-uploader">

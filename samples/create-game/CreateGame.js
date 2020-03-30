@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
 import ImageUploader from '../../client/components/ImageUploader.jsx';
 import MultiFilesUploader from '../../client/components/multi-files-uploader/MultiFilesUploader';
-import UploadedImage from '../UploadedImage';
+import UploadedFile from '../uploaded-file/UploadedFile';
 import Consts from "../../consts/Consts";
 import './CreateGame.scss';
 import '../Samples.scss';
@@ -150,7 +150,7 @@ export default class CreateGame extends Component {
                 <div className="uploaded-images">
                     {this.state.uploadedImages.map((uploadedImage, i) =>
                         <div key={i}>
-                            <UploadedImage {...uploadedImage} />
+                            <UploadedFile {...uploadedImage} type={Consts.FILE_TYPE_IMAGE}/>
                         </div>)}
                 </div>
             </div>

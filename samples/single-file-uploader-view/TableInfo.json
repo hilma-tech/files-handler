@@ -55,24 +55,6 @@
             "Default": "image"
         },
         {
-            "Property": "noClick",
-            "Type": "boolean",
-            "Description": "If true, the user won't be able to click on the MultiFilesUploader in order to open the files dialog (only dragging files will be possible)",
-            "Default": "false"  
-        },
-        {
-            "Property": "noDrag",
-            "Type": "boolean",
-            "Description": "If true, the user won't be able to drag files to the MultiFilesUploader (only clicking on MultiFilesUploader will be possible)",
-            "Default": "false"  
-        },
-        {
-            "Property": "isMultiSizes",
-            "Type": "boolean",
-            "Description": "Aveliable only when type is images. If true, saves the image in 3 versions: small, medium and large.",
-            "Default": "false"
-        },
-        {
             "Property": "required",
             "Type": "boolean",
             "Description": "Is it required to fill the input or not",
