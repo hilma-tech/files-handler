@@ -37,7 +37,7 @@ export default class SingleFileUploader extends Component {
         if (nextProps.type !== this.props.type) {
             this.initialValues(nextProps);
             let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
-            this.setState({fileData: { previewObj: defaltPreviewObj, acceptedObj: null }});
+            this.setState({ fileData: { previewObj: defaltPreviewObj, acceptedObj: null } });
         }
         return true;
     }
@@ -64,8 +64,8 @@ export default class SingleFileUploader extends Component {
                 type: this.type,
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
-                description: this.props.description || "default_description"
-                // isMultiSizes: this.props.isMultiSizes || false
+                description: this.props.description || "default_description",
+                isMultiSizes: this.props.isMultiSizes || false
             };
         }
 
@@ -144,7 +144,7 @@ export default class SingleFileUploader extends Component {
             case Consts.FILE_TYPE_FILE:
                 filePreview =
                     <div>
-                        <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} />
+                        <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} alt={`uploading ${this.type}`} />
                         <h2>{file.preview}</h2>
                     </div>;
                 break;

@@ -1,71 +1,22 @@
-import React, { Component } from 'react';
+import React from 'react';
+import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
-import { fileshandler as config } from '../../../../consts/ModulesConfig';
+import Tooltip from '@material-ui/core/Tooltip';
 import './ImageUploader.scss';
 
-export default class ImageUploader extends Component {
+export default class ImageUploader extends SingleFileUploader {
 
     constructor(props) {
+        props = { ...props };
+        props.type = Consts.FILE_TYPE_IMAGE;
+        let propsDefaultTumbnail = props.defaultValue || props.thumbnail || props.defaultThumbnailImageSrc;
+        let defaultThumbnail = propsDefaultTumbnail ||
+            (props.theme === "circle-theme" ?
+                require(`../../imgs/circle-theme-default-thumbnail.svg`) :
+                require(`../../imgs/default-thumbnail.svg`));
+        props.defaultThumbnailImageSrc = defaultThumbnail;
+
         super(props);
-
-        let propsDefaultTumbnail = this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc; // Suppport previous versions
-        this.defaultThumbnail = propsDefaultTumbnail || (this.props.theme === "circle-theme" ?
-            require(`../../imgs/circle-theme-default-thumbnail.svg`) : require(`../../imgs/default-thumbnail.svg`));
-
-        this.state = {
-            thumbnail: this.defaultThumbnail
-        };
-
-        this.onChangeImg = this.onChangeImg.bind(this); // Intentionally bind instead of arrow function
-        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MIN_SIZE ?
-            this.props.minSizeInKB : config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MIN_SIZE;
-        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MAX_SIZE ?
-            this.props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[Consts.FILE_TYPE_IMAGE].MAX_SIZE;
-    }
-
-    readFileToBase64 = (fileInfo) => {
-        return new Promise((resolve, reject) => {
-            if (fileInfo) {
-
-                var FR = new FileReader();
-                FR.addEventListener("load", function (e) {
-                    resolve(e.target.result);
-                });
-
-                FR.readAsDataURL(fileInfo);
-            }
-            else reject("no file");
-        })
-
-    }
-
-    removeFile = () => {
-        if (this.state.thumbnail === this.defaultThumbnail) return;
-        this.refs.imageUploaderInputRef.value = null;
-        this.setState({ thumbnail: this.defaultThumbnail });
-        let eventObj = { target: { name: this.props.name, value: null } }
-        this.props.onChange(eventObj);
-    }
-
-    async onChangeImg(e) {
-        if (!e.target || !e.target.files || !e.target.files[0]) return;
-        let sizeKB = e.target.files[0].size * 0.001;
-        if (sizeKB < this.minSizeInKB) return console.log("ERROR: Image is too small");
-        if (sizeKB > this.maxSizeInKB) return console.log("ERROR: Image is too big");
-        let base64String = await this.readFileToBase64(e.target.files[0]);
-        this.setState({ thumbnail: base64String })
-
-        let imageObj = {
-            src: base64String,
-            type: Consts.FILE_TYPE_IMAGE,
-            title: this.props.title || "default_image_title",
-            category: this.props.category || "default_image_category",
-            description: this.props.description || "default_image_description",
-            isMultiSizes: this.props.isMultiSizes || false
-        };
-
-        let eventObj = { target: { name: this.props.name, value: imageObj } }
-        this.props.onChange(eventObj);
     }
 
     toggleShowPopup = () => {
@@ -76,103 +27,76 @@ export default class ImageUploader extends Component {
         return <Component.type {...Component.props} {...extraProps} />;
     }
 
-    getPropertiesForTheme = () => {
-        let chosenImgStyle = { backgroundImage: `url(${this.state.thumbnail})` }  // , url(${this.defaultThumbnail}) the second url is in case the first is failed to load
-        let chosenImage = <div className="chosen-img" style={chosenImgStyle} onClick={this.props.previewWidget && this.toggleShowPopup} />;
-        let previewWidgetChosenImg = <div className="chosen-img-preview" style={chosenImgStyle} />;
-        let themeClassName, parentClassName;
-
-        switch (this.props.theme) {
-            case "basic-theme":
-                themeClassName = "basic-theme";
-                parentClassName = "chosen-image-parent";
-                break;
-
-            case "circle-theme":
-                themeClassName = "circle-theme";
-                parentClassName = "chosen-image-parent";
-                break;
-
-            default: // "default-theme"
-                themeClassName = "default-theme";
-                parentClassName = "";
-                chosenImage = <img
-                    src={this.state.thumbnail}
-                    height="100px"
-                    width="auto"
-                    alt="uploading image"
-                    onClick={this.props.previewWidget && this.toggleShowPopup}
-                    onError={e => {
-                        e.target.src = this.defaultThumbnail;
-                        this.setState({ thumbnail: this.defaultThumbnail });
-                    }} />;
-                break;
-        }
-
-        return [themeClassName, parentClassName, chosenImage, previewWidgetChosenImg];
-    }
-
     render() {
+        let file = this.state.fileData.previewObj;
+        let filePreviewHtml = this.addExtraProps(this.getFilePreviewHtml(file), {onClick: this.props.previewWidget && this.toggleShowPopup});
+        let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
+        let previewWidgetChosenImg = this.props.previewWidget ? <div className="chosen-img-preview" style={{ backgroundImage: `url(${file.preview})` }} /> : null;
 
-        let [themeClassName, parentClassName, chosenImage, previewWidgetChosenImg] = this.getPropertiesForTheme();
-
-        // Supports previous versions
-        if (!this.props.theme && !this.props.previewWidget) return (
-            <div>
-                {(this.state.thumbnail !== this.defaultThumbnail) &&
-                    <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
-                <label>
-                    <input
-                        onChange={this.onChangeImg}
-                        name="image"
-                        required={this.props.required || false}
-                        type="file"
-                        accept=".png, .jpg, .jpeg, .gif, .svg"
-                        ref="imageUploaderInputRef"
-                        disabled={this.props.disabled || false}
-                    />
-                    <img
-                        src={this.state.thumbnail}
-                        height="100px"
-                        width="auto"
-                        alt="uploading image"
-                        onError={e => {
-                            e.target.src = this.defaultThumbnail;
-                            this.setState({ thumbnail: this.defaultThumbnail });
-                        }}
-                    />
-                    <div>{this.props.label || "Upload Image"}</div>
-                </label>
-            </div>
-        )
+        // Supports previous versions (AKA default-theme)
+        if (!this.props.theme && !this.props.previewWidget)
+            return (
+                <div>
+                    {(file.status !== Consts.DEFAULT_THUMBNAIL) &&
+                        <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
+                    <label>
+                        <input
+                            name={this.type}
+                            type="file"
+                            onChange={this.onChange}
+                            disabled={this.props.disabled || false}
+                            required={this.props.required || false}
+                            accept={this.acceptedExtensions}
+                            ref="uploaderInputRef"
+                        />
+                        <img
+                            src={file.preview}
+                            alt={`uploading ${this.type}`}
+                            onError={() => {
+                                let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
+                                let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
+                                this.setState({ fileData });
+                            }}
+                        />
+                        <div>{this.props.label || `Choose ${this.type}`}</div>
+                    </label>
+                </div>
+            );
 
         return (
-            <div dir="ltr" className="image-uploader-container">
-                <div className={themeClassName}>
+            <div className="image-uploader-container">
+                <div className={this.props.theme}>
                     <input
                         id={this.props.name}
-                        onChange={this.onChangeImg}
-                        disabled={this.props.disabled}
-                        name="image"
-                        required={this.props.required || false}
+                        name={this.type}
                         type="file"
-                        accept=".png, .jpg, .jpeg, .gif, .svg"
-                        ref="imageUploaderInputRef" />
+                        onChange={this.onChange}
+                        disabled={this.props.disabled}
+                        required={this.props.required || false}
+                        accept={this.acceptedExtensions}
+                        ref="uploaderInputRef" />
 
                     {this.props.previewWidget ?
-                        chosenImage :
+                        filePreviewHtml :
 
-                        <div className={parentClassName}>
-
+                        <div className={`chosen-image-parent ${type}-preview`}>
                             <label htmlFor={this.props.name}>
-                                {chosenImage}
-                                <div className="label">{this.props.label || "Choose image"}</div>
+                                {filePreviewHtml}
+                                <div className="label">{this.props.label || `Choose ${this.type}`}</div>
                             </label>
 
-                            {(this.state.thumbnail !== this.defaultThumbnail) && !this.props.disabled &&
-                                <div onClick={this.removeFile}>
-                                    {this.props.removeFileIcon ||
-                                        <img className="remove-button" src={require('../../imgs/x-icon.png')} alt="x" />}
+                            {// Add remove button
+                                !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
+                                <div className="remove-icon" onClick={this.removeFile}>
+                                    <img src={this.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
+                                </div>}
+
+                            {// Add error icon if needed
+                                file.status === Consts.FILE_REJECTED &&
+                                <div className="error-icon">
+                                    <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
+                                        <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
+                                    </Tooltip>
                                 </div>}
                         </div>}
 
@@ -188,6 +112,6 @@ export default class ImageUploader extends Component {
                         })}
                 </div>
             </div>
-        );
+        )
     }
 }

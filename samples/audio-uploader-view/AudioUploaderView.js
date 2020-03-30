@@ -61,7 +61,7 @@ export default class AudioUploaderView extends Component {
             <div className="uploader-sample">
                 <div className="file-uploader-sample">
 
-                    <h1>File Uploader</h1>
+                    <h1>Audio Uploader</h1>
                     <h3>Supported file's formats: mp3, wav, webm</h3>
 
                     <div className="uploader">
@@ -70,7 +70,6 @@ export default class AudioUploaderView extends Component {
                             name='audioSample' // [AUDIO_NAME_LIKE_IN_DATABASE]
                             required={false}
                             onChange={this.handleFileChange}
-                            label='Choose your favorite song'
                         />
                     </div>
 

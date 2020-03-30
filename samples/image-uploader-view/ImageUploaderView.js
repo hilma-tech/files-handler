@@ -155,7 +155,7 @@ export default class ImageUploaderView extends Component {
                     <div className="image-input-samples">
 
                         <div className="image-input-sample">
-                            <p>This is the default-theme style. No <em>theme</em> prop is required.</p>
+                            <p>This is the default-theme [deprecated] style. No <em>theme</em> prop is required.</p>
                             <ImageUploader
                                 category="my-images" // image is saved into public/images/[category]
                                 name="imageSample1"
@@ -201,7 +201,7 @@ export default class ImageUploaderView extends Component {
                     <div className="image-input-samples">
 
                         <div className="image-input-sample">
-                            <p>This is previewWidget with the default-theme style.</p>
+                            <p>This is previewWidget with the default-theme [deprecated] style.</p>
                             <ImageUploader
                                 category="my-images" // image is saved into public/images/[category]
                                 name="imageSample4"
