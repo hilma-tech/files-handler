@@ -1,98 +1,22 @@
-import React, { Component } from 'react';
-import Auth from '../../../auth/Auth';
+import React from 'react';
+import SingleFileUploaderView from '../single-file-uploader-view/SingleFileUploaderView';
 import ImageUploader from '../../client/components/ImageUploader.jsx';
+import UploadedFile from '../uploaded-file/UploadedFile';
 import PreviewWidget from '../../client/components/PreviewWidget';
 import TableInfo from './TableInfo.json';
-import UploadedFile from '../uploaded-file/UploadedFile';
 import Consts from '../../consts/Consts';
 import './ImageUploaderView.scss';
-import '../Samples.scss';
 
-export default class ImageUploaderView extends Component {
+export default class ImageUploaderVIew extends SingleFileUploaderView {
 
     constructor(props) {
+        props = { ...props };
+        props.type = Consts.FILE_TYPE_IMAGE;
         super(props);
-        this.state = {
-            isTable: false,
-            uploadedImages: [],
-            isSubmitDisabled: true,
-            isImgUploaderDisabled: false,
-            filesToSave: {}
-        };
-    }
-
-    handleFileChange = (fileEvent) => {
-        let name = (fileEvent.target && fileEvent.target.name) || null;
-        let value = (fileEvent.target && fileEvent.target.value) || null;
-        let isSubmitDisabled = true;
-        if (isSubmitDisabled && value) isSubmitDisabled = false;
-        let filesToSave = { ...this.state.filesToSave };
-        filesToSave[name] = value;
-        this.setState({ filesToSave, isSubmitDisabled });
-    }
-
-    getFilesData = () => {
-        return { ...this.state.filesToSave };
-    }
-
-    upload = async () => {
-        this.setState({ isSubmitDisabled: true, isImgUploaderDisabled: true });
-        let filesData = this.getFilesData();
-        console.log("about to upload files", filesData);
-
-        let [pRes, pErr] = await Auth.superAuthFetch('/api/Images', {
-            method: 'POST',
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            body: JSON.stringify(filesData)
-        });
-
-        if (pErr) return console.log("ERR:", pErr);
-        console.log("POST res", pRes)
-
-        await this.previewUploadedImages(pRes);
-    };
-
-    getUploadedFilesIds = (filesUploadStatus, filterByType = Consts.FILE_TYPE_IMAGE) => {
-        let fileIds = [];
-        for (let fileKeys in filesUploadStatus) {
-            let fileOrFiles = filesUploadStatus[fileKeys];
-
-            const pushToFileIds = (file) => {
-                if (file.status === Consts.FILE_ACCEPTED && file.type === filterByType) {
-                    fileIds.push(file.id)
-                }
-            }
-
-            if (Array.isArray(fileOrFiles)) {
-                fileOrFiles.forEach(file => pushToFileIds(file));
-            }
-            else {
-                pushToFileIds(fileOrFiles);
-            }
-        }
-
-        return fileIds;
-    }
-
-    previewUploadedImages = async (postRes) => {
-        if (!postRes || !postRes.filesUploadStatus) return;
-        let uploadedFilesIds = this.getUploadedFilesIds(postRes.filesUploadStatus, Consts.FILE_TYPE_IMAGE);
-        let filter = JSON.stringify({"where": {"id": {"inq": uploadedFilesIds}}});
-        let [gRes, gErr] = await Auth.superAuthFetch('/api/Images?filter=' + filter);
-
-        if (gErr) return console.log("ERR:", gErr);
-        console.log("GET res", gRes);
-
-        this.setState({ uploadedImages: gRes });
-    }
-
-    toggleTable = () => {
-        let isTable = !this.state.isTable;
-        this.setState({ isTable });
     }
 
     render() {
-        let isSubmited = Object.keys(this.state.uploadedImages).length !== 0;
+        let isSubmited = Object.keys(this.state.uploadedFiles).length !== 0;
 
         return (
             <div className="uploader-sample">
@@ -108,7 +32,7 @@ export default class ImageUploaderView extends Component {
                             title="my-image"
                             theme="basic-theme"
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgUploaderDisabled}
+                            disabled={this.state.isUploaderDisabled}
                         />
                     </div>
 
@@ -120,7 +44,7 @@ export default class ImageUploaderView extends Component {
                             title="my-image"
                             theme="basic-theme"
                             onChange={this.handleFileChange}
-                            disabled={this.state.isImgUploaderDisabled}
+                            disabled={this.state.isUploaderDisabled}
                             checkImgMinSize={true} />`}</p>
                     </div>
 
@@ -161,7 +85,7 @@ export default class ImageUploaderView extends Component {
                                 name="imageSample1"
                                 title="my-image"
                                 onChange={this.handleFileChange}
-                                disabled={this.state.isImgUploaderDisabled}
+                                disabled={this.state.isUploaderDisabled}
                             />
                         </div>
 
@@ -173,7 +97,7 @@ export default class ImageUploaderView extends Component {
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
-                                disabled={this.state.isImgUploaderDisabled}
+                                disabled={this.state.isUploaderDisabled}
                             />
                         </div>
 
@@ -185,7 +109,7 @@ export default class ImageUploaderView extends Component {
                                 title="my-image"
                                 theme="circle-theme"
                                 onChange={this.handleFileChange}
-                                disabled={this.state.isImgUploaderDisabled}
+                                disabled={this.state.isUploaderDisabled}
 
                             />
                         </div>
@@ -208,7 +132,7 @@ export default class ImageUploaderView extends Component {
                                 title="my-image"
                                 previewWidget={<PreviewWidget />}
                                 onChange={this.handleFileChange}
-                                disabled={this.state.isImgUploaderDisabled}
+                                disabled={this.state.isUploaderDisabled}
                             />
                         </div>
 
@@ -222,7 +146,7 @@ export default class ImageUploaderView extends Component {
                                 theme="basic-theme"
                                 previewWidget={<PreviewWidget enableEdit={true} />}
                                 onChange={this.handleFileChange}
-                                disabled={this.state.isImgUploaderDisabled}
+                                disabled={this.state.isUploaderDisabled}
                             />
                         </div>
 
@@ -236,7 +160,7 @@ export default class ImageUploaderView extends Component {
                                 theme="circle-theme"
                                 previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                                 onChange={this.handleFileChange}
-                                disabled={this.state.isImgUploaderDisabled}
+                                disabled={this.state.isUploaderDisabled}
                             />
                         </div>
                     </div>
@@ -258,7 +182,7 @@ export default class ImageUploaderView extends Component {
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
                                 isMultiSizes={true}
-                                disabled={this.state.isImgUploaderDisabled}
+                                disabled={this.state.isUploaderDisabled}
                             />
                         </div>
                     </div>
@@ -270,7 +194,7 @@ export default class ImageUploaderView extends Component {
                     {!isSubmited ?
                         <button onClick={this.upload} disabled={this.state.isSubmitDisabled}>Submit</button> :
                         <div className="uploaded-images">
-                            {this.state.uploadedImages.map((uploadedImage, i) =>
+                            {this.state.uploadedFiles.map((uploadedImage, i) =>
                                 <div key={i}>
                                     <UploadedFile {...uploadedImage} type={Consts.FILE_TYPE_IMAGE}/>
                                 </div>)}

@@ -7,16 +7,6 @@
     padding-bottom: 1em;
   }
 
-  .remove-button {
-    height: 2em;
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 2;
-    background-color: white;
-    border-radius: 15px;
-  }
-
   .chosen-image-parent {
     position: relative;
   }
@@ -42,17 +32,18 @@
     visibility: hidden;
   }
 
-  .basic-theme {
-    .remove-button {
-      right: -1em;
-      top: -1em;
-    }
-  }
-
   .circle-theme {
     .chosen-img {
       border-radius: 50%;
       box-shadow: 2px 2px 8px 3px rgb(189, 189, 189);
+    }
+
+    .remove-icon img {
+      right: 0em;
+    }
+
+    .error-icon img {
+      left: 0em;
     }
 
     .chosen-img-preview {

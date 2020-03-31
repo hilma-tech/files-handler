@@ -29,7 +29,7 @@ export default class ImageUploader extends SingleFileUploader {
 
     render() {
         let file = this.state.fileData.previewObj;
-        let filePreviewHtml = this.addExtraProps(this.getFilePreviewHtml(file), {onClick: this.props.previewWidget && this.toggleShowPopup});
+        let filePreviewHtml = this.addExtraProps(this.getFilePreviewHtml(file), { onClick: this.props.previewWidget && this.toggleShowPopup });
         let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
         let previewWidgetChosenImg = this.props.previewWidget ? <div className="chosen-img-preview" style={{ backgroundImage: `url(${file.preview})` }} /> : null;
 
@@ -64,7 +64,7 @@ export default class ImageUploader extends SingleFileUploader {
             );
 
         return (
-            <div className="image-uploader-container">
+            <div className="image-uploader-container single-file-uploader">
                 <div className={this.props.theme}>
                     <input
                         id={this.props.name}
@@ -76,17 +76,16 @@ export default class ImageUploader extends SingleFileUploader {
                         accept={this.acceptedExtensions}
                         ref="uploaderInputRef" />
 
-                    {this.props.previewWidget ?
-                        filePreviewHtml :
+                        <div className={`${this.props.previewWidget && 'chosen-image-parent'} single-file-preview ${type}-preview`}>
 
-                        <div className={`chosen-image-parent ${type}-preview`}>
-                            <label htmlFor={this.props.name}>
-                                {filePreviewHtml}
-                                <div className="label">{this.props.label || `Choose ${this.type}`}</div>
-                            </label>
+                            {!this.props.previewWidget ?
+                                <label htmlFor={this.props.name}>
+                                    {filePreviewHtml}
+                                    <div className="label">{this.props.label || `Choose ${this.type}`}</div>
+                                </label> : filePreviewHtml}
 
                             {// Add remove button
-                                !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
+                                !this.props.previewWidget && !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
                                 <div className="remove-icon" onClick={this.removeFile}>
                                     <img src={this.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
                                 </div>}
@@ -98,7 +97,7 @@ export default class ImageUploader extends SingleFileUploader {
                                         <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
                                     </Tooltip>
                                 </div>}
-                        </div>}
+                        </div>
 
                     {this.props.previewWidget &&
                         typeof this.state.showPopup === "boolean" &&

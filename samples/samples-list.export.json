@@ -18,16 +18,16 @@
         "title": "Audio Uploader"
     },
     {
+		"filePath": "/video-uploader-view/VideoUploaderView.js",
+		"componentName": "VideoUploaderView",
+		"route": "video-uploader",
+		"title": "Video Uploader"
+	},
+    {
         "filePath": "/multi-files-uploader-view/MultiFilesUploaderView.js",
         "componentName": "MultiFilesUploaderView",
         "route": "multi-files-uploader",
         "title": "Multi Files Uploader"
-    },
-    {
-        "filePath": "/single-file-uploader-view/SingleFileUploaderView.js",
-        "componentName": "SingleFileUploaderView",
-        "route": "single-file-uploader",
-        "title": "Single File Uploader"
     },
     {
         "filePath": "/create-game/CreateGame.js",

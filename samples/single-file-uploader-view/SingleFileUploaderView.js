@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import Auth from '../../../auth/Auth';
-import SingleFileUploader from '../../client/components/single-file-uploader/SingleFileUploader';
-import TableInfo from './TableInfo.json';
 import UploadedFile from '../uploaded-file/UploadedFile';
 import Consts from "../../consts/Consts";
 import './SingleFileUploaderView.scss';
@@ -11,8 +9,13 @@ export default class SingleFileUploaderView extends Component {
 
     constructor(props) {
         super(props);
+
+        this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
+            this.props.type : Consts.FILE_TYPE_IMAGE;
+
+        this.capitalizeType = this.capitalize(this.type);
+
         this.state = {
-            type: Consts.FILE_TYPE_IMAGE,
             isTable: false,
             uploadedFiles: [],
             isSubmitDisabled: true,
@@ -21,16 +24,8 @@ export default class SingleFileUploaderView extends Component {
         };
     }
 
-    onTypeChange = (event) => {
-        let value = (event.target && event.target.value) || null;
-        let newState = {
-            type: value,
-            uploadedFiles: [],
-            isSubmitDisabled: true,
-            isUploaderDisabled: false,
-            filesToSave: {}
-        }
-        this.setState({...newState});
+    capitalize = (string) => {
+        return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     handleFileChange = (fileEvent) => {
@@ -52,7 +47,7 @@ export default class SingleFileUploaderView extends Component {
         let filesData = this.getFilesData();
         console.log("about to upload files", filesData);
 
-        let [res, err] = await Auth.superAuthFetch(`/api/${Consts.FILE_MODEL_NAME[this.state.type]}`, {
+        let [res, err] = await Auth.superAuthFetch(`/api/${Consts.FILE_MODEL_NAME[this.type]}`, {
             method: 'POST',
             headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
             body: JSON.stringify(filesData)
@@ -88,9 +83,9 @@ export default class SingleFileUploaderView extends Component {
 
     previewUploadedFiles = async (postRes) => {
         if (!postRes || !postRes.filesUploadStatus) return;
-        let uploadedFilesIds = this.getUploadedFilesIds(postRes.filesUploadStatus, this.state.type);
+        let uploadedFilesIds = this.getUploadedFilesIds(postRes.filesUploadStatus, this.type);
         let filter = JSON.stringify({ "where": { "id": { "inq": uploadedFilesIds } } });
-        let [res, err] = await Auth.superAuthFetch(`/api/${Consts.FILE_MODEL_NAME[this.state.type]}?filter=${filter}`);
+        let [res, err] = await Auth.superAuthFetch(`/api/${Consts.FILE_MODEL_NAME[this.type]}?filter=${filter}`);
 
         if (err) return console.log("ERR:", err);
         console.log("GET res", res);
@@ -103,56 +98,52 @@ export default class SingleFileUploaderView extends Component {
         this.setState({ isTable });
     }
 
+    addExtraProps = (Component, extraProps) => {
+        return <Component.type {...Component.props} {...extraProps} />;
+    }
+
     render() {
         let isSubmited = Object.keys(this.state.uploadedFiles).length !== 0;
 
         return (
             <div className="single-file-uploader-sample uploader-sample">
 
-                <h1>Single File Uploader</h1>
-                <h3>Choose file type:</h3>
-
-                <select name="type" value={this.state.type} onChange={this.onTypeChange}>
-                    <option value="image">Image</option>
-                    <option value="audio">Audio</option>
-                    <option value="video">Video</option>
-                    <option value="file">File</option>
-                </select>
+                <h1>{this.capitalizeType} Uploader</h1>
 
                 <div className="uploader">
-                    <SingleFileUploader
-                        name={`${this.state.type}Id`} // keyToSaveFileId
-                        title={`my-${this.state.type}s`}
-                        category={`my-${this.state.type}s`}
-                        onChange={this.handleFileChange}
-                        disabled={this.state.isUploaderDisabled}
-                        type={this.state.type} // image, audio, video, file
-                    />
+                    {this.props.uploader && this.addExtraProps(this.props.uploader, {
+                        name: `${this.type}Id`, // keyToSaveFileId
+                        title: `my-${this.type}s`,
+                        category: `my-${this.type}s`,
+                        onChange: this.handleFileChange,
+                        disabled: this.state.isUploaderDisabled,
+                    })}
                 </div>
 
                 <div className="usage">
-                    <p>import SingleFileUploader from '/src/modules/fileshandler/client/components/single-file-uploader/SingleFileUploader.js</p>
-                    <p>{`<SingleFileUploader
-                        name="${this.state.type}Id"
-                        title="my-${this.state.type}s"
-                        category="my-${this.state.type}s"
-                        label="Drop your ${this.state.type}s"
+                    <p>import {this.capitalizeType}Uploader from '/src/modules/fileshandler/client/components/${this.capitalizeType}Uploader.js</p>
+                    <p>{`<${this.capitalizeType}Uploader
+                        name="${this.type}Id"
+                        title="my-${this.type}s"
+                        category="my-${this.type}s"
+                        label="Drop your ${this.type}s"
                         onChange={this.handleFileChange}
-                        disabled={this.state.isUploaderDisabled}
-                        type=${this.state.type} />`}</p>
+                        disabled={this.state.isUploaderDisabled} />`}</p>
                 </div>
 
-                <div className="description p-1">
+                {this.props.sqlImage && <img className="sql-image" src={this.props.sqlImage} />}
+
+                {this.props.tableInfo && <div className="description p-1">
 
                     {this.state.isTable && <div className="m-2 mt-4 props-details" dir='ltr'>
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    {TableInfo.thead.map((col, i) => <th key={i} scope="col">{col}</th>)}
+                                    {this.props.tableInfo.thead.map((col, i) => <th key={i} scope="col">{col}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
-                                {TableInfo.tbody.map((row, i) =>
+                                {this.props.tableInfo.tbody.map((row, i) =>
                                     <tr key={i}>
                                         <td>{row.Property}</td>
                                         <td>{row.Type}</td>
@@ -164,18 +155,18 @@ export default class SingleFileUploaderView extends Component {
                     </div>}
 
                     <button onClick={this.toggleTable}>{!this.state.isTable ? "Show props details" : "Show less"}</button>
-                </div>
+                </div>}
 
                 <p className="explanation">
-                    <strong>Note:</strong> In this example the Submit button uploads the chosen {this.state.type} to {Consts.FILE_MODEL_NAME[this.state.type]} model<br />
-                    (without saving a reference {this.state.type}_id in another model like in "Upload image to relative model (by creating a new game)" sample).</p>
+                    <strong>Note:</strong> In this example the Submit button uploads the chosen {this.type} to {Consts.FILE_MODEL_NAME[this.type]} model<br />
+                    (without saving a reference {this.type}_id in another model like in "Upload image to relative model (by creating a new game)" sample).</p>
 
                 {!isSubmited ?
                     <button onClick={this.upload} disabled={this.state.isSubmitDisabled}>Submit</button> :
                     <div className="uploaded-files">
                         {this.state.uploadedFiles.map((uploadedFile, i) =>
                             <div key={i}>
-                                <UploadedFile {...uploadedFile} type={this.state.type} />
+                                <UploadedFile {...uploadedFile} type={this.type} />
                             </div>)}
                     </div>}
             </div>
