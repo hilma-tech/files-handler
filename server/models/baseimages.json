@@ -3,8 +3,8 @@
   "isPublic": "false",
   "mixins": {
     "FilesHandler": true,
-    "ExcludeModelFields": true,
-    "GenerateInstanceTimes": true
+    "GenerateInstanceTimes": true,
+    "ExcludeModelFields": true
   },
   "excludeFields": [
     "owner"
