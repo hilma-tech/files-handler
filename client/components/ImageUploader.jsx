@@ -97,6 +97,7 @@ export default class ImageUploader extends Component {
                 themeClassName = "default-theme";
                 parentClassName = "";
                 chosenImage = <img
+                    className={this.props.className}
                     src={this.state.thumbnail}
                     height="100px"
                     width="auto"
@@ -135,6 +136,7 @@ export default class ImageUploader extends Component {
                     />
                     <img
                         src={this.state.thumbnail}
+                        className={this.props.className}
                         height="100px"
                         width="auto"
                         alt="uploading"
