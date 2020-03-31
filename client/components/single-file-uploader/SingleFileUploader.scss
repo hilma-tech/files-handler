@@ -11,6 +11,16 @@
       align-items: center;
     }
 
+    .image-thumb {	
+      .chosen-img {	
+        width: 10em;	
+        height: 10em;	
+        background-repeat: no-repeat;	
+        background-size: cover;	
+        background-position: center;	
+      }	
+    }
+
     .file-thumb {
       display: flex;
       min-width: 0;
