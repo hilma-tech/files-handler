@@ -40,6 +40,43 @@ module.exports = function (BaseImages) {
         next();
     });
 
+    // Deletes file from direcory and not it's reference at models
+    BaseImages.overrideDeleteFile = async function (prevFileId, FileModel) {
+        logFile("BaseImages.overrideDeleteFile is launched now with prevFileId: ", prevFileId);
+
+        let [prevFileErr, prevFileRes] = await to(FileModel.findOne({ where: { id: prevFileId } }));
+        if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
+
+        const isProd = process.env.NODE_ENV == 'production';
+        //also on production we save into public (and not to build because the file can get delete from 'build')
+        const baseFileDirPath = '../../../../../public';
+        let filePaths = [prevFileRes.path];
+        if (prevFileRes.isMultiSizes) {
+            filePaths = filePaths.concat(prevFileRes.multipleSizes);
+        }
+        if (!isProd) filePaths = filePaths.map(filePath => filePath.replace('http://localhost:8080', ''));
+        let fileId = null;
+
+        try {
+            for (let i = 0; i < filePaths.length; i++) {
+                let filePath = filePaths[i];
+                const fullfilePath = path.join(__dirname, `${baseFileDirPath}${filePath}`);
+                if (i === 0) {
+                    const shortfilePath = fullfilePath.split('/');
+                    const fileName = shortfilePath[shortfilePath.length - 1];
+                    fileId = fileName.split('.')[0];
+                }
+                if (!fs.existsSync(fullfilePath)) continue;
+                fs.unlinkSync(fullfilePath);
+                logFile("File with path %s was successfully removed (deleted)", fullfilePath);
+            }
+            return fileId;
+        } catch (err) {
+            logFile("Error deleting file", err);
+            return null;
+        }
+    }
+
     BaseImages.overrideSaveFile = async function (file, FileModel, ownerId = null, fileId = null) {
         logFile("BaseImages.overrideSaveFile is launched with ownerId", ownerId);
         let saveDir = FileProperties.getSaveDir(file.type);

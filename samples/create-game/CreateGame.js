@@ -18,9 +18,9 @@ export default class CreateGame extends Component {
         };
     }
 
-    onInputChange = (fileEvent) => {
-        let name = (fileEvent.target && fileEvent.target.name) || null;
-        let value = (fileEvent.target && fileEvent.target.value) || null;
+    onInputChange = (event) => {
+        let name = (event.target && event.target.name) || null;
+        let value = (event.target && event.target.value) || null;
         let isSubmitDisabled = true;
         if (isSubmitDisabled && value) isSubmitDisabled = false;
         this.setState({ [name]: value, isSubmitDisabled });
@@ -51,8 +51,23 @@ export default class CreateGame extends Component {
         if (err) return console.log("ERR:", err);
         console.log("POST res", res)
 
+        this.gameId = res.id;
+
         await this.previewUploadedImages(res);
     };
+
+    updateImage = async () => {
+        let newImage = { imgId: this.state.imgId };
+
+        let [res, err] = await Auth.superAuthFetch('/api/Games/updateImage', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageObj: newImage, gameId: this.gameId })
+        });
+
+        if (err) return console.log("ERR:", err);
+        console.log("POST res", res)
+    }
 
     getUploadedFilesIds = (filesUploadStatus, filterByType = Consts.FILE_TYPE_IMAGE) => {
         let fileIds = [];
@@ -85,7 +100,7 @@ export default class CreateGame extends Component {
         if (gErr) return console.log("ERR:", gErr);
         console.log("GET res", gRes);
 
-        this.setState({ uploadedImages: gRes }, () => console.log("state", this.state.uploadedImages));
+        this.setState({ uploadedImages: gRes });
     }
 
     render() {
@@ -119,11 +134,12 @@ export default class CreateGame extends Component {
 
                         <div className="col">
                             <ImageUploader
-                                category="games-cover-images" // image is saved into public/images/[category]
+                                category="games-cover-images"
                                 name="imgId"
                                 title="cover-image"
                                 theme="basic-theme"
                                 label="Choose a cover image"
+                                // isMultiSizes={true}
                                 onChange={this.onInputChange}
                                 disabled={this.state.isInputDisabled}
                             />
@@ -140,7 +156,9 @@ export default class CreateGame extends Component {
                     />
                 </div>
 
-                <button onClick={this.createGame} disabled={this.state.isSubmitDisabled}>Submit</button>
+                <button onClick={this.createGame} disabled={this.state.isSubmitDisabled}>Create Game</button>
+
+                {/* <button onClick={this.updateImage} disabled={this.state.uploadedImages.length === 0}>Update Image</button> */}
 
                 <p className="explanation">
                     <strong>Note:</strong> In this example the Submit button creates a new game and uploads all the chosen images to Images model.<br />
@@ -150,7 +168,7 @@ export default class CreateGame extends Component {
                 <div className="uploaded-images">
                     {this.state.uploadedImages.map((uploadedImage, i) =>
                         <div key={i}>
-                            <UploadedFile {...uploadedImage} type={Consts.FILE_TYPE_IMAGE}/>
+                            <UploadedFile {...uploadedImage} type={Consts.FILE_TYPE_IMAGE} />
                         </div>)}
                 </div>
             </div>

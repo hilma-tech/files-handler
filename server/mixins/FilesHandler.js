@@ -124,6 +124,8 @@ module.exports = function FilesHandler(Model) {
         }
         else { // file in size range
             if (isUpdateFile) {
+                FileModel.overrideDeleteFile && typeof FileModel.overrideDeleteFile === "function" ?
+                oldFileId = await FileModel.overrideDeleteFile(modelInstance[fileKey], FileModel) :
                 oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
                 toHandleEmptyRow = false;
             }
@@ -334,10 +336,10 @@ module.exports = function FilesHandler(Model) {
     });
 
     Model.updateRes = function (newRes, ctx) {
+        logFile("updateRes is launched")
         let res = (ctx.result && ctx.result.__data) || ctx.result;
         if (!res || !res.filesToSave) return;
         delete res.filesToSave;
-        delete res.id;
         for (let fileKey in newRes) {
             delete res[fileKey];
         }
