@@ -135,7 +135,7 @@ export default class MultiFilesUploaderView extends Component {
                 <div className="description p-1">
 
                     {this.state.isTable && <div className="m-2 mt-4 props-details" dir='ltr'>
-                        <table class="table table-bordered">
+                        <table className="table table-bordered">
                             <thead>
                                 <tr>
                                     {TableInfo.thead.map((col, i) => <th key={i} scope="col">{col}</th>)}
