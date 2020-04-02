@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './ImageUploader.scss';
 import Consts from '../../consts/Consts.json';
+import { fileshandler } from "../../../../consts/ModulesConfig";
 
 export default class ImageUploader extends Component {
 
@@ -16,11 +17,11 @@ export default class ImageUploader extends Component {
         };
         this.onChangeImg = this.onChangeImg.bind(this);
 
-        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > Consts.FILE_MIN_SIZE_IN_KB ?
-            this.props.minSizeInKB : Consts.FILE_MIN_SIZE_IN_KB;
+        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > fileshandler.FILE_SIZE_RANGE_IN_KB.image.MIN_SIZE ?
+            this.props.minSizeInKB : fileshandler.FILE_SIZE_RANGE_IN_KB.image.MIN_SIZE;
 
-        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < Consts.FILE_MAX_SIZE_IN_KB ?
-            this.props.maxSizeInKB : Consts.FILE_MAX_SIZE_IN_KB;
+        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < fileshandler.FILE_SIZE_RANGE_IN_KB.image.MAX_SIZE ?
+            this.props.maxSizeInKB : fileshandler.FILE_SIZE_RANGE_IN_KB.image.MAX_SIZE;
     }
 
     readFileToBase64 = (fileInfo) => {
@@ -50,8 +51,9 @@ export default class ImageUploader extends Component {
     async onChangeImg(e) {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let sizeKB = e.target.files[0].size * 0.001;
-        if (sizeKB < this.minSizeInKB) return console.log("ERROR: Image is too small");
-        if (sizeKB > this.maxSizeInKB) return console.log("ERROR: Image is too big");
+        console.log(this.maxSizeInKB, this.minSizeInKB, "this.maxSizeInKB", sizeKB)
+        if (sizeKB < this.minSizeInKB) {this.props.onChange(null); return console.log("ERROR: Image is too small");}
+        if (sizeKB > this.maxSizeInKB) { this.props.onChange(null); return console.log("ERROR: Image is too big");}
         let base64String = await this.readFileToBase64(e.target.files[0]);
         this.setState({ thumbnail: base64String })
 
