@@ -21,7 +21,7 @@ export default class SingleFileUploader extends Component {
     initialValues = (props) => {
         this.defaultTumbnail = this.getDefaultThumbnail();
 
-        this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(props.type) ?
+        this.type = Consts.FILE_TYPES.includes(props.type) ?
             props.type : Consts.FILE_TYPE_IMAGE;
 
         this.acceptedExtensions = this.getAcceptedExtensions();
@@ -121,6 +121,7 @@ export default class SingleFileUploader extends Component {
         if (this.type === Consts.FILE_TYPE_FILE && status !== Consts.DEFAULT_THUMBNAIL) {
             preview = file.name;
             extension = this.getExtension(file.type);
+            console.log("extension", extension);
         }
         else {
             preview = base64String;
@@ -181,14 +182,20 @@ export default class SingleFileUploader extends Component {
     }
 
     getExtension = (mime) => {
-        let extensionsAndMimesOfType = Consts.FILE_EXTENSIONS_AND_MIMES[this.type];
-        let extensions = Object.keys(extensionsAndMimesOfType);
-        let extension = extensions.find(extension => extensionsAndMimesOfType[extension] === mime);
-        return extension;
+        let extensions = Consts.FILE_EXTENSIONS[this.type];
+        for (let extension of extensions) {
+            let mimeOrMimes = Consts.FILE_MIMES[extension];
+            if (Array.isArray(mimeOrMimes)) {
+                if (mimeOrMimes.includes(mime)) return extension;
+                continue;
+            }
+            if (mimeOrMimes === mime) return extension;
+        }
+        return null;
     }
 
     getAcceptedExtensions = () => {
-        let accept = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES[this.type]);
+        let accept = Consts.FILE_EXTENSIONS[this.type];
         accept = "." + accept.join(", .");
         return accept;
     }

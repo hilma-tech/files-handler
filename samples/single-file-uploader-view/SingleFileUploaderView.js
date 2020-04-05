@@ -10,7 +10,7 @@ export default class SingleFileUploaderView extends Component {
     constructor(props) {
         super(props);
 
-        this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
+        this.type = Consts.FILE_TYPES.includes(this.props.type) ?
             this.props.type : Consts.FILE_TYPE_IMAGE;
 
         this.capitalizeType = this.capitalize(this.type);
