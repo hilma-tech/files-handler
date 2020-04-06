@@ -29,19 +29,19 @@ module.exports = class FileProperties {
             "pdf": /^data:application+\/pdf?;base64,/,
             "doc": /^data:application+\/msword?;base64,/,
             "docx": /^data:application+\/vnd.openxmlformats-officedocument.wordprocessingml.document?;base64,/,
-            "jpg": 0,
+            "jpg":  /^data:image\/jpeg;base64,/,
             "png": /^data:image+\/png?;base64,/,
             "jpeg": /^data:image+\/jpeg?;base64,/,
             "gif": /^data:image+\/gif?;base64,/,
             "svg": /^data:image+\/svg+\++\xml;base64,?/,
-            "mp3": /^data:audio+\/mp3?;base64,/,
-            "m4a": 0,
-            "wav": /^data:audio+\/wav?;base64,/,
+            "mp3": /^data:(audio+\/mp3?|application\/octet-stream);base64,/,
+            "m4a": /^data:audio\/x-m4a;base64,/,
+            "wav": /^data:(audio+\/wav?|audio\/x-wav);base64,/,
             "webm": /^data:(video|audio)\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/,
             "mp4": /^data:video+\/mp4?;base64,/,
             "ogg": /^data:video+\/ogg?;base64,/,
             "avi": /^data:video+\/avi?;base64,/,
-            "mov": 0
+            "mov": /^data:video\/quicktime;base64,/
         };
         if (!Object.keys(FILE_REGEXS).includes(extension)) return null;
         return FILE_REGEXS[extension];
@@ -51,18 +51,31 @@ module.exports = class FileProperties {
         let mimeType = this.base64MimeType(fileSrc);
         logFile("Base64 mimeType of file", mimeType);
         if (!mimeType) return null;
+        let extension = this.getExtensionOfMime(mimeType, fileType);
+        return extension;
+    }
 
+    static getExtensionOfMime(mimeType, fileType) {
         let extensions = Consts.FILE_EXTENSIONS[fileType];
-        let currExtension = null;
         for (let extension of extensions) {
             let mimeOrMimes = Consts.FILE_MIMES[extension];
             if (Array.isArray(mimeOrMimes)) {
-                if (mimeOrMimes.includes(mimeType)) currExtension = extension;
+                if (mimeOrMimes.includes(mimeType)) return extension;
+                continue;
             }
-            else if (mimeOrMimes === mimeType) currExtension = extension;
+            if (mimeOrMimes === mimeType) return extension;
         }
-        if (currExtension === 'jpg') currExtension = 'jpeg'; // necessary
-        return currExtension;
+        return null;
+    }
+
+    static getMimeOfExtension(extension) {
+        if (!extension) return null;
+        let mimeType = Consts.FILE_MIMES[extension];
+        if (Array.isArray(mimeType)) {
+            logFile("mimeType", mimeType)
+            return mimeType[0];
+        }
+        return mimeType;
     }
 
     static base64MimeType(encodedString) {
@@ -88,6 +101,7 @@ module.exports = class FileProperties {
 
     static async isFileSizeInRange(file) {
         logFile("isFileSizeInRange is launched")
+        logFile("base64 first line", file.src.slice(0, 50));
         let extension = this.getFileExtension(file.src, file.type);
         logFile("extension", extension);
         if (!extension) return false;

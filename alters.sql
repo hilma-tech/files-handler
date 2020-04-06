@@ -14,10 +14,13 @@ ALTER TABLE Images ADD width int;
 ALTER TABLE Images DROP COLUMN width;
 ALTER TABLE Images ADD isMultiSizes BOOLEAN DEFAULT 0;
 
---__________________________________________________
 
--- *******************BELOW IS OPTIONAL*****************
---__________________________________________________
+-- Below changes from 6.4.2020
+ALTER TABLE Audio MODIFY COLUMN `format` enum('mp3', 'm4a', 'wav', 'webm') CHARACTER SET utf8 DEFAULT NULL;
+ALTER TABLE Video MODIFY COLUMN `format` enum('mp4', 'ogg', 'avi', 'webm', 'mov') CHARACTER SET utf8 DEFAULT NULL;
+
+
+-- Below is ***optional***
 
 -- CREATE TABLE `Audio` (
 --   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,

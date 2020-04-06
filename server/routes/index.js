@@ -3,13 +3,9 @@ const path = require('path');
 const PermissionsFilter = require('./../lib/PermissionsFilter');
 const logFile = require('debug')('model:file');
 const Consts = require('../../consts/Consts.json');
+const FileProperties = require('../lib/FileProperties');
 
 module.exports = function (app) {
-
-    function getContentType(extension, type) {
-        if (!extension) return null;
-        return Consts.FILE_EXTENSIONS_AND_MIMES[type][extension];
-    }
 
     function allowFileAccess(req, res, fileType) {
 
@@ -35,7 +31,7 @@ module.exports = function (app) {
 
             logFile("filePath?", filePath);
 
-            let contentType = getContentType(fileExtension, fileType);
+            let contentType = FileProperties.getMimeOfExtension(fileExtension);
             logFile("contentType", contentType)
             if (!contentType) { logFile(contentType); res.sendStatus(404); return; }
 

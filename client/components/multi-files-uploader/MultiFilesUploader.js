@@ -16,8 +16,8 @@ export default class MultiFilesUploader extends Component {
         this.filesPreviews = [];
         this.isOverFilesNumLimit = false;
 
-        this.type = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES).includes(this.props.type) ?
-            this.props.type : Consts.FILE_TYPE_IMAGE;
+        this.type = Consts.FILE_TYPES.includes(this.props.type) ?
+        this.props.type : Consts.FILE_TYPE_IMAGE;
 
         this.acceptedExtensions = this.getAcceptedExtensions();
         this.acceptedMimes = this.getAcceptedMimes();
@@ -93,22 +93,34 @@ export default class MultiFilesUploader extends Component {
     }
 
     getAcceptedExtensions = () => {
-        let accept = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES[this.type]);
+        let accept = Consts.FILE_EXTENSIONS[this.type];
         accept = "." + accept.join(", .");
         return accept;
     }
 
     getAcceptedMimes = () => {
-        let extensions = Object.keys(Consts.FILE_EXTENSIONS_AND_MIMES[this.type]);
-        let mimes = extensions.map(extension => Consts.FILE_EXTENSIONS_AND_MIMES[this.type][extension]);
+        let extensions = Consts.FILE_EXTENSIONS[this.type];
+        let mimes = [];
+        for (let i = 0; i <= extensions.length; i++) {
+            let extension = extensions[i];
+            let mimeOrMimes = Consts.FILE_MIMES[extension];
+            if (Array.isArray(mimeOrMimes)) mimes = [...mimes, ...mimeOrMimes];
+            else mimes.push(mimeOrMimes);
+        }
         return mimes;
     }
 
     getExtension = (mime) => {
-        let extensionsAndMimesOfType = Consts.FILE_EXTENSIONS_AND_MIMES[this.type];
-        let extensions = Object.keys(extensionsAndMimesOfType);
-        let extension = extensions.find(extension => extensionsAndMimesOfType[extension] === mime);
-        return extension;
+        let extensions = Consts.FILE_EXTENSIONS[this.type];
+        for (let extension of extensions) {
+            let mimeOrMimes = Consts.FILE_MIMES[extension];
+            if (Array.isArray(mimeOrMimes)) {
+                if (mimeOrMimes.includes(mime)) return extension;
+                continue;
+            }
+            if (mimeOrMimes === mime) return extension;
+        }
+        return null;
     }
 
     getFilePreviewObj = async (file, base64String = null, status, errMsg = null) => {
