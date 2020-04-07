@@ -38,9 +38,10 @@ export default class ImageUploader extends SingleFileUploader {
             return (
                 <div>
                     {(file.status !== Consts.DEFAULT_THUMBNAIL) &&
-                        <div onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
+                        <div className="default-theme-remove" onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
                     <label>
                         <input
+                            className="default-theme-input"
                             name={this.type}
                             type="file"
                             onChange={this.onChange}
@@ -57,8 +58,9 @@ export default class ImageUploader extends SingleFileUploader {
                                 let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
                                 this.setState({ fileData });
                             }}
+                            className="default-theme-image"
                         />
-                        <div>{this.props.label || `Choose ${this.type}`}</div>
+                        <div className="default-theme-label">{this.props.label || `Choose ${this.type}`}</div>
                     </label>
                 </div>
             );
@@ -74,30 +76,31 @@ export default class ImageUploader extends SingleFileUploader {
                         disabled={this.props.disabled}
                         required={this.props.required || false}
                         accept={this.acceptedExtensions}
-                        ref="uploaderInputRef" />
+                        ref="uploaderInputRef"
+                    />
 
-                        <div className={`${this.props.previewWidget && 'chosen-image-parent'} single-file-preview ${type}-preview`}>
+                    <div className={`${this.props.previewWidget && 'chosen-image-parent'} single-file-preview ${type}-preview`}>
 
-                            {!this.props.previewWidget ?
-                                <label htmlFor={this.props.name}>
-                                    {filePreviewHtml}
-                                    <div className="label">{this.props.label || `Choose ${this.type}`}</div>
-                                </label> : filePreviewHtml}
+                        {!this.props.previewWidget ?
+                            <label htmlFor={this.props.name}>
+                                {filePreviewHtml}
+                                <div className="label">{this.props.label || `Choose ${this.type}`}</div>
+                            </label> : filePreviewHtml}
 
-                            {// Add remove button
-                                !this.props.previewWidget && !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
-                                <div className="remove-icon" onClick={this.removeFile}>
-                                    <img src={this.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
-                                </div>}
+                        {// Add remove button
+                            !this.props.previewWidget && !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
+                            <div className="remove-icon" onClick={this.removeFile}>
+                                <img src={this.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
+                            </div>}
 
-                            {// Add error icon if needed
-                                file.status === Consts.FILE_REJECTED &&
-                                <div className="error-icon">
-                                    <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
-                                        <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
-                                    </Tooltip>
-                                </div>}
-                        </div>
+                        {// Add error icon if needed
+                            file.status === Consts.FILE_REJECTED &&
+                            <div className="error-icon">
+                                <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
+                                    <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
+                                </Tooltip>
+                            </div>}
+                    </div>
 
                     {this.props.previewWidget &&
                         typeof this.state.showPopup === "boolean" &&
