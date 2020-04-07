@@ -33,14 +33,14 @@ export default class SingleFileUploader extends Component {
             props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.type !== this.props.type) {
-            this.initialValues(nextProps);
-            let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
-            this.setState({ fileData: { previewObj: defaltPreviewObj, acceptedObj: null } });
-        }
-        return true;
-    }
+    // componentWillReceiveProps(nextProps) {
+    //     if (nextProps.type !== this.props.type) {
+    //         this.initialValues(nextProps);
+    //         let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
+    //         this.setState({ fileData: { previewObj: defaltPreviewObj, acceptedObj: null } });
+    //     }
+    //     return true;
+    // }
 
     getDefaultThumbnail = () => {
         // Suppport previous versions
