@@ -95,6 +95,12 @@
             "Type": "function",
             "Description": "Send onChange method to get the data from the imgUploader and use it for your uses",
             "Default": "-"
+        },
+        {
+            "Property": "previewRef",
+            "Type": "React ref",
+            "Description": "Creates a reference to the chosen image preview element",
+            "Default": "-"
         }
     ]
 }

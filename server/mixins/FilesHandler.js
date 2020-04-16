@@ -194,6 +194,7 @@ module.exports = function FilesHandler(Model) {
             if (!findResKeys) return;
             if (!findResKeys.includes(fileKey)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); }
             else {
+                // logFile('modelInstance', modelInstance)
                 // Updating the row to include the id of the file added
                 let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
                     { id: modelInstance.id }, { [fileKey]: newFileId }

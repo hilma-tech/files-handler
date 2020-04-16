@@ -55,6 +55,7 @@ export default class SingleFileUploader extends Component {
 
         let base64String = null;
         let fileObj = null;
+        let filePreview = null;
         let [status, errMsg] = this.isFileInSizeRange(file);
 
         if (status === Consts.FILE_ACCEPTED) {
@@ -69,8 +70,12 @@ export default class SingleFileUploader extends Component {
             };
         }
 
-        if (!base64String && this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
-        let filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
+        if (!base64String && this.type !== Consts.FILE_TYPE_FILE && !this.props.isErrorPopup) base64String = await this.readFileToBase64(file);
+
+        if (this.props.isErrorPopup && status === Consts.FILE_REJECTED)
+            filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
+        else filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
+
         let fileData = { previewObj: filePreview, acceptedObj: fileObj };
 
         // Display previews of dropped files and calls the onChange callback with the accepted files
@@ -118,6 +123,7 @@ export default class SingleFileUploader extends Component {
         let preview = null;
         let extension = null;
 
+        if (!(this.props.isErrorPopup && status === Consts.FILE_REJECTED)){
         if (this.type === Consts.FILE_TYPE_FILE && status !== Consts.DEFAULT_THUMBNAIL) {
             preview = file.name;
             extension = this.getExtension(file.type);
@@ -125,7 +131,7 @@ export default class SingleFileUploader extends Component {
         }
         else {
             preview = base64String;
-        }
+        }}
 
         let filePreview = {
             preview: preview,
@@ -134,6 +140,7 @@ export default class SingleFileUploader extends Component {
             errMsg: errMsg
         };
 
+        console.log("this.props.isErrorPopup", this.props.isErrorPopup, filePreview)
         return filePreview;
     }
 
@@ -144,7 +151,7 @@ export default class SingleFileUploader extends Component {
         switch (type) {
             case Consts.FILE_TYPE_FILE:
                 filePreview =
-                    <div>
+                    <div ref={this.props.previewRef}>
                         <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} alt={`uploading ${this.type}`} />
                         <h2>{file.preview}</h2>
                     </div>;
@@ -152,15 +159,15 @@ export default class SingleFileUploader extends Component {
 
             case Consts.FILE_TYPE_IMAGE:
                 let style = { backgroundImage: `url(${file.preview})` };
-                filePreview = <div className="chosen-img" style={style} />;
+                filePreview = <div ref={this.props.previewRef} className="chosen-img" style={style} />;
                 break;
 
             case Consts.FILE_TYPE_VIDEO:
-                filePreview = <video src={file.preview} type={"video/*"} />;
+                filePreview = <video ref={this.props.previewRef} src={file.preview} type={"video/*"} />;
                 break;
 
             case Consts.FILE_TYPE_AUDIO:
-                filePreview = <audio controls src={file.preview} type={"audio/*"} />;
+                filePreview = <audio ref={this.props.previewRef} controls src={file.preview} type={"audio/*"} />;
                 break;
 
             default: break;

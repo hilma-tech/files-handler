@@ -1,10 +1,32 @@
 .image-uploader-container {
+
   .basic-theme,
-  .circle-theme {
+  .circle-theme, .default-theme {
     margin: auto;
     width: fit-content;
     padding-top: 1em;
     padding-bottom: 1em;
+  }
+
+  .default-theme {
+    position: relative;
+
+    .default-theme-image {
+      width: 10em;
+      height: 10em;
+    }
+  
+    .default-theme-label {
+      color: red;
+    }
+
+    .remove-icon img {
+      right: 0em;
+    }
+
+    .error-icon img {
+      left: 0em;
+    }
   }
 
   .chosen-image-parent {

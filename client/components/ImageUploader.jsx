@@ -36,32 +36,47 @@ export default class ImageUploader extends SingleFileUploader {
         // Supports previous versions (AKA default-theme)
         if (!this.props.theme && !this.props.previewWidget)
             return (
-                <div>
-                    {(file.status !== Consts.DEFAULT_THUMBNAIL) &&
-                        <div className="default-theme-remove" onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
-                    <label>
-                        <input
-                            className="default-theme-input"
-                            name={this.type}
-                            type="file"
-                            onChange={this.onChange}
-                            disabled={this.props.disabled || false}
-                            required={this.props.required || false}
-                            accept={this.acceptedExtensions}
-                            ref="uploaderInputRef"
-                        />
-                        <img
-                            src={file.preview}
-                            alt={`uploading ${this.type}`}
-                            onError={() => {
-                                let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
-                                let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
-                                this.setState({ fileData });
-                            }}
-                            className="default-theme-image"
-                        />
-                        <div className="default-theme-label">{this.props.label || `Choose ${this.type}`}</div>
-                    </label>
+                <div className="image-uploader-container single-file-uploader">
+                    <div className="default-theme single-file-preview">
+                        {// Add remove button
+                            !this.props.previewWidget && !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
+                            <div className="remove-icon" onClick={this.removeFile}>
+                                <img src={this.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
+                            </div>}
+
+                        <label>
+                            <input
+                                className="default-theme-input"
+                                name={this.type}
+                                type="file"
+                                onChange={this.onChange}
+                                disabled={this.props.disabled || false}
+                                required={this.props.required || false}
+                                accept={this.acceptedExtensions}
+                                ref="uploaderInputRef"
+                            />
+                            <img
+                                className="default-theme-image"
+                                ref={this.props.previewRef}
+                                src={file.preview}
+                                alt={`uploading ${this.type}`}
+                                onError={() => {
+                                    let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
+                                    let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
+                                    this.setState({ fileData });
+                                }}
+                            />
+                            <div className="default-theme-label">{this.props.label || "Defalt-theme is not recommended and will be deprecated"}</div>
+                        </label>
+
+                        {// Add error icon if needed
+                            file.status === Consts.FILE_REJECTED &&
+                            <div className="error-icon">
+                                <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
+                                    <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
+                                </Tooltip>
+                            </div>}
+                    </div>
                 </div>
             );
 

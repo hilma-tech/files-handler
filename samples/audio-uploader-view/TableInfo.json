@@ -53,6 +53,12 @@
             "Type": "function",
             "Description": "Send onChange method to get the data from the audioUploader and use it for your uses",
             "Default": "-"
+        },
+        {
+            "Property": "previewRef",
+            "Type": "React ref",
+            "Description": "Creates a reference to the chosen audio preview element",
+            "Default": "-"
         }
     ]
 }

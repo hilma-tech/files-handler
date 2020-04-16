@@ -33,6 +33,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                             theme="basic-theme"
                             onChange={this.handleFileChange}
                             disabled={this.state.isUploaderDisabled}
+                            // isErrorPopup={true}
                         />
                     </div>
 
