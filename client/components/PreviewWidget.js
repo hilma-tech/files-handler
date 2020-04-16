@@ -2,14 +2,6 @@ import React, { Component } from 'react';
 
 export default class PreviewWidget extends Component {
 
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            showPopup: this.props.showPopup
-        };
-    }
-
     render() {
         return (
             <div className="preview-widget">

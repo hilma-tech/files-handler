@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Consts from '../../../consts/Consts.json';
 import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
+import ErrorPopup from '../ErrorPopup';
 import './SingleFileUploader.scss';
 
 export default class SingleFileUploader extends Component {
@@ -56,6 +57,7 @@ export default class SingleFileUploader extends Component {
         let base64String = null;
         let fileObj = null;
         let filePreview = null;
+        let showErrPopup = false;
         let [status, errMsg] = this.isFileInSizeRange(file);
 
         if (status === Consts.FILE_ACCEPTED) {
@@ -68,18 +70,26 @@ export default class SingleFileUploader extends Component {
                 description: this.props.description || "default_description",
                 isMultiSizes: this.props.isMultiSizes || false
             };
+
+            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
         }
+        else { // status = Consts.FILE_REJECTED
 
-        if (!base64String && this.type !== Consts.FILE_TYPE_FILE && !this.props.isErrorPopup) base64String = await this.readFileToBase64(file);
-
-        if (this.props.isErrorPopup && status === Consts.FILE_REJECTED)
-            filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
-        else filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
+            if (this.props.isErrorPopup) {
+                filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
+                showErrPopup = true;
+                this.refs.uploaderInputRef.value = null;
+            }
+            else {
+                if (this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
+                filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
+            }
+        }
 
         let fileData = { previewObj: filePreview, acceptedObj: fileObj };
 
         // Display previews of dropped files and calls the onChange callback with the accepted files
-        this.setState({ fileData }, this.parentOnChange);
+        this.setState({ fileData, showErrPopup }, this.parentOnChange);
     }
 
     parentOnChange = () => {
@@ -120,33 +130,30 @@ export default class SingleFileUploader extends Component {
     }
 
     getFilePreviewObj = (file = null, base64String = null, status, errMsg = null) => {
-        let preview = null;
-        let extension = null;
-
-        if (!(this.props.isErrorPopup && status === Consts.FILE_REJECTED)){
-        if (this.type === Consts.FILE_TYPE_FILE && status !== Consts.DEFAULT_THUMBNAIL) {
-            preview = file.name;
-            extension = this.getExtension(file.type);
-            console.log("extension", extension);
-        }
-        else {
-            preview = base64String;
-        }}
+        let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL || (status === Consts.FILE_REJECTED && this.props.isErrorPopup);
 
         let filePreview = {
-            preview: preview,
-            extension: extension,
+            preview: base64String,
+            extension: null,
             status: status,
             errMsg: errMsg
         };
 
-        console.log("this.props.isErrorPopup", this.props.isErrorPopup, filePreview)
+        if (isDefaultPreview) return filePreview;
+
+        if (this.type === Consts.FILE_TYPE_FILE) {
+            filePreview.preview = file.name;
+            filePreview.extension = this.getExtension(file.type);
+            console.log("extension", filePreview.extension);
+        }
+        else filePreview.preview = base64String;
+
         return filePreview;
     }
 
-    getFilePreviewHtml = (file) => {
+    getFilePreviewHtml = (file, isDefaultPreview) => {
         let filePreview = null;
-        let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
+        let type = isDefaultPreview ? Consts.FILE_TYPE_IMAGE : this.type;
 
         switch (type) {
             case Consts.FILE_TYPE_FILE:
@@ -207,9 +214,15 @@ export default class SingleFileUploader extends Component {
         return accept;
     }
 
+    turnOffErrPopup = () => {
+        this.setState({ showErrPopup: false });
+    }
+
     render() {
         let file = this.state.fileData.previewObj;
-        let filePreviewHtml = this.getFilePreviewHtml(file);
+        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.props.isErrorPopup;
+        let isDefaultPreview = file.status === Consts.DEFAULT_THUMBNAIL || isErrorPopup;
+        let filePreviewHtml = this.getFilePreviewHtml(file, isDefaultPreview);
         let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
 
         return (
@@ -232,19 +245,26 @@ export default class SingleFileUploader extends Component {
                         </label>
 
                         {// Add remove button
-                            !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
+                            !this.props.disabled && !isDefaultPreview &&
                             <div className="remove-icon" onClick={this.removeFile}>
                                 <img src={this.props.removeFileIcon || require('../../../imgs/x-icon.png')} alt="x" />
                             </div>}
 
                         {// Add error icon if needed
-                            file.status === Consts.FILE_REJECTED &&
+                            file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
                             <div className="error-icon">
                                 <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
                                     <img src={require('../../../imgs/error.svg')} alt={file.errMsg} />
                                 </Tooltip>
                             </div>}
                     </div>
+
+                    {isErrorPopup &&
+                        typeof this.state.showErrPopup === "boolean" &&
+                        <ErrorPopup
+                            message={file.errMsg}
+                            showPopup={this.state.showErrPopup}
+                            toggleShowPopup={this.turnOffErrPopup} />}
                 </div>
             </div>
         )

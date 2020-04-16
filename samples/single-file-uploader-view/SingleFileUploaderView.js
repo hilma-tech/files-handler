@@ -117,6 +117,7 @@ export default class SingleFileUploaderView extends Component {
                         category: `my-${this.type}s`,
                         onChange: this.handleFileChange,
                         disabled: this.state.isUploaderDisabled,
+                        isErrorPopup: true
                     })}
                 </div>
 

@@ -2,6 +2,7 @@ import React from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
 import Tooltip from '@material-ui/core/Tooltip';
+import ErrorPopup from './ErrorPopup';
 import './ImageUploader.scss';
 
 export default class ImageUploader extends SingleFileUploader {
@@ -19,8 +20,8 @@ export default class ImageUploader extends SingleFileUploader {
         super(props);
     }
 
-    toggleShowPopup = () => {
-        this.setState({ showPopup: !this.state.showPopup });
+    togglePreviewPopup = () => {
+        this.setState({ showPreviewPopup: !this.state.showPreviewPopup });
     }
 
     addExtraProps = (Component, extraProps) => {
@@ -29,7 +30,9 @@ export default class ImageUploader extends SingleFileUploader {
 
     render() {
         let file = this.state.fileData.previewObj;
-        let filePreviewHtml = this.addExtraProps(this.getFilePreviewHtml(file), { onClick: this.props.previewWidget && this.toggleShowPopup });
+        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.props.isErrorPopup;
+        let isDefaultPreview = file.status === Consts.DEFAULT_THUMBNAIL || isErrorPopup;
+        let filePreviewHtml = this.addExtraProps(this.getFilePreviewHtml(file, isDefaultPreview), { onClick: this.props.previewWidget && this.togglePreviewPopup });
         let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
         let previewWidgetChosenImg = this.props.previewWidget ? <div className="chosen-img-preview" style={{ backgroundImage: `url(${file.preview})` }} /> : null;
 
@@ -38,7 +41,7 @@ export default class ImageUploader extends SingleFileUploader {
             return (
                 <div className="image-uploader-container single-file-uploader">
                     <div className="default-theme single-file-preview">
-                    
+
                         {// Add remove button
                             !this.props.previewWidget && !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
                             <div className="remove-icon" onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
@@ -102,13 +105,13 @@ export default class ImageUploader extends SingleFileUploader {
                             </label> : filePreviewHtml}
 
                         {// Add remove button
-                            !this.props.previewWidget && !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
+                            !this.props.previewWidget && !this.props.disabled && !isDefaultPreview &&
                             <div className="remove-icon" onClick={this.removeFile}>
                                 <img src={this.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
                             </div>}
 
                         {// Add error icon if needed
-                            file.status === Consts.FILE_REJECTED &&
+                            file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
                             <div className="error-icon">
                                 <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
                                     <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
@@ -116,16 +119,21 @@ export default class ImageUploader extends SingleFileUploader {
                             </div>}
                     </div>
 
-                    {this.props.previewWidget &&
-                        typeof this.state.showPopup === "boolean" &&
+                    {this.props.previewWidget && typeof this.state.showPreviewPopup === "boolean" &&
                         this.addExtraProps(this.props.previewWidget, {
                             chosenImg: previewWidgetChosenImg,
-                            showPopup: this.state.showPopup,
-                            toggleShowPopup: this.toggleShowPopup,
+                            showPopup: this.state.showPreviewPopup,
+                            toggleShowPopup: this.togglePreviewPopup,
                             removeFile: this.removeFile,
                             inputId: this.props.name,
                             disabled: this.props.disabled
                         })}
+
+                    {isErrorPopup && typeof this.state.showErrPopup === "boolean" &&
+                        <ErrorPopup
+                            message={file.errMsg}
+                            showPopup={this.state.showErrPopup}
+                            toggleShowPopup={this.turnOffErrPopup} />}
                 </div>
             </div>
         )

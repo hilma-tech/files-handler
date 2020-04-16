@@ -33,7 +33,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                             theme="basic-theme"
                             onChange={this.handleFileChange}
                             disabled={this.state.isUploaderDisabled}
-                            // isErrorPopup={true}
+                            isErrorPopup={true}
                         />
                     </div>
 
@@ -87,6 +87,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 title="my-image"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={true}
                             />
                         </div>
 
@@ -99,6 +100,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={true}
                             />
                         </div>
 
@@ -111,6 +113,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 theme="circle-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={true}
 
                             />
                         </div>
@@ -134,6 +137,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 previewWidget={<PreviewWidget />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={true}
                             />
                         </div>
 
@@ -148,6 +152,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 previewWidget={<PreviewWidget enableEdit={true} />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={true}
                             />
                         </div>
 
@@ -162,6 +167,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={true}
                             />
                         </div>
                     </div>
@@ -184,6 +190,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 onChange={this.handleFileChange}
                                 isMultiSizes={true}
                                 disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={true}
                             />
                         </div>
                     </div>
