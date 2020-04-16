@@ -285,6 +285,7 @@ module.exports = function FilesHandler(Model) {
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
             return next();
 
+        modelInstance = modelInstance.success || modelInstance;
         let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
             ctx.args.options.accessToken.userId : //if there's accessToken use userId
             (Model === Model.app.models.CustomUser ? //else, if we are creating new user use new user's id
