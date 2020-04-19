@@ -27,13 +27,12 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
 
                     <div className="uploader">
                         <ImageUploader
-                            category="my-images" // image is saved into public/images/[category]
+                            category="my-images"
                             name="imageSample"
                             title="my-image"
                             theme="basic-theme"
                             onChange={this.handleFileChange}
                             disabled={this.state.isUploaderDisabled}
-                            isErrorPopup={true}
                         />
                     </div>
 
@@ -82,39 +81,35 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         <div className="image-input-sample">
                             <p>This is the default-theme [deprecated] style. No <em>theme</em> prop is required.</p>
                             <ImageUploader
-                                category="my-images" // image is saved into public/images/[category]
+                                category="my-images"
                                 name="imageSample1"
                                 title="my-image"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
-                                isErrorPopup={true}
                             />
                         </div>
 
                         <div className="image-input-sample">
                             <p>This is the basic-theme style. You can achieve it by adding <em>theme="basic-theme"</em> as a prop.</p>
                             <ImageUploader
-                                category="my-images" // image is saved into public/images/[category]
+                                category="my-images"
                                 name="imageSample2"
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
-                                isErrorPopup={true}
                             />
                         </div>
 
                         <div className="image-input-sample">
                             <p>This is the circle-theme style. You can achieve it by adding <em>theme="circle-theme"</em> as a prop.</p>
                             <ImageUploader
-                                category="my-images" // image is saved into public/images/[category]
+                                category="my-images"
                                 name="imageSample3"
                                 title="my-image"
                                 theme="circle-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
-                                isErrorPopup={true}
-
                             />
                         </div>
                     </div>
@@ -129,45 +124,93 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                     <div className="image-input-samples">
 
                         <div className="image-input-sample">
-                            <p>This is previewWidget with the default-theme [deprecated] style.</p>
+                            <p>This is <em>previewWidget</em> with the <em>default-theme</em> [deprecated] style.</p>
                             <ImageUploader
-                                category="my-images" // image is saved into public/images/[category]
+                                category="my-images"
                                 name="imageSample4"
                                 title="my-image"
                                 previewWidget={<PreviewWidget />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
-                                isErrorPopup={true}
                             />
                         </div>
 
                         <div className="image-input-sample">
-                            <p>This is previewWidget with the basic-theme style.<br />
+                            <p>This is <em>previewWidget</em> with the <em>basic-theme</em> style.<br />
                                 Only <em>enableEdit</em> is enabled.</p>
                             <ImageUploader
-                                category="my-images" // image is saved into public/images/[category]
+                                category="my-images"
                                 name="imageSample5"
                                 title="my-image"
                                 theme="basic-theme"
                                 previewWidget={<PreviewWidget enableEdit={true} />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
-                                isErrorPopup={true}
                             />
                         </div>
 
                         <div className="image-input-sample">
-                            <p>This is previewWidget with the circle-theme style.<br />
+                            <p>This is <em>previewWidget</em> with the <em>circle-theme</em> style.<br />
                                 <em>enableEdit</em> and <em>enableDelete</em> props are enabled.</p>
                             <ImageUploader
-                                category="my-images" // image is saved into public/images/[category]
+                                category="my-images"
                                 name="imageSample6"
                                 title="my-image"
                                 theme="circle-theme"
                                 previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
-                                isErrorPopup={true}
+                            />
+                        </div>
+                    </div>
+
+                    <p className="explanation">
+                        Below is an example of an uploader with the prop <em>isErrorPopup = false</em>.<br />
+                        In this case, when choosing a file which exceeds the size limitation as they defiend at src/consts/ModulesConfig.json<br />
+                        (which can be generated by activating config-generator.sh script), instead of a popup with a messege,<br />
+                        there is a preview of the file, with an error icon and a tooltip that describes the issue.<br />
+                        To see the effect try to play with the values at ModulesConfig<br />
+                        (for example change fileshandler.FILE_SIZE_RANGE_IN_KB.image.MAX_SIZE to 0 and upload a file)</p>
+
+                    <div className="image-input-samples">
+
+                        <div className="image-input-sample">
+                            <p>This has <em>basic-theme</em> and <em>isErrorPopup=false</em>.</p>
+                            <ImageUploader
+                                category="my-images"
+                                name="imageSample7"
+                                title="my-image"
+                                theme="basic-theme"
+                                isErrorPopup={false}
+                                onChange={this.handleFileChange}
+                                disabled={this.state.isUploaderDisabled}
+                            />
+                        </div>
+
+                        <div className="image-input-sample">
+                            <p>This has <em>previewWidget</em> with <em>basic-theme</em> and <em>isErrorPopup=false</em>.</p>
+                            <ImageUploader
+                                category="my-images"
+                                name="imageSample8"
+                                title="my-image"
+                                theme="basic-theme"
+                                previewWidget={<PreviewWidget enableEdit={true} />}
+                                onChange={this.handleFileChange}
+                                disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={false}
+                            />
+                        </div>
+
+                        <div className="image-input-sample">
+                            <p>This has <em>circle-theme</em> and <em>isErrorPopup=false</em>.</p>
+                            <ImageUploader
+                                category="my-images"
+                                name="imageSample9"
+                                title="my-image"
+                                theme="circle-theme"
+                                onChange={this.handleFileChange}
+                                disabled={this.state.isUploaderDisabled}
+                                isErrorPopup={false}
                             />
                         </div>
                     </div>
@@ -183,14 +226,13 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
 
                         <div className="image-input-sample">
                             <ImageUploader
-                                category="my-images" // image is saved into public/images/[category]
-                                name="imageSample7"
+                                category="my-images"
+                                name="imageSample10"
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
                                 isMultiSizes={true}
                                 disabled={this.state.isUploaderDisabled}
-                                isErrorPopup={true}
                             />
                         </div>
                     </div>
@@ -204,7 +246,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         <div className="uploaded-images">
                             {this.state.uploadedFiles.map((uploadedImage, i) =>
                                 <div key={i}>
-                                    <UploadedFile {...uploadedImage} type={Consts.FILE_TYPE_IMAGE}/>
+                                    <UploadedFile {...uploadedImage} type={Consts.FILE_TYPE_IMAGE} />
                                 </div>)}
                         </div>}
                 </div>

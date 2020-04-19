@@ -30,7 +30,7 @@ export default class ImageUploader extends SingleFileUploader {
 
     render() {
         let file = this.state.fileData.previewObj;
-        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.props.isErrorPopup;
+        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.isErrorPopup;
         let isDefaultPreview = file.status === Consts.DEFAULT_THUMBNAIL || isErrorPopup;
         let filePreviewHtml = this.addExtraProps(this.getFilePreviewHtml(file, isDefaultPreview), { onClick: this.props.previewWidget && this.togglePreviewPopup });
         let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
@@ -43,8 +43,10 @@ export default class ImageUploader extends SingleFileUploader {
                     <div className="default-theme single-file-preview">
 
                         {// Add remove button
-                            !this.props.previewWidget && !this.props.disabled && file.status !== Consts.DEFAULT_THUMBNAIL &&
-                            <div className="remove-icon" onClick={this.removeFile}>{this.props.removeFileIcon || 'x'}</div>}
+                            !this.props.previewWidget && !this.props.disabled && !isDefaultPreview &&
+                            <div className="remove-icon" onClick={this.removeFile}>
+                                {this.props.removeFileIcon || 'x'}
+                            </div>}
 
                         <label>
                             <input
@@ -78,6 +80,12 @@ export default class ImageUploader extends SingleFileUploader {
                                     <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
                                 </Tooltip>
                             </div>} */}
+
+                        {isErrorPopup && typeof this.state.showErrPopup === "boolean" &&
+                            <ErrorPopup
+                                message={file.errMsg}
+                                showPopup={this.state.showErrPopup}
+                                toggleShowPopup={this.turnOffErrPopup} />}
                     </div>
                 </div>
             );

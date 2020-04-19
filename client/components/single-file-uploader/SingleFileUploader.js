@@ -32,6 +32,8 @@ export default class SingleFileUploader extends Component {
 
         this.maxSizeInKB = props.maxSizeInKB && props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
             props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
+
+        this.isErrorPopup = typeof this.props.isErrorPopup === "boolean" ? this.props.isErrorPopup : true; // default true 
     }
 
     // componentWillReceiveProps(nextProps) {
@@ -75,7 +77,7 @@ export default class SingleFileUploader extends Component {
         }
         else { // status = Consts.FILE_REJECTED
 
-            if (this.props.isErrorPopup) {
+            if (this.isErrorPopup) {
                 filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
                 showErrPopup = true;
                 this.refs.uploaderInputRef.value = null;
@@ -130,7 +132,7 @@ export default class SingleFileUploader extends Component {
     }
 
     getFilePreviewObj = (file = null, base64String = null, status, errMsg = null) => {
-        let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL || (status === Consts.FILE_REJECTED && this.props.isErrorPopup);
+        let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL || (status === Consts.FILE_REJECTED && this.isErrorPopup);
 
         let filePreview = {
             preview: base64String,
@@ -220,7 +222,7 @@ export default class SingleFileUploader extends Component {
 
     render() {
         let file = this.state.fileData.previewObj;
-        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.props.isErrorPopup;
+        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.isErrorPopup;
         let isDefaultPreview = file.status === Consts.DEFAULT_THUMBNAIL || isErrorPopup;
         let filePreviewHtml = this.getFilePreviewHtml(file, isDefaultPreview);
         let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
