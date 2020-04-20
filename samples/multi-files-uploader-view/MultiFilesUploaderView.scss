@@ -1,9 +1,11 @@
 .multi-files-uploader-sample {
   direction: ltr;
 
-  .image-input-samples {
+  .multi-input-samples {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
   }
 
   p {
@@ -20,7 +22,7 @@
     background-color: lightgray;
   }
 
-  .image-input-sample {
+  .multi-input-sample {
     border: 3px black solid;
     width: 50%;
     margin: 2em;
