@@ -92,6 +92,7 @@
     "ERROR_MSG_FILE_TOO_BIG": "Error: File exceeds maximum size",
     "MULTI_FILES_DEFAULT_MSG": "Drag & drop some %s here, or click to select %s",
     "ERROR_MSG_FILES_NUM_LIMIT": "Cannot upload more than % files",
+    "ERROR_MSG_SOME_FILES": "Error: Some files were rejected",
     "ROLE": "ROLE",
     "USER": "USER",
     "ALLOW": "ALLOW",

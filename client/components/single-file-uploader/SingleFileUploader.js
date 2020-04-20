@@ -95,15 +95,18 @@ export default class SingleFileUploader extends Component {
     }
 
     parentOnChange = () => {
-        // Calls the onChange callback with the accepted file or the errMsg of a rejected file
         let errorMsg = this.state.fileData.previewObj && this.state.fileData.previewObj.status === Consts.FILE_REJECTED ?
             this.state.fileData.previewObj.errMsg : null;
 
         let eventObj = {
-            target: { name: this.props.name || "singleFileUploader", value: this.state.fileData.acceptedObj || null },
+            target: {
+                name: this.props.name || "singleFileUploader",
+                value: this.state.fileData.acceptedObj || null
+            },
             error: errorMsg
         };
 
+        // Calls the onChange callback with the accepted file or the errMsg of a rejected file
         this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     }
 

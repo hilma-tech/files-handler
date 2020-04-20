@@ -17,7 +17,7 @@ export default class MultiFilesUploader extends Component {
         this.isOverFilesNumLimit = false;
 
         this.type = Consts.FILE_TYPES.includes(this.props.type) ?
-        this.props.type : Consts.FILE_TYPE_IMAGE;
+            this.props.type : Consts.FILE_TYPE_IMAGE;
 
         this.acceptedExtensions = this.getAcceptedExtensions();
         this.acceptedMimes = this.getAcceptedMimes();
@@ -66,15 +66,18 @@ export default class MultiFilesUploader extends Component {
         this.setState({ filesData }, this.parentOnChange);
     };
 
-    getAcceptedFilesObjs = (filesData) => {
+    getFilesData = () => {
+        let filesData = this.state.filesData;
         let acceptedFilesObj = [];
+        let isThereRejectedFiles = false;
 
         for (let i = 0; i < filesData.length; i++) {
             if (filesData[i].acceptedObj)
                 acceptedFilesObj.push(filesData[i].acceptedObj);
+            else isThereRejectedFiles = true;
         }
 
-        return acceptedFilesObj;
+        return [acceptedFilesObj, isThereRejectedFiles];
     }
 
     readFileToBase64 = (fileInfo) => {
@@ -206,8 +209,21 @@ export default class MultiFilesUploader extends Component {
     }
 
     parentOnChange = () => {
-        // Calls the onChange callback with the accepted files
-        let eventObj = { target: { name: this.props.name || "multiFilesUploader", value: this.getAcceptedFilesObjs(this.state.filesData) } };
+        let [acceptedFilesObj, isThereRejectedFiles] = this.getFilesData();
+
+        let errorMsg = null;
+        if (this.isOverFilesNumLimit) errorMsg = Consts.ERROR_MSG_FILES_NUM_LIMIT.replace('%', config.MULTI_FILES_LIMIT);
+        else if (isThereRejectedFiles) errorMsg = Consts.ERROR_MSG_SOME_FILES;
+
+        let eventObj = {
+            target: {
+                name: this.props.name || "multiFilesUploader",
+                value: acceptedFilesObj
+            },
+            error: errorMsg
+        };
+
+        // Calls the onChange callback with the accepted files ang an errMsg if there was rejected files
         this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     }
 
