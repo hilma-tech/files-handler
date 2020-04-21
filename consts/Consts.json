@@ -45,6 +45,7 @@
             "mp3",
             "m4a",
             "wav",
+            "mpeg",
             "webm"
         ],
         "video": [
@@ -73,6 +74,7 @@
             "audio/wav",
             "audio/x-wav"
         ],
+        "mpeg": "audio/mpeg",
         "webm": [
             "audio/webm",
             "video/webm"

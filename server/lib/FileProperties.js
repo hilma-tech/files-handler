@@ -37,6 +37,7 @@ module.exports = class FileProperties {
             "mp3": /^data:(audio+\/mp3?|application\/octet-stream);base64,/,
             "m4a": /^data:audio\/x-m4a;base64,/,
             "wav": /^data:(audio+\/wav?|audio\/x-wav);base64,/,
+            "mpeg": /^data:audio\/mpeg;base64,/,
             "webm": /^data:(video|audio)\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/,
             "mp4": /^data:video+\/mp4?;base64,/,
             "ogg": /^data:video+\/ogg?;base64,/,
