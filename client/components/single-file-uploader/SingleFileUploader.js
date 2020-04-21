@@ -33,7 +33,7 @@ export default class SingleFileUploader extends Component {
         this.maxSizeInKB = props.maxSizeInKB && props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
             props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
 
-        this.isErrorPopup = typeof this.props.isErrorPopup === "boolean" ? this.props.isErrorPopup : true; // default true 
+        this.isErrorPopup = typeof this.props.isErrorPopup === "boolean" ? this.props.isErrorPopup : false; // default false 
     }
 
     // componentWillReceiveProps(nextProps) {
