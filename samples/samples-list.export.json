@@ -34,5 +34,11 @@
         "componentName": "CreateGame",
         "route": "create-game",
         "title": "Upload image to relative model (by creating a new game)"
+    },
+    {
+        "filePath": "/audio-uploader-view/NewAudioUploaderView.js",
+        "componentName": "NewAudioUploader",
+        "route": "new-audio-uploader",
+        "title": "New Audio Uploader"
     }
 ]
