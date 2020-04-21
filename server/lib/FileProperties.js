@@ -25,6 +25,25 @@ module.exports = class FileProperties {
     }
 
     static getRegex(extension) {
+        /* 
+        Instruction for supporting a new file format:
+
+        1. In consts/Consts.json:
+            - Add to the right array at FILE_EXTENSION the new format
+            - Add to FILE_MIMES {<format>: <mime_type>},
+              if there are different mime_types for the same format, put them in an array
+
+        2. In server/lib/FileProperties.js:
+            - Add to FILE_REGEXS at getRegex(), {<format>: <regex>}.
+              The regex is derived from the first line of the file's base64 string.
+              If there are different mime_types for the same format,
+              there will be different first first lines in base64,
+              therefore, create one regex that includes all of them. (for example, webm).
+
+        3. In alters.sql:
+            - Add the new format as an enum option at 'format' column of the right table (Images/Audio/Video/Files)
+            - Apply this change to the SQL database
+        */
         const FILE_REGEXS = {
             "pdf": /^data:application+\/pdf?;base64,/,
             "doc": /^data:application+\/msword?;base64,/,

@@ -121,7 +121,7 @@ export default class SingleFileUploaderView extends Component {
                 </div>
 
                 <div className="usage">
-                    <p>import {this.capitalizeType}Uploader from '/src/modules/fileshandler/client/components/${this.capitalizeType}Uploader.js</p>
+                    <p>import {this.capitalizeType}Uploader from '/src/modules/fileshandler/client/components/{this.capitalizeType}Uploader.js</p>
                     <p>{`<${this.capitalizeType}Uploader
                         name="${this.type}Id"
                         title="my-${this.type}s"
