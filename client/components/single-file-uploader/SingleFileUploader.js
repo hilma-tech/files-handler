@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Consts from '../../../consts/Consts.json';
 import { fileshandler as config } from '../../../../../consts/ModulesConfig';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from '../ErrorPopup';
 import './SingleFileUploader.scss';
@@ -35,15 +36,6 @@ export default class SingleFileUploader extends Component {
 
         this.isErrorPopup = typeof this.props.isErrorPopup === "boolean" ? this.props.isErrorPopup : false; // default false 
     }
-
-    // componentWillReceiveProps(nextProps) {
-    //     if (nextProps.type !== this.props.type) {
-    //         this.initialValues(nextProps);
-    //         let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
-    //         this.setState({ fileData: { previewObj: defaltPreviewObj, acceptedObj: null } });
-    //     }
-    //     return true;
-    // }
 
     getDefaultThumbnail = () => {
         // Suppport previous versions
@@ -237,9 +229,25 @@ export default class SingleFileUploader extends Component {
         let filePreviewHtml = this.getFilePreviewHtml(file, isDefaultPreview);
         let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
 
+        /* 
+        Below code enables extending the component's return function without literly extending it.
+        In case an uploader component (for example ImageUploader) needs to change SingleFileUploader component default props,
+        such as type/theme/defaultThumbnailImageSrc etc, it can't be an extention of SingleFileUploader.
+        Otherwise, when trying to change props obj before passing it to super(), an error accures:
+        "...When calling super() make sure to pass up the same props that your component's constructor was passed".
+        The solution is passing those props in the uploader component's render and using the following "hook"
+        */
+        let vars = { file, isErrorPopup, isDefaultPreview, filePreviewHtml, type };
+        let extraVars = this.props.getExtraVars && typeof this.props.getExtraVars === "function" ?
+            this.props.getExtraVars(vars, this) : {};
+        vars = { ...vars, ...extraVars };
+
+        if (this.props.replaceReturn && typeof this.props.replaceReturn === "function")
+            return this.props.replaceReturn(vars, this);
+
         return (
             <div className="single-file-uploader">
-                <div className="basic-theme">
+                <div className={this.props.theme || "basic-theme"}>
                     <input
                         id={this.props.name}
                         name={this.type}
@@ -250,11 +258,22 @@ export default class SingleFileUploader extends Component {
                         accept={this.acceptedExtensions}
                         ref="uploaderInputRef" />
 
-                    <div className={`single-file-preview ${type}-preview`}>
+                    {this.props.theme === "button-theme" &&
                         <label htmlFor={this.props.name}>
-                            {filePreviewHtml}
-                            <div className="label">{this.props.label || `Choose ${this.type}`}</div>
-                        </label>
+                            <FontAwesomeIcon icon={"upload"} />
+                            <div className="label">{this.props.label || `Load ${this.type}`}</div>
+                        </label>}
+
+                    <div className={`single-file-preview ${type}-preview`}>
+
+                        {this.props.theme !== "button-theme" &&
+                            <label htmlFor={this.props.name}>
+                                {filePreviewHtml}
+                                <div className="label">{this.props.label || `Load ${this.type}`}</div>
+                            </label>}
+
+                        {this.props.theme === "button-theme" && !isDefaultPreview &&
+                            filePreviewHtml}
 
                         {// Add remove button
                             !this.props.disabled && !isDefaultPreview &&
@@ -265,14 +284,13 @@ export default class SingleFileUploader extends Component {
                         {// Add error icon if needed
                             file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
                             <div className="error-icon">
-                                <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
+                                <Tooltip title={file.errMsg} placement="left" className="tool-tip">
                                     <img src={require('../../../imgs/error.svg')} alt={file.errMsg} />
                                 </Tooltip>
                             </div>}
                     </div>
 
-                    {isErrorPopup &&
-                        typeof this.state.showErrPopup === "boolean" &&
+                    {isErrorPopup && typeof this.state.showErrPopup === "boolean" &&
                         <ErrorPopup
                             message={file.errMsg}
                             showPopup={this.state.showErrPopup}

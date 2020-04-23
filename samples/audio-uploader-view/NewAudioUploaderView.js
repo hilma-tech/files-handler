@@ -9,13 +9,13 @@ import 'react-h5-audio-player/src/styles.scss';
 export default class AudioUploaderView extends Component {
     render() {
         return (
-            <div className="uploadDisplay audioDisplay">
+            <div>
                 <SingleFileUploaderView
                     type={Consts.FILE_TYPE_AUDIO}
                     uploader={<AudioUploader
-                        uploadAudio
-                        audioRecorder={(isIOS || isSafari) ? false : true}
                         name="audio"
+                        enableLoadFile
+                        enableRecord={(isIOS || isSafari) ? false : true}
                         deleteAudio={this.deleteAudio}
                         onChange={this.handleFileChange} />}
                     tableInfo={TableInfo}

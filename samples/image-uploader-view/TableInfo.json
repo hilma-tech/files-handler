@@ -34,7 +34,7 @@
             "Property": "label",
             "Type": "string",
             "Description": "Description of what you whant the user will upload",
-            "Default": "Choose image"
+            "Default": "Load image"
         },
         {
             "Property": "minSizeInKB",

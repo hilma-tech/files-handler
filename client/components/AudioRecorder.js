@@ -1,19 +1,20 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { ReactMic } from 'react-mic';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-
 export default class AudioRecorder extends React.Component {
+
     constructor(props) {
         super(props);
         this.state = {
-            record: false,
+            isRecord: false,
             audioSrc: null,
             minutesLabel: 0,
             secondsLabel: 0,
             totalSeconds: 0
         }
     }
+
     componentWillReceiveProps(nextProps) {
         console.log("this.state. componentWillReceiveProps", nextProps.exitRecording)
     }
@@ -22,29 +23,18 @@ export default class AudioRecorder extends React.Component {
         setInterval(this.setTime, 1000);
     }
 
-    startRecording = () => {
-        this.setState(prevState => ({
-            record: !prevState.record
-        }));
+    toggleRecordBtn = () => {
+        this.setState({ isRecord: !this.state.isRecord });
     }
-
-    stopRecording = () => {
-        this.setState({
-            record: false
-        });
-    }
-
-
 
     onStop = async (recordedBlob) => {
-        console.log("this.props.exitRecording", this.props.exitRecording)
+        console.log("this.props.exitRecording", this.props.exitRecording, recordedBlob.blob.type)
         if (!this.props.exitRecording)
-            await this.props.onChangeAudio(null, recordedBlob.blob, recordedBlob.blob.type);
+            await this.props.onChangeAudio(recordedBlob.blob);
     }
 
-
     setTime = () => {
-        if (this.state.record) {
+        if (this.state.isRecord) {
             this.setState({ totalSeconds: this.state.totalSeconds + 1 })
             let second = this.pad(this.state.totalSeconds % 60);
             let minutes = this.pad(parseInt(this.state.totalSeconds / 60));
@@ -63,24 +53,23 @@ export default class AudioRecorder extends React.Component {
 
     render() {
         return (
-            <div id="audioRecorder">
+            <div id="audio-recorder">
                 <ReactMic
-                    record={this.state.record}
                     className="no-wave"
-                    onStop={this.onStop}
-                />
-                {this.state.record ?
-                    <div className="Btn">
-                        <FontAwesomeIcon icon="stop-circle" onClick={this.stopRecording} className="btnIcon clickAble" />
-                    </div>
+                    record={this.state.isRecord}
+                    onStop={this.onStop} />
 
+                <div className="btn">
+                    <FontAwesomeIcon icon={this.state.isRecord ? "stop-circle" : "play-circle"} onClick={this.toggleRecordBtn} className="btn-icon" />
+                </div>
+
+                <div id="timer">
+                    {this.state.minutesLabel == 0 ?
+                        "00" : this.state.minutesLabel}
                     :
-                    <div className="Btn">
-                        <FontAwesomeIcon icon="play-circle" onClick={this.startRecording} className="btnIcon clickAble" />
-                    </div>
-                }
-                <div id="timer">{this.state.minutesLabel == 0 ? "00" : this.state.minutesLabel}:{this.state.secondsLabel == 0 ? "00" : this.state.secondsLabel} </div>
-
+                    {this.state.secondsLabel == 0 ?
+                        "00" : this.state.secondsLabel}
+                </div>
             </div>
         );
     }

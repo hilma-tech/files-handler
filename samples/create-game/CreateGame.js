@@ -138,7 +138,7 @@ export default class CreateGame extends Component {
                                 name="imgId"
                                 title="cover-image"
                                 theme="basic-theme"
-                                label="Choose a cover image"
+                                label="Load a cover image"
                                 // isMultiSizes={true}
                                 onChange={this.onInputChange}
                                 disabled={this.state.isInputDisabled}

@@ -9,11 +9,7 @@ import './ImageUploaderView.scss';
 
 export default class ImageUploaderVIew extends SingleFileUploaderView {
 
-    constructor(props) {
-        props = { ...props };
-        props.type = Consts.FILE_TYPE_IMAGE;
-        super(props);
-    }
+    // No need to change props.type because type "image" is the default;
 
     render() {
         let isSubmited = Object.keys(this.state.uploadedFiles).length !== 0;

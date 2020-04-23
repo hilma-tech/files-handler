@@ -1,23 +1,18 @@
-import React from 'react';
+import React, { Component } from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from './ErrorPopup';
 import './ImageUploader.scss';
 
-export default class ImageUploader extends SingleFileUploader {
-
+// Change to functional component
+export default class ImageUploader extends Component {
     constructor(props) {
-        props = { ...props };
-        props.type = Consts.FILE_TYPE_IMAGE;
-        let propsDefaultTumbnail = props.defaultValue || props.thumbnail || props.defaultThumbnailImageSrc;
-        let defaultThumbnail = propsDefaultTumbnail ||
-            (props.theme === "circle-theme" ?
-                require(`../../imgs/circle-theme-default-thumbnail.svg`) :
-                require(`../../imgs/default-thumbnail.svg`));
-        props.defaultThumbnailImageSrc = defaultThumbnail;
-
         super(props);
+
+        this.state = {
+            showPreviewPopup: null
+        };
     }
 
     togglePreviewPopup = () => {
@@ -28,122 +23,145 @@ export default class ImageUploader extends SingleFileUploader {
         return <Component.type {...Component.props} {...extraProps} />;
     }
 
-    render() {
-        let file = this.state.fileData.previewObj;
-        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.isErrorPopup;
-        let isDefaultPreview = file.status === Consts.DEFAULT_THUMBNAIL || isErrorPopup;
-        let filePreviewHtml = this.addExtraProps(this.getFilePreviewHtml(file, isDefaultPreview), { onClick: this.props.previewWidget && this.togglePreviewPopup });
-        let type = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
-        let previewWidgetChosenImg = this.props.previewWidget ? <div className="chosen-img-preview" style={{ backgroundImage: `url(${file.preview})` }} /> : null;
+    updateProps = () => {
+        let props = { ...this.props };
+        props.type = Consts.FILE_TYPE_IMAGE;
+        let propsDefaultTumbnail = props.defaultValue || props.thumbnail || props.defaultThumbnailImageSrc;
+        let defaultThumbnail = propsDefaultTumbnail ||
+            (props.theme === "circle-theme" ?
+                require(`../../imgs/circle-theme-default-thumbnail.svg`) :
+                require(`../../imgs/default-thumbnail.svg`));
+        props.defaultThumbnailImageSrc = defaultThumbnail;
+        return props;
+    }
 
+    getExtraVars = (vars, parentThis) => {
+        let previewWidgetChosenImg = this.props.previewWidget ? <div className="chosen-img-preview" style={{ backgroundImage: `url(${vars.file.preview})` }} /> : null;
+        let filePreviewHtml = this.addExtraProps(parentThis.getFilePreviewHtml(vars.file, vars.isDefaultPreview), { onClick: this.props.previewWidget && this.togglePreviewPopup });
+        return { previewWidgetChosenImg, filePreviewHtml };
+    }
+
+    replaceReturn = (vars, parentThis) => {
         // Supports previous versions (AKA default-theme)
-        if (!this.props.theme && !this.props.previewWidget)
+        if (!parentThis.props.theme && !parentThis.props.previewWidget)
             return (
                 <div className="image-uploader-container single-file-uploader">
                     <div className="default-theme single-file-preview">
 
                         {// Add remove button
-                            !this.props.previewWidget && !this.props.disabled && !isDefaultPreview &&
-                            <div className="remove-icon" onClick={this.removeFile}>
-                                {this.props.removeFileIcon || 'x'}
+                            !parentThis.props.previewWidget && !parentThis.props.disabled && !vars.isDefaultPreview &&
+                            <div className="remove-icon" onClick={parentThis.removeFile}>
+                                {parentThis.props.removeFileIcon || 'x'}
                             </div>}
 
                         <label>
                             <input
                                 className="default-theme-input"
-                                name={this.type}
+                                name={parentThis.type}
                                 type="file"
-                                onChange={this.onChange}
-                                disabled={this.props.disabled || false}
-                                required={this.props.required || false}
-                                accept={this.acceptedExtensions}
+                                onChange={parentThis.onChange}
+                                disabled={parentThis.props.disabled || false}
+                                required={parentThis.props.required || false}
+                                accept={parentThis.acceptedExtensions}
                                 ref="uploaderInputRef"
                             />
                             <img
                                 className="default-theme-image"
-                                ref={this.props.previewRef}
-                                src={file.preview}
-                                alt={`uploading ${this.type}`}
+                                ref={parentThis.props.previewRef}
+                                src={vars.file.preview}
+                                alt={`uploading ${parentThis.type}`}
                                 onError={() => {
-                                    let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
+                                    let defaltPreviewObj = parentThis.getFilePreviewObj(null, parentThis.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
                                     let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
-                                    this.setState({ fileData });
+                                    parentThis.setState({ fileData });
                                 }}
                             />
-                            <div className="default-theme-label">{this.props.label || "Defalt-theme is not recommended and will be deprecated"}</div>
+                            <div className="default-theme-label">{parentThis.props.label || "Defalt-theme is not recommended and will be deprecated"}</div>
                         </label>
 
                         {/* {// Add error icon if needed
                             file.status === Consts.FILE_REJECTED &&
                             <div className="error-icon">
-                                <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
+                                <Tooltip title={file.errMsg} placement="left" className="tool-tip">
                                     <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
                                 </Tooltip>
                             </div>} */}
 
-                        {isErrorPopup && typeof this.state.showErrPopup === "boolean" &&
+                        {vars.isErrorPopup && typeof parentThis.state.showErrPopup === "boolean" &&
                             <ErrorPopup
-                                message={file.errMsg}
-                                showPopup={this.state.showErrPopup}
-                                toggleShowPopup={this.turnOffErrPopup} />}
+                                message={vars.file.errMsg}
+                                showPopup={parentThis.state.showErrPopup}
+                                toggleShowPopup={parentThis.turnOffErrPopup} />}
                     </div>
                 </div>
             );
 
         return (
             <div className="image-uploader-container single-file-uploader">
-                <div className={this.props.theme}>
+                <div className={parentThis.props.theme}>
                     <input
-                        id={this.props.name}
-                        name={this.type}
+                        id={parentThis.props.name}
+                        name={parentThis.type}
                         type="file"
-                        onChange={this.onChange}
-                        disabled={this.props.disabled}
-                        required={this.props.required || false}
-                        accept={this.acceptedExtensions}
+                        onChange={parentThis.onChange}
+                        disabled={parentThis.props.disabled}
+                        required={parentThis.props.required || false}
+                        accept={parentThis.acceptedExtensions}
                         ref="uploaderInputRef"
                     />
 
-                    <div className={`${this.props.previewWidget && 'chosen-image-parent'} single-file-preview ${type}-preview`}>
+                    <div className={`${parentThis.props.previewWidget && 'chosen-image-parent'} single-file-preview ${vars.type}-preview`}>
 
-                        {!this.props.previewWidget ?
-                            <label htmlFor={this.props.name}>
-                                {filePreviewHtml}
-                                <div className="label">{this.props.label || `Choose ${this.type}`}</div>
-                            </label> : filePreviewHtml}
+                        {!parentThis.props.previewWidget ?
+                            <label htmlFor={parentThis.props.name}>
+                                {vars.filePreviewHtml}
+                                <div className="label">{parentThis.props.label || `Load ${parentThis.type}`}</div>
+                            </label> : vars.filePreviewHtml}
 
                         {// Add remove button
-                            !this.props.previewWidget && !this.props.disabled && !isDefaultPreview &&
-                            <div className="remove-icon" onClick={this.removeFile}>
-                                <img src={this.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
+                            !parentThis.props.previewWidget && !parentThis.props.disabled && !vars.isDefaultPreview &&
+                            <div className="remove-icon" onClick={parentThis.removeFile}>
+                                <img src={parentThis.props.removeFileIcon || require('../../imgs/x-icon.png')} alt="x" />
                             </div>}
 
                         {// Add error icon if needed
-                            file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
+                            vars.file.status === Consts.FILE_REJECTED && !vars.isDefaultPreview &&
                             <div className="error-icon">
-                                <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
-                                    <img src={require('../../imgs/error.svg')} alt={file.errMsg} />
+                                <Tooltip title={vars.file.errMsg} placement="left" className="tool-tip">
+                                    <img src={require('../../imgs/error.svg')} alt={vars.file.errMsg} />
                                 </Tooltip>
                             </div>}
                     </div>
 
-                    {this.props.previewWidget && typeof this.state.showPreviewPopup === "boolean" &&
-                        this.addExtraProps(this.props.previewWidget, {
-                            chosenImg: previewWidgetChosenImg,
+                    {vars.isErrorPopup && typeof parentThis.state.showErrPopup === "boolean" &&
+                        <ErrorPopup
+                            message={vars.file.errMsg}
+                            showPopup={parentThis.state.showErrPopup}
+                            toggleShowPopup={parentThis.turnOffErrPopup} />}
+
+                    {parentThis.props.previewWidget && typeof this.state.showPreviewPopup === "boolean" &&
+                        this.addExtraProps(parentThis.props.previewWidget, {
+                            chosenImg: vars.previewWidgetChosenImg,
                             showPopup: this.state.showPreviewPopup,
                             toggleShowPopup: this.togglePreviewPopup,
-                            removeFile: this.removeFile,
-                            inputId: this.props.name,
-                            disabled: this.props.disabled
+                            removeFile: parentThis.removeFile,
+                            inputId: parentThis.props.name,
+                            disabled: parentThis.props.disabled
                         })}
-
-                    {isErrorPopup && typeof this.state.showErrPopup === "boolean" &&
-                        <ErrorPopup
-                            message={file.errMsg}
-                            showPopup={this.state.showErrPopup}
-                            toggleShowPopup={this.turnOffErrPopup} />}
                 </div>
             </div>
         )
+    }
+
+    render() {
+        return (
+            <>
+                <SingleFileUploader
+                    {...this.updateProps()}
+                    getExtraVars={this.getExtraVars}
+                    replaceReturn={this.replaceReturn}
+                />
+            </>
+        );
     }
 }

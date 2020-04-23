@@ -1,6 +1,40 @@
 .single-file-uploader {
   direction: ltr;
 
+  .button-theme {
+    label {
+      background-color: rebeccapurple;
+      border-radius: 25px;
+      color: white;
+      width: 30%;
+      padding: 0.25em;
+
+      div {
+        display: inline;
+        margin: 0.5em;
+      }
+    }
+
+    .single-file-preview {
+      .thumb {
+        margin-bottom: 0.5em;
+        align-items: center;
+        height: auto;
+        display: block;
+      }
+
+      .remove-icon img {
+        right: 4.5em;
+        top: 0;
+      }
+
+      .error-icon img {
+        left: 4em;
+        top: 0;
+      }
+    }
+  }
+
   .single-file-preview {
     position: relative;
 
@@ -110,7 +144,7 @@
     }
   }
 
-  // Hides the "choose file" button
+  // Hides the "load file" button
   input[type="file"] {
     position: absolute;
     -webkit-appearance: none;
@@ -147,29 +181,32 @@
       width: 70vh;
       top: 30%;
       left: calc(50vw - 35vh);
-      background-color: lightblue;
+      background-color: white;
       z-index: 3;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-evenly;
-      border: 3px solid black;
+      border: 9px solid lightsteelblue;
       padding: 1em;
       border-radius: 15px;
     }
 
     h1 {
+      font-size: 2rem;
       font-weight: bold;
     }
 
-    button {
-      font-size: 1em;
-      padding: 1em;
-      width: 30%;
-      border: none;
-      background-color: blue;
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    .button {
+      background-color: rebeccapurple;
+      border-radius: 25px;
       color: white;
-      border-radius: 15px;
+      width: 30%;
+      padding: 0.25em;
     }
   }
 }

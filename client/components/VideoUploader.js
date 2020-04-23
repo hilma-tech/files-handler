@@ -1,11 +1,22 @@
+import React, { Component } from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
 
-export default class VideoUploader extends SingleFileUploader {
+export default class VideoUploader extends Component {
 
-    constructor(props) {
-        props = {...props};
+    updateProps = () => {
+        let props = { ...this.props };
         props.type = Consts.FILE_TYPE_VIDEO;
-        super(props);
+        return props;
+    }
+
+    render() {
+        return (
+            <>
+                <SingleFileUploader
+                    {...this.updateProps()}
+                />
+            </>
+        );
     }
 }

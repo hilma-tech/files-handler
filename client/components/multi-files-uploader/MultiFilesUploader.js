@@ -193,7 +193,7 @@ export default class MultiFilesUploader extends Component {
                 </div>}
                 {file.status === Consts.FILE_REJECTED &&
                     <div className="error-icon">
-                        <Tooltip title={file.errMsg} placement="left" classes="tool-tip">
+                        <Tooltip title={file.errMsg} placement="left" className="tool-tip">
                             <img src={require('../../../imgs/error.svg')} alt={file.errMsg} />
                         </Tooltip>
                     </div>}

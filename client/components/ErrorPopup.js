@@ -8,8 +8,8 @@ export default class ErrorPopup extends Component {
                 {this.props.showPopup && <div className="dark-background" />}
                 <div className={`popup ${this.props.showPopup ? "scale-in-center" : "scale-out-center"}`} >
                     <h1>{this.props.message}</h1>
-                    <h2>Try to choose another file</h2>
-                    <button onClick={this.props.toggleShowPopup}>OK</button>
+                    <h2>Try to load another file</h2>
+                    <div className="button" onClick={this.props.toggleShowPopup}>Ok</div>
                 </div>
             </div>
         );

@@ -1,11 +1,22 @@
+import React, { Component } from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
 
-export default class AudioUploader extends SingleFileUploader {
+export default class AudioUploader extends Component {
 
-    constructor(props) {
-        props = {...props};
+    updateProps = () => {
+        let props = { ...this.props };
         props.type = Consts.FILE_TYPE_AUDIO;
-        super(props);
+        return props;
+    }
+
+    render() {
+        return (
+            <>
+                <SingleFileUploader
+                    {...this.updateProps()}
+                />
+            </>
+        );
     }
 }
