@@ -17,6 +17,7 @@ export default class SingleFileUploader extends Component {
             fileData: { previewObj: defaltPreviewObj, acceptedObj: null }
         };
 
+        this.uploaderInputRef = React.createRef();
         this.onChange = this.onChange.bind(this); // Intentionally bind instead of arrow function
     }
 
@@ -72,7 +73,7 @@ export default class SingleFileUploader extends Component {
             if (this.isErrorPopup) {
                 filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
                 showErrPopup = true;
-                this.refs.uploaderInputRef.value = null;
+                this.uploaderInputRef.current.value = null;
             }
             else {
                 if (this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
@@ -193,7 +194,7 @@ export default class SingleFileUploader extends Component {
 
     removeFile = () => {
         if (this.state.fileData.previewObj.state === Consts.DEFAULT_THUMBNAIL) return;
-        this.refs.uploaderInputRef.value = null;
+        this.uploaderInputRef.current.value = null;
         let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
         let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
         this.setState({ fileData }, this.parentOnChange);
@@ -256,7 +257,7 @@ export default class SingleFileUploader extends Component {
                         disabled={this.props.disabled}
                         required={this.props.required || false}
                         accept={this.acceptedExtensions}
-                        ref="uploaderInputRef" />
+                        ref={this.uploaderInputRef} />
 
                     {this.props.theme === "button-theme" &&
                         <label htmlFor={this.props.name}>
