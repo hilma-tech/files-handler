@@ -40,7 +40,7 @@
             "Property": "minSizeInKB",
             "Type": "int",
             "Description": "Minimum image's size in KB",
-            "Default": "0"
+            "Default": "10"
         },
         {
             "Property": "maxSizeInKB",

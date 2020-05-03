@@ -55,6 +55,7 @@ export default class SingleFileUploader extends Component {
     }
 
     async onChange(e, isDefaultChosenFile = false) {
+        
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
@@ -62,7 +63,7 @@ export default class SingleFileUploader extends Component {
         let fileObj = null;
         let filePreview = null;
         let showErrPopup = false;
-        let [status, errMsg] = this.isFileInSizeRange(file);
+        let [status, errMsg] = this.isFileInSizeRange(file, isDefaultChosenFile); // NOTICE: When defaultChosenFile=true, the file is automatically accepted
 
         const extraFileObjProps = this.props.extraFileObjProps || {};
 
@@ -77,7 +78,7 @@ export default class SingleFileUploader extends Component {
                 ...extraFileObjProps
             };
 
-            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
+            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg, isDefaultChosenFile);
         }
         else { // status = Consts.FILE_REJECTED
 
@@ -87,7 +88,7 @@ export default class SingleFileUploader extends Component {
                 this.uploaderInputRef.current.value = null;
             }
             else {
-                if (this.type !== Consts.FILE_TYPE_FILE) base64String = isDefaultChosenFile ? file : await this.readFileToBase64(file);
+                if (this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
                 filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
             }
         }
@@ -95,7 +96,7 @@ export default class SingleFileUploader extends Component {
         let fileData = { previewObj: filePreview, acceptedObj: fileObj };
 
         // Display previews of dropped files and calls the onChange callback with the accepted files
-        this.setState({ fileData, showErrPopup }, this.parentOnChange);
+        this.setState({ fileData, showErrPopup }, () => !isDefaultChosenFile && this.parentOnChange());
     }
 
     parentOnChange = () => {
@@ -114,9 +115,11 @@ export default class SingleFileUploader extends Component {
         this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     }
 
-    isFileInSizeRange = (file) => {
+    isFileInSizeRange = (file, isDefaultChosenFile = false) => {
         let status = Consts.FILE_ACCEPTED;
         let errMsg = null;
+
+        if (isDefaultChosenFile) return [status, errMsg];
 
         let sizeKB = file.size * 0.001;
         if (sizeKB < this.minSizeInKB) {
@@ -145,7 +148,7 @@ export default class SingleFileUploader extends Component {
         })
     }
 
-    getFilePreviewObj = (file = null, base64String = null, status, errMsg = null) => {
+    getFilePreviewObj = (file = null, base64String = null, status, errMsg = null, isDefaultChosenFile = false) => {
         let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL || (status === Consts.FILE_REJECTED && this.isErrorPopup);
 
         let filePreview = {
@@ -158,9 +161,9 @@ export default class SingleFileUploader extends Component {
         if (isDefaultPreview) return filePreview;
 
         if (this.type === Consts.FILE_TYPE_FILE) {
-            filePreview.preview = file.name;
-            filePreview.extension = this.getExtension(file.type);
-            console.log("extension", filePreview.extension);
+            filePreview.preview = isDefaultChosenFile ? "Default file" :  file.name;
+            filePreview.extension = isDefaultChosenFile? file.split(".").pop() : this.getExtension(file.type);
+            console.log("extension", filePreview.extension)
         }
         else filePreview.preview = base64String;
 
@@ -212,6 +215,7 @@ export default class SingleFileUploader extends Component {
     }
 
     getExtension = (mime) => {
+
         let extensions = Consts.FILE_EXTENSIONS[this.type];
         for (let extension of extensions) {
             let mimeOrMimes = Consts.FILE_MIMES[extension];

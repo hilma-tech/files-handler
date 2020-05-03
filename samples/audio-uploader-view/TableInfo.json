@@ -40,13 +40,13 @@
             "Property": "minSizeInKB",
             "Type": "int",
             "Description": "Minimum audio's size in KB",
-            "Default": "0"
+            "Default": "100"
         },
         {
             "Property": "maxSizeInKB",
             "Type": "int",
             "Description": "Maximum audio's size in KB",
-            "Default": "5000"
+            "Default": "50000"
         },
         {
             "Property": "defaultThumbnailImageSrc",

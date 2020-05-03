@@ -170,7 +170,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         <div className="image-input-sample">
                             <ImageUploader
                                 category="my-images"
-                                name="imageSample10"
+                                name="imageSample7"
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
@@ -189,7 +189,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         <div className="image-input-sample">
                             <ImageUploader
                                 category="my-images"
-                                name="imageSample10"
+                                name="imageSample8"
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
@@ -216,7 +216,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                             <p>This has <em>basic-theme</em> and <em>isErrorPopup=true</em>.</p>
                             <ImageUploader
                                 category="my-images"
-                                name="imageSample7"
+                                name="imageSample9"
                                 title="my-image"
                                 theme="basic-theme"
                                 isErrorPopup={true}
@@ -229,7 +229,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                             <p>This has <em>previewWidget</em> with <em>basic-theme</em> and <em>isErrorPopup=true</em>.</p>
                             <ImageUploader
                                 category="my-images"
-                                name="imageSample8"
+                                name="imageSample10"
                                 title="my-image"
                                 theme="basic-theme"
                                 previewWidget={<PreviewWidget enableEdit={true} />}
@@ -243,7 +243,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                             <p>This has <em>circle-theme</em> and <em>isErrorPopup=true</em>.</p>
                             <ImageUploader
                                 category="my-images"
-                                name="imageSample9"
+                                name="imageSample11"
                                 title="my-image"
                                 theme="circle-theme"
                                 onChange={this.handleFileChange}
@@ -265,7 +265,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         <div className="image-input-sample">
                             <ImageUploader
                                 category="my-images"
-                                name="imageSample10"
+                                name="imageSample12"
                                 title="my-image"
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
