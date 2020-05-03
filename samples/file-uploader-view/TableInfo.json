@@ -37,6 +37,36 @@
             "Default": "Load file"
         },
         {
+            "Property": "minSizeInKB",
+            "Type": "int",
+            "Description": "Minimum file's size in KB",
+            "Default": "0"
+        },
+        {
+            "Property": "maxSizeInKB",
+            "Type": "int",
+            "Description": "Maximum file's size in KB",
+            "Default": "5000"
+        },
+        {
+            "Property": "defaultThumbnailImageSrc",
+            "Type": "string",
+            "Description": "This will be the upload sign image of the uploader. Accepts image's path in public, example:'/images/myImage.png'. Notice the difference between this prop and defaultChosenFile.",
+            "Default": "src/modules/fileshandler/imgs/default-thumbnail.svg"
+        },
+        {
+            "Property": "defaultChosenFile",
+            "Type": "string",
+            "Description": "In case we want to display a default file. For example, when editing an already exists cv file: we will use this prop to display a default file. Accepts file's path in public, example:'/files/myFile.wav'. Notice the difference between this prop and defaultThumbnailImageSrc.",
+            "Default": "-"
+        },
+        {
+            "Property": "disabled",
+            "Type": "boolean",
+            "Description": "If it is possible to change the file's input's value",
+            "Default": "false"
+        },
+        {
             "Property": "removeFileIcon",
             "Type": "string",
             "Description": "Image's path in public, example:'/files/myImage.png",

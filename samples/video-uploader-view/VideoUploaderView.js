@@ -12,6 +12,7 @@ export default class VideoUploaderView extends Component {
                     type={Consts.FILE_TYPE_VIDEO}
                     uploader={<VideoUploader />}
                     tableInfo={TableInfo}
+                    defaultChosenFileName={'myVideo.webm'}
                 />
             </div>
         );

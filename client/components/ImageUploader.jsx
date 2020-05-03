@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
+import { fileshandler as config } from '../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from './ErrorPopup';
 import './ImageUploader.scss';
@@ -25,13 +26,19 @@ export default class ImageUploader extends Component {
 
     updateProps = () => {
         let props = { ...this.props };
+
         props.type = Consts.FILE_TYPE_IMAGE;
+
         let propsDefaultTumbnail = props.defaultValue || props.thumbnail || props.defaultThumbnailImageSrc;
-        let defaultThumbnail = propsDefaultTumbnail ||
-            (props.theme === "circle-theme" ?
-                require(`../../imgs/circle-theme-default-thumbnail.svg`) :
-                require(`../../imgs/default-thumbnail.svg`));
+        let defaultThumbnail = propsDefaultTumbnail || (props.theme === "circle-theme" ?
+            require(`../../imgs/circle-theme-default-thumbnail.svg`) :
+            require(`../../imgs/default-thumbnail.svg`));
         props.defaultThumbnailImageSrc = defaultThumbnail;
+
+        props.extraFileObjProps = {
+            isMultiSizes: props.isMultiSizes || false
+        };
+
         return props;
     }
 

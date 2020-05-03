@@ -21,6 +21,15 @@ export default class SingleFileUploader extends Component {
         this.onChange = this.onChange.bind(this); // Intentionally bind instead of arrow function
     }
 
+    componentDidMount() {
+        // In order to show the default chosen file, we "simulate" onChange function with the given file
+        if (this.props.defaultChosenFile) {
+            let file = this.props.defaultChosenFile;
+            let e = { target: { files: [file] } };
+            this.onChange(e, true);
+        }
+    }
+
     initialValues = (props) => {
         this.defaultTumbnail = this.getDefaultThumbnail();
 
@@ -45,7 +54,7 @@ export default class SingleFileUploader extends Component {
         return defaultThumbnail;
     }
 
-    async onChange(e) {
+    async onChange(e, isDefaultChosenFile = false) {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
@@ -55,15 +64,17 @@ export default class SingleFileUploader extends Component {
         let showErrPopup = false;
         let [status, errMsg] = this.isFileInSizeRange(file);
 
+        const extraFileObjProps = this.props.extraFileObjProps || {};
+
         if (status === Consts.FILE_ACCEPTED) {
-            base64String = await this.readFileToBase64(file);
+            base64String = isDefaultChosenFile ? file : await this.readFileToBase64(file);
             fileObj = {
                 src: base64String,
                 type: this.type,
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
                 description: this.props.description || "default_description",
-                isMultiSizes: this.props.isMultiSizes || false
+                ...extraFileObjProps
             };
 
             filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
@@ -76,7 +87,7 @@ export default class SingleFileUploader extends Component {
                 this.uploaderInputRef.current.value = null;
             }
             else {
-                if (this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
+                if (this.type !== Consts.FILE_TYPE_FILE) base64String = isDefaultChosenFile ? file : await this.readFileToBase64(file);
                 filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
             }
         }

@@ -160,6 +160,45 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         </div>
                     </div>
 
+                                    <p className="explanation">
+                    Below is an example of an uploader with the prop <em>defaultThumbnailImageSrc="../media/myImage.jpg"</em>.<br />
+                    This image will replace the default upload thumbnail.
+                </p>
+
+                    <div className="image-input-samples">
+
+                        <div className="image-input-sample">
+                            <ImageUploader
+                                category="my-images"
+                                name="imageSample10"
+                                title="my-image"
+                                theme="basic-theme"
+                                onChange={this.handleFileChange}
+                                defaultThumbnailImageSrc={require('../media//myImage.jpg')}
+                                disabled={this.state.isUploaderDisabled}
+                            />
+                        </div>
+                    </div>
+
+                <p className="explanation">
+                    Below is an example of an uploader with the prop <em>defaultChosenFile="../media/{this.props.defaultChosenFileName}"</em>.<br />
+                </p>
+
+                    <div className="image-input-samples">
+
+                        <div className="image-input-sample">
+                            <ImageUploader
+                                category="my-images"
+                                name="imageSample10"
+                                title="my-image"
+                                theme="basic-theme"
+                                onChange={this.handleFileChange}
+                                defaultChosenFile={require('../media//myImage.jpg')}
+                                disabled={this.state.isUploaderDisabled}
+                            />
+                        </div>
+                    </div>
+
                     <p className="explanation">
                         Below are examples of uploaders with the prop <em>isErrorPopup = true</em>.<br />
                         In this case, when choosing a file which exceeds the size limitation as they defiend at src/consts/ModulesConfig.json<br />

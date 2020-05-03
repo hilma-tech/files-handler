@@ -8,13 +8,10 @@ const FileProperties = require('../lib/FileProperties');
 module.exports = function (app) {
 
     function allowFileAccess(req, res, fileType) {
-
-
         (async () => {
 
             const permissionsFilter = new PermissionsFilter(req, app, Consts.FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS[fileType]);
             const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
-
 
             if (!allowAccess) {
                 logFile("Access is denied for this specific user, for further info see records_permissions table");
@@ -45,7 +42,6 @@ module.exports = function (app) {
             });
         })();
     }
-
 
     app.get(`/${Consts.FOLDERS[Consts.FILE_TYPE_FILE]}/*`, function (req, res) {
         logFile("fileshandler routes for verb GET with /files/* is launched");

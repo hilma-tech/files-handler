@@ -37,6 +37,30 @@
             "Default": "Load file"
         },
         {
+            "Property": "minSizeInKB",
+            "Type": "int",
+            "Description": "Minimum video's size in KB",
+            "Default": "0"
+        },
+        {
+            "Property": "maxSizeInKB",
+            "Type": "int",
+            "Description": "Maximum video's size in KB",
+            "Default": "5000"
+        },
+        {
+            "Property": "defaultThumbnailImageSrc",
+            "Type": "string",
+            "Description": "This will be the upload sign image of the uploader. Accepts image's path in public, example:'/images/myImage.png'. Notice the difference between this prop and defaultChosenFile.",
+            "Default": "src/modules/fileshandler/imgs/default-thumbnail.svg"
+        },
+        {
+            "Property": "defaultChosenFile",
+            "Type": "string",
+            "Description": "In case we want to display a default video. For example, when editing an already exists game video: we will use this prop to display a default video. Accepts video's path in public, example:'/videos/myVideo.wav'. Notice the difference between this prop and defaultThumbnailImageSrc.",
+            "Default": "-"
+        },
+        {
             "Property": "removeFileIcon",
             "Type": "string",
             "Description": "Image's path in public, example:'/files/myImage.png",
@@ -46,6 +70,12 @@
             "Property": "required",
             "Type": "boolean",
             "Description": "Is it required to fill the input or not",
+            "Default": "false"
+        },
+        {
+            "Property": "disabled",
+            "Type": "boolean",
+            "Description": "If it is possible to change the video's input's value",
             "Default": "false"
         },
         {
