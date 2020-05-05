@@ -236,6 +236,7 @@ async function resizeImg(imgPath, width) {
 
 async function getImgWidth(base64Data) {
     let img = new Buffer(base64Data, 'base64');
-    let dimensions = sizeOf(img)
+    let dimensions = sizeOf(img);
+    logFile("image dimensions", dimensions);
     return dimensions.width;
 }

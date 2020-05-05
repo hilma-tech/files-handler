@@ -40,7 +40,7 @@
             "Property": "minSizeInKB",
             "Type": "int",
             "Description": "Minimum image's size in KB",
-            "Default": "0"
+            "Default": "10"
         },
         {
             "Property": "maxSizeInKB",
@@ -57,8 +57,14 @@
         {
             "Property": "defaultThumbnailImageSrc",
             "Type": "string",
-            "Description": "Image's path in public, example:'/images/myImage.png'",
+            "Description": "This will be the upload sign image of the uploader. Accepts image's path in public, example:'/images/myImage.png'. Notice the difference between this prop and defaultChosenFile.",
             "Default": "src/modules/fileshandler/imgs/default-thumbnail.svg"
+        },
+        {
+            "Property": "defaultChosenFile",
+            "Type": "string",
+            "Description": "In case we want to display a default image. For example, when editing an already exists profile image: we will use this prop to display a default image. Accepts image's path in public, example:'/images/myImage.png'. Notice the difference between this prop and defaultThumbnailImageSrc.",
+            "Default": "-"
         },
         {
             "Property": "removeFileIcon",

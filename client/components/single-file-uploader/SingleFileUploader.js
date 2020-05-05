@@ -17,7 +17,17 @@ export default class SingleFileUploader extends Component {
             fileData: { previewObj: defaltPreviewObj, acceptedObj: null }
         };
 
+        this.uploaderInputRef = React.createRef();
         this.onChange = this.onChange.bind(this); // Intentionally bind instead of arrow function
+    }
+
+    componentDidMount() {
+        // In order to show the default chosen file, we "simulate" onChange function with the given file
+        if (this.props.defaultChosenFile) {
+            let file = this.props.defaultChosenFile;
+            let e = { target: { files: [file] } };
+            this.onChange(e, true);
+        }
     }
 
     initialValues = (props) => {
@@ -44,7 +54,8 @@ export default class SingleFileUploader extends Component {
         return defaultThumbnail;
     }
 
-    async onChange(e) {
+    async onChange(e, isDefaultChosenFile = false) {
+        
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
@@ -52,27 +63,29 @@ export default class SingleFileUploader extends Component {
         let fileObj = null;
         let filePreview = null;
         let showErrPopup = false;
-        let [status, errMsg] = this.isFileInSizeRange(file);
+        let [status, errMsg] = this.isFileInSizeRange(file, isDefaultChosenFile); // NOTICE: When defaultChosenFile=true, the file is automatically accepted
+
+        const extraFileObjProps = this.props.extraFileObjProps || {};
 
         if (status === Consts.FILE_ACCEPTED) {
-            base64String = await this.readFileToBase64(file);
+            base64String = isDefaultChosenFile ? file : await this.readFileToBase64(file);
             fileObj = {
                 src: base64String,
                 type: this.type,
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
                 description: this.props.description || "default_description",
-                isMultiSizes: this.props.isMultiSizes || false
+                ...extraFileObjProps
             };
 
-            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
+            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg, isDefaultChosenFile);
         }
         else { // status = Consts.FILE_REJECTED
 
             if (this.isErrorPopup) {
                 filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
                 showErrPopup = true;
-                this.refs.uploaderInputRef.value = null;
+                this.uploaderInputRef.current.value = null;
             }
             else {
                 if (this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
@@ -83,7 +96,7 @@ export default class SingleFileUploader extends Component {
         let fileData = { previewObj: filePreview, acceptedObj: fileObj };
 
         // Display previews of dropped files and calls the onChange callback with the accepted files
-        this.setState({ fileData, showErrPopup }, this.parentOnChange);
+        this.setState({ fileData, showErrPopup }, () => !isDefaultChosenFile && this.parentOnChange());
     }
 
     parentOnChange = () => {
@@ -102,9 +115,11 @@ export default class SingleFileUploader extends Component {
         this.props.onChange && this.props.onChange !== "function" && this.props.onChange(eventObj);
     }
 
-    isFileInSizeRange = (file) => {
+    isFileInSizeRange = (file, isDefaultChosenFile = false) => {
         let status = Consts.FILE_ACCEPTED;
         let errMsg = null;
+
+        if (isDefaultChosenFile) return [status, errMsg];
 
         let sizeKB = file.size * 0.001;
         if (sizeKB < this.minSizeInKB) {
@@ -133,7 +148,7 @@ export default class SingleFileUploader extends Component {
         })
     }
 
-    getFilePreviewObj = (file = null, base64String = null, status, errMsg = null) => {
+    getFilePreviewObj = (file = null, base64String = null, status, errMsg = null, isDefaultChosenFile = false) => {
         let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL || (status === Consts.FILE_REJECTED && this.isErrorPopup);
 
         let filePreview = {
@@ -146,9 +161,9 @@ export default class SingleFileUploader extends Component {
         if (isDefaultPreview) return filePreview;
 
         if (this.type === Consts.FILE_TYPE_FILE) {
-            filePreview.preview = file.name;
-            filePreview.extension = this.getExtension(file.type);
-            console.log("extension", filePreview.extension);
+            filePreview.preview = isDefaultChosenFile ? "Default file" :  file.name;
+            filePreview.extension = isDefaultChosenFile? file.split(".").pop() : this.getExtension(file.type);
+            console.log("extension", filePreview.extension)
         }
         else filePreview.preview = base64String;
 
@@ -193,13 +208,14 @@ export default class SingleFileUploader extends Component {
 
     removeFile = () => {
         if (this.state.fileData.previewObj.state === Consts.DEFAULT_THUMBNAIL) return;
-        this.refs.uploaderInputRef.value = null;
+        this.uploaderInputRef.current.value = null;
         let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
         let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
         this.setState({ fileData }, this.parentOnChange);
     }
 
     getExtension = (mime) => {
+
         let extensions = Consts.FILE_EXTENSIONS[this.type];
         for (let extension of extensions) {
             let mimeOrMimes = Consts.FILE_MIMES[extension];
@@ -256,7 +272,7 @@ export default class SingleFileUploader extends Component {
                         disabled={this.props.disabled}
                         required={this.props.required || false}
                         accept={this.acceptedExtensions}
-                        ref="uploaderInputRef" />
+                        ref={this.uploaderInputRef} />
 
                     {this.props.theme === "button-theme" &&
                         <label htmlFor={this.props.name}>

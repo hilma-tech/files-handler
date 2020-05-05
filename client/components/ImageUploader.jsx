@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
+import { fileshandler as config } from '../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from './ErrorPopup';
 import './ImageUploader.scss';
@@ -25,13 +26,19 @@ export default class ImageUploader extends Component {
 
     updateProps = () => {
         let props = { ...this.props };
+
         props.type = Consts.FILE_TYPE_IMAGE;
+
         let propsDefaultTumbnail = props.defaultValue || props.thumbnail || props.defaultThumbnailImageSrc;
-        let defaultThumbnail = propsDefaultTumbnail ||
-            (props.theme === "circle-theme" ?
-                require(`../../imgs/circle-theme-default-thumbnail.svg`) :
-                require(`../../imgs/default-thumbnail.svg`));
+        let defaultThumbnail = propsDefaultTumbnail || (props.theme === "circle-theme" ?
+            require(`../../imgs/circle-theme-default-thumbnail.svg`) :
+            require(`../../imgs/default-thumbnail.svg`));
         props.defaultThumbnailImageSrc = defaultThumbnail;
+
+        props.extraFileObjProps = {
+            isMultiSizes: props.isMultiSizes || false
+        };
+
         return props;
     }
 
@@ -63,7 +70,7 @@ export default class ImageUploader extends Component {
                                 disabled={parentThis.props.disabled || false}
                                 required={parentThis.props.required || false}
                                 accept={parentThis.acceptedExtensions}
-                                ref="uploaderInputRef"
+                                ref={parentThis.uploaderInputRef}
                             />
                             <img
                                 className="default-theme-image"
@@ -107,7 +114,7 @@ export default class ImageUploader extends Component {
                         disabled={parentThis.props.disabled}
                         required={parentThis.props.required || false}
                         accept={parentThis.acceptedExtensions}
-                        ref="uploaderInputRef"
+                        ref={parentThis.uploaderInputRef}
                     />
 
                     <div className={`${parentThis.props.previewWidget && 'chosen-image-parent'} single-file-preview ${vars.type}-preview`}>
@@ -153,6 +160,14 @@ export default class ImageUploader extends Component {
         )
     }
 
+    /* 
+    Below code enables extending the SingleFileUploader's return function without literly extending it.
+    We needs to change SingleFileUploader component default props,
+    such as type/theme/defaultThumbnailImageSrc etc, so it can't be an extention of SingleFileUploader.
+    Otherwise, when trying to change props obj before passing it to super(), an error accures:
+    "...When calling super() make sure to pass up the same props that your component's constructor was passed".
+    The solution is using getExtraVars and replaceReturn props.
+    */
     render() {
         return (
             <>
