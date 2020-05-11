@@ -270,9 +270,11 @@ module.exports = function FilesHandler(Model) {
                     // take the data in dataObj and put it in obj called filesToSave inside dataObj
                     // so we can later take it and add it to the file/img/audio table
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    filesToSave[key] = keyData;
-                    ctx.args[field]["filesToSave"] = filesToSave;
-                    ctx.args[field][key] = null;
+                    if (keyData.length) {
+                        filesToSave[key] = keyData;
+                        ctx.args[field]["filesToSave"] = filesToSave;
+                        ctx.args[field][key] = null;
+                    }
                 };
             }
 
