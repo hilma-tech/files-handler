@@ -284,7 +284,7 @@ module.exports = function FilesHandler(Model) {
         logFile("Model.afterRemote(*) is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
             return next();
-
+        if (!modelInstance) return next();
         modelInstance = modelInstance.success || modelInstance;
         let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
             ctx.args.options.accessToken.userId : //if there's accessToken use userId
