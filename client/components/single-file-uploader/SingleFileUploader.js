@@ -44,7 +44,7 @@ export default class SingleFileUploader extends Component {
         return defaultThumbnail;
     }
 
-    async onChange(e) {
+    async onChange(e, base64exists) {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
@@ -55,7 +55,7 @@ export default class SingleFileUploader extends Component {
         let [status, errMsg] = this.isFileInSizeRange(file);
 
         if (status === Consts.FILE_ACCEPTED) {
-            base64String = await this.readFileToBase64(file);
+            base64String = (base64exists ? file : await this.readFileToBase64(file));
             fileObj = {
                 src: base64String,
                 type: this.type,

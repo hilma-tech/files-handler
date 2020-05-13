@@ -4,6 +4,7 @@ import Consts from '../../consts/Consts.json';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from './ErrorPopup';
 import './ImageUploader.scss';
+import CropPopup from "./ImageCropper";
 
 // Change to functional component
 export default class ImageUploader extends Component {
@@ -11,7 +12,8 @@ export default class ImageUploader extends Component {
         super(props);
 
         this.state = {
-            showPreviewPopup: null
+            showPreviewPopup: null,
+            crop: false
         };
     }
 
@@ -95,7 +97,6 @@ export default class ImageUploader extends Component {
                     </div>
                 </div>
             );
-
         return (
             <div className="image-uploader-container single-file-uploader">
                 <div className={parentThis.props.theme}>
@@ -148,20 +149,33 @@ export default class ImageUploader extends Component {
                             inputId: parentThis.props.name,
                             disabled: parentThis.props.disabled
                         })}
+
                 </div>
+                {this.props.crop && //if we want to enable crop
+                !vars.isDefaultPreview&&//and this isn't the default image
+                    parentThis.state.fileData.previewObj.errMsg !== Consts.ERROR_MSG_FILE_TOO_SMALL &&//and image is  not to small
+                    < div >
+                    <button data-toggle="modal" data-target="#myCropModal"
+                    >{(this.props.crop.texts && this.props.crop.texts.cropButtonName )|| "crop"}</button>
+                    <CropPopup
+                        onChange={parentThis.onChange}
+                        src={parentThis.state.fileData.previewObj.preview}
+                        {...this.props.crop}
+                    />
+                    </div>}
             </div>
         )
     }
 
-    render() {
-        return (
-            <>
-                <SingleFileUploader
-                    {...this.updateProps()}
-                    getExtraVars={this.getExtraVars}
-                    replaceReturn={this.replaceReturn}
-                />
-            </>
-        );
-    }
+render() {
+    return (
+        <>
+            <SingleFileUploader
+                {...this.updateProps()}
+                getExtraVars={this.getExtraVars}
+                replaceReturn={this.replaceReturn}
+            />
+        </>
+    );
+}
 }

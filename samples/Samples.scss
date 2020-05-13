@@ -50,4 +50,12 @@
     margin: 1em;
     margin-bottom: 2em;
   }
+  li {
+    font-size: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+  .inner-list{
+    list-style-type: circle;
+  }
 }

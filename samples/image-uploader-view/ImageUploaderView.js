@@ -249,6 +249,36 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 </div>)}
                         </div>}
                 </div>
+                <h2> Image cropper ✂️</h2>
+                <p className="explanation">The image cropper enables the user to cut his image before uploading it. It could be useful for cropping a profile image and much more. </p>
+                <p className="explanation"> To use it simply add to the ImageUploader the prop crop=true</p>
+                <h4 className="explanation">Additional features</h4>
+                <p className="explanation"> change the crop=true -> crop={"{}"} and add keys according to what you want</p>
+                <li className="explanation">ellipse:true - if you whant the crop to be in an oval shape</li>
+                <li className="explanation">proportion:number {"<=1"} - to define fixed proportions between height/weight</li>
+                <li className="explanation">direction:"ltr"/"rtl" - should popup titles be from rtl or ltr</li>
+                <li className="explanation">grid:true -  adds grid lines to help user with proportion </li>
+                <li className="explanation">texts:{"{}"} - override default texts, the obect has key(name of text) value (replaced text)<br />
+                    the texts you can override are:
+                <li className="inner-list">popupTitle</li><li className="inner-list">close (the popup)</li><li className="inner-list">done</li><li className="inner-list">cropButtonName</li></li>
+                <p className="explanation"><strong>And the real thing</strong></p>
+                <ImageUploader
+                    category="my-images"
+                    name="imageSample11"
+                    title="my-image"
+                    theme="basic-theme"
+                    crop={{
+                        ellipse: true,
+                        proportion: 1,
+                        grid: true,
+                        texts: {
+                            popupTitle: "custom popup title",
+                            cropButtonName: "crop ✂️",
+                            close: "this might be equal to \"rm -rf /*\"",
+                            done:"Taadaa"
+                        }
+                    }}
+                />
             </div>
         );
     }
