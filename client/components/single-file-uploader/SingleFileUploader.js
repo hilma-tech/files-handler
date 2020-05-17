@@ -54,7 +54,7 @@ export default class SingleFileUploader extends Component {
         return defaultThumbnail;
     }
 
-    async onChange(e, fileSizeInRange = false, readFileToBase64 = true ) {
+    async onChange(e, fileSizeInRange = false, readFileToBase64 = true) {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
@@ -67,7 +67,7 @@ export default class SingleFileUploader extends Component {
         const extraFileObjProps = this.props.extraFileObjProps || {};
 
         if (status === Consts.FILE_ACCEPTED) {
-            base64String = !readFileToBase64 ? file : await this.readFileToBase64(file);
+            base64String = !readFileToBase64 ? (file && file.file ? file.file : file) : await this.readFileToBase64(file);
             fileObj = {
                 src: base64String,
                 type: this.type,
@@ -87,7 +87,8 @@ export default class SingleFileUploader extends Component {
                 this.uploaderInputRef.current.value = null;
             }
             else {
-                if (this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
+                if (this.type !== Consts.FILE_TYPE_FILE)  base64String = !readFileToBase64 ? (file && file.file ? file.file : file) : await this.readFileToBase64(file);
+
                 filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
             }
         }
@@ -160,9 +161,9 @@ export default class SingleFileUploader extends Component {
         if (isDefaultPreview) return filePreview;
 
         if (this.type === Consts.FILE_TYPE_FILE) {
-            filePreview.preview = isDefaultChosenFile ? "Default file" :  file.name;
-            filePreview.extension = isDefaultChosenFile? file.split(".").pop() : this.getExtension(file.type);
-            console.log("extension", filePreview.extension)
+            filePreview.preview = isDefaultChosenFile ? "Default file" : file.name;
+            filePreview.extension = isDefaultChosenFile ? file.split(".").pop() : this.getExtension(file.type);
+            // console.log("extension", filePreview.extension)
         }
         else filePreview.preview = base64String;
 

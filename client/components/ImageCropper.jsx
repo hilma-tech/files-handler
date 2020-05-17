@@ -21,6 +21,11 @@ const ImageCropper = props => {
     React.useEffect(() => setSrc(props.src), [props.src])//tmp 
     const canvasRef = React.createRef();
     const createBase64Canvas = () => { //using canvas help
+        if (crop.width === 0 || crop.height === 0) {
+            props.onClose && props.onClose();
+            setOpen(false);
+            return;
+        }
         const canvas = canvasRef.current;
         const image = new Image()
         const ctx = canvas.getContext('2d');
@@ -44,29 +49,30 @@ const ImageCropper = props => {
             ctx.drawImage(image, sx, sy, srcWidth, srcHeight, 0, 0, destinationWidth, destinationHeight);
 
             const newBase64 = canvas.toDataURL();
-            setCrop({});props.onChange({ target: { files: [newBase64] } }, false,false);
+            const size = Math.round(newBase64.length * 3 / 4);
+            setCrop({}); props.onChange({ target: { files: [{ file: newBase64, size: size }] } }, false, false);
             props.onClose && props.onClose();
         }
 
     }
     let texts = props.texts || {};
-    if(!props.src) {
+    if (!props.src) {
         // setOpen(false);
         // props.onClose && props.onClose();
         return null;
     }
     return <div dir={props.dir || "ltr"}>
 
-        <div className={`cropModal ${open ? "" : "dontDisplay"}`}/*ref="cropPopup"*/ onClick={() =>  {props.onClose && props.onClose();setOpen(false)}}>
+        <div className={`cropModal ${open ? "" : "dontDisplay"}`}/*ref="cropPopup"*/ onClick={() => { props.onClose && props.onClose(); setOpen(false) }}>
             {/* <!-- Modal content--> */}
             <div className="modalContent" onClick={e => e.stopPropagation()}>
                 <div className="modalHeader">
                     <h4 className="modalTitle"><strong>{texts.popupTitle ? texts.popupTitle : "Plese crop your image"}</strong></h4>
                 </div>
-                <hr/>
+                <hr />
                 <div className="modalBody">
                     {/* body of modal */}
-                    <ReactCrop 
+                    <ReactCrop
                         className="modalBody"
                         imageStyle={{
                             maxHeight: "60vh",
@@ -82,8 +88,9 @@ const ImageCropper = props => {
                 </div>
                 <hr />
                 <div className="modalFooter">
-                    <button onClick={() => { 
-                         setOpen(false); createBase64Canvas(src, crop, canvasRef.current) }}//run onChange with resault
+                    <button onClick={() => {
+                        setOpen(false); createBase64Canvas(src, crop, canvasRef.current)
+                    }}//run onChange with resault
                         className="doneCropButton  modelCropButton"
                     >{texts.done ? texts.done : "done"}</button>
                     <button onClick={() => {
