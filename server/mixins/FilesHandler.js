@@ -125,8 +125,8 @@ module.exports = function FilesHandler(Model) {
         else { // file in size range
             if (isUpdateFile) {
                 FileModel.overrideDeleteFile && typeof FileModel.overrideDeleteFile === "function" ?
-                oldFileId = await FileModel.overrideDeleteFile(modelInstance[fileKey], FileModel) :
-                oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
+                    oldFileId = await FileModel.overrideDeleteFile(modelInstance[fileKey], FileModel) :
+                    oldFileId = await Model.deleteFile(modelInstance[fileKey], FileModel);
                 toHandleEmptyRow = false;
             }
 
@@ -270,9 +270,11 @@ module.exports = function FilesHandler(Model) {
                     // take the data in dataObj and put it in obj called filesToSave inside dataObj
                     // so we can later take it and add it to the file/img/audio table
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    filesToSave[key] = keyData;
-                    ctx.args[field]["filesToSave"] = filesToSave;
-                    ctx.args[field][key] = null;
+                    if (keyData.length) {
+                        filesToSave[key] = keyData;
+                        ctx.args[field]["filesToSave"] = filesToSave;
+                        ctx.args[field][key] = null;
+                    }
                 };
             }
 
@@ -284,13 +286,12 @@ module.exports = function FilesHandler(Model) {
         logFile("Model.afterRemote(*) is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
             return next();
-
+        if (!modelInstance) return next();
         modelInstance = modelInstance.success || modelInstance;
         let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
             ctx.args.options.accessToken.userId : //if there's accessToken use userId
             (Model === Model.app.models.CustomUser ? //else, if we are creating new user use new user's id
-                (modelInstance && modelInstance.id) :
-                null);
+                (modelInstance && modelInstance.id) : null);
 
         logFile("The owner of the file is fileOwnerId", fileOwnerId);
         //Access is always restricted without authentication

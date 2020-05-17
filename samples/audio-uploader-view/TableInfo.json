@@ -37,7 +37,31 @@
             "Default": "Load audio"
         },
         {
-            "Property": "removeaudioIcon",
+            "Property": "minSizeInKB",
+            "Type": "int",
+            "Description": "Minimum audio's size in KB",
+            "Default": "100"
+        },
+        {
+            "Property": "maxSizeInKB",
+            "Type": "int",
+            "Description": "Maximum audio's size in KB",
+            "Default": "50000"
+        },
+        {
+            "Property": "defaultThumbnailImageSrc",
+            "Type": "string",
+            "Description": "This will be the upload sign image of the uploader. Accepts image's path in public, example:'/images/myImage.png'. Notice the difference between this prop and defaultChosenFile.",
+            "Default": "src/modules/fileshandler/imgs/default-thumbnail.svg"
+        },
+        {
+            "Property": "defaultChosenFile",
+            "Type": "string",
+            "Description": "In case we want to display a default audio. For example, when editing an already exists game audio: we will use this prop to display a default video. Accepts audio's path in public, example:'/audios/myAudio.wav'. Notice the difference between this prop and defaultThumbnailImageSrc.",
+            "Default": "-"
+        },
+        {
+            "Property": "removeFileIcon",
             "Type": "string",
             "Description": "Image's path in public, example:'/audios/myImage.png",
             "Default": "src/modules/audioshandler/imgs/x-icon.png"
@@ -46,6 +70,12 @@
             "Property": "required",
             "Type": "boolean",
             "Description": "Is it required to fill the input or not",
+            "Default": "false"
+        },
+        {
+            "Property": "disabled",
+            "Type": "boolean",
+            "Description": "If it is possible to change the audio's input's value",
             "Default": "false"
         },
         {

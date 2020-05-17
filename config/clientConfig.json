@@ -1,7 +1,7 @@
 {
     "FILE_SIZE_RANGE_IN_KB": {
         "file": {
-            "MIN_SIZE": 5,
+            "MIN_SIZE": 2,
             "MAX_SIZE": 500
         },
         "image": {

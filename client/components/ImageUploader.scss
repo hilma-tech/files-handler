@@ -15,10 +15,6 @@
       width: 10em;
       height: 10em;
     }
-  
-    .default-theme-label {
-      color: red;
-    }
 
     .remove-icon img {
       right: 0em;
@@ -142,6 +138,9 @@
       height: 80%;
     }
 
+    .crop{
+      height: 80%;
+    }
     .bin {
       height: 80%;
     }
@@ -151,6 +150,74 @@
     }
   }
 }
+.dontDisplay{
+  display: none;
+}
+.cropModal{
+  // display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.517); /* Black w/ opacity */
+}
+
+.modalContent {
+  position: relative; /* Stay in place */
+  top:10vh;
+  max-height: 85vh;
+  background-color: #fefefe;
+  margin: auto;
+  padding: 3vh 3vw;
+  border: 1px solid #888;
+  width: fit-content;
+}
+.modalHeader{
+  max-height:10vh;
+  font-weight: bold;
+  // float: left;
+}
+.modalBody{
+ max-height: 60vh;
+ max-width:74vw;
+ width:auto;
+ height:auto;
+} 
+.modalFooter{
+  max-height: 12vh;
+  // border-top:1px solid gray;
+  display: flex;
+  justify-content: space-between;
+}
 .cancleCropButton{
-  margin-left: 0 !important;
+  background-color: white; 
+  color: black; 
+  border: 2px solid #008CBA;
+  margin-left: 2vw !important;
+
+  // float: right;
+}
+.modelCropButton{
+  // padding: 1vh 1vw;
+  font-weight: bold;
+  border-radius: 2vw;
+  transition: all .2s ease-in-out;
+  margin: 0 !important;
+
+  // margin:0 !important;
+ 
+}
+.doneCropButton{
+  background-color:#008CBA;
+  color:white;
+  // float: left;
+  margin-right: 2vw !important;
+  border:2px solid #016080;
+}
+.modelCropButton:hover{
+  transform: scale(1.1);
 }

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
 import Consts from '../../consts/Consts.json';
+import { fileshandler as config } from '../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from './ErrorPopup';
 import './ImageUploader.scss';
@@ -27,13 +28,19 @@ export default class ImageUploader extends Component {
 
     updateProps = () => {
         let props = { ...this.props };
+
         props.type = Consts.FILE_TYPE_IMAGE;
+
         let propsDefaultTumbnail = props.defaultValue || props.thumbnail || props.defaultThumbnailImageSrc;
-        let defaultThumbnail = propsDefaultTumbnail ||
-            (props.theme === "circle-theme" ?
-                require(`../../imgs/circle-theme-default-thumbnail.svg`) :
-                require(`../../imgs/default-thumbnail.svg`));
+        let defaultThumbnail = propsDefaultTumbnail || (props.theme === "circle-theme" ?
+            require(`../../imgs/circle-theme-default-thumbnail.svg`) :
+            require(`../../imgs/default-thumbnail.svg`));
         props.defaultThumbnailImageSrc = defaultThumbnail;
+
+        props.extraFileObjProps = {
+            isMultiSizes: props.isMultiSizes || false
+        };
+
         return props;
     }
 
@@ -65,7 +72,7 @@ export default class ImageUploader extends Component {
                                 disabled={parentThis.props.disabled || false}
                                 required={parentThis.props.required || false}
                                 accept={parentThis.acceptedExtensions}
-                                ref="uploaderInputRef"
+                                ref={parentThis.uploaderInputRef}
                             />
                             <img
                                 className="default-theme-image"
@@ -108,7 +115,7 @@ export default class ImageUploader extends Component {
                         disabled={parentThis.props.disabled}
                         required={parentThis.props.required || false}
                         accept={parentThis.acceptedExtensions}
-                        ref="uploaderInputRef"
+                        ref={parentThis.uploaderInputRef}
                     />
 
                     <div className={`${parentThis.props.previewWidget && 'chosen-image-parent'} single-file-preview ${vars.type}-preview`}>
@@ -139,7 +146,6 @@ export default class ImageUploader extends Component {
                             message={vars.file.errMsg}
                             showPopup={parentThis.state.showErrPopup}
                             toggleShowPopup={parentThis.turnOffErrPopup} />}
-
                     {parentThis.props.previewWidget && typeof this.state.showPreviewPopup === "boolean" &&
                         this.addExtraProps(parentThis.props.previewWidget, {
                             chosenImg: vars.previewWidgetChosenImg,
@@ -147,35 +153,53 @@ export default class ImageUploader extends Component {
                             toggleShowPopup: this.togglePreviewPopup,
                             removeFile: parentThis.removeFile,
                             inputId: parentThis.props.name,
-                            disabled: parentThis.props.disabled
+                            disabled: parentThis.props.disabled,
+                            src:(parentThis.props.previewWidget.props.crop && 
+                                !vars.isDefaultPreview&&
+                                parentThis.state.fileData.previewObj.errMsg !== Consts.ERROR_MSG_FILE_TOO_SMALL
+                                && parentThis.state.fileData.previewObj.preview),
+                            onChange:parentThis.onChange
                         })}
 
                 </div>
+                {/* display crop option */}
                 {this.props.crop && //if we want to enable crop
-                !vars.isDefaultPreview&&//and this isn't the default image
+                    !vars.isDefaultPreview &&//and this isn't the default image
                     parentThis.state.fileData.previewObj.errMsg !== Consts.ERROR_MSG_FILE_TOO_SMALL &&//and image is  not to small
-                    < div >
-                    <button data-toggle="modal" data-target="#myCropModal"
-                    >{(this.props.crop.texts && this.props.crop.texts.cropButtonName )|| "crop"}</button>
-                    <CropPopup
-                        onChange={parentThis.onChange}
-                        src={parentThis.state.fileData.previewObj.preview}
-                        {...this.props.crop}
-                    />
-                    </div>}
+                    <div>
+                        <button onClick={() => this.setState({ crop: true })}//data-toggle="modal" data-target="#myCropModal"
+                        >{this.props.crop.texts.cropButtonName || "crop"}</button>
+
+                        {this.state.crop && <CropPopup
+                            onChange={parentThis.onChange}
+                            onClose={()=> this.setState({crop:false})}
+                            src={parentThis.state.fileData.previewObj.preview}
+                            {...this.props.crop}
+                        />
+                        }
+                    </div>
+                }
             </div>
         )
     }
 
-render() {
-    return (
-        <>
-            <SingleFileUploader
-                {...this.updateProps()}
-                getExtraVars={this.getExtraVars}
-                replaceReturn={this.replaceReturn}
-            />
-        </>
-    );
-}
+    /* 
+    Below code enables extending the SingleFileUploader's return function without literly extending it.
+    We needs to change SingleFileUploader component default props,
+    such as type/theme/defaultThumbnailImageSrc etc, so it can't be an extention of SingleFileUploader.
+    Otherwise, when trying to change props obj before passing it to super(), an error accures:
+    "...When calling super() make sure to pass up the same props that your component's constructor was passed".
+    The solution is using getExtraVars and replaceReturn props.
+    */
+    render() {
+        return (
+            <>
+                <SingleFileUploader
+                    {...this.updateProps()}
+                    getExtraVars={this.getExtraVars}
+                    replaceReturn={this.replaceReturn}
+                />
+            </>
+        );
+    }
 }

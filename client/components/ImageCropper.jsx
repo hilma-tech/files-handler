@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -14,10 +14,10 @@ import 'react-image-crop/dist/ReactCrop.css';
  * @key {string} done
  * @key {string} cropButtonName
 */
-
 const ImageCropper = props => {
-    const [crop, setCrop] = React.useState({ aspect: props.proportion });
-    const [src, setSrc] = React.useState();
+    const [crop, setCrop] = useState({ aspect: props.proportion });
+    const [src, setSrc] = useState();
+    const [open, setOpen] = useState(true);
     React.useEffect(() => setSrc(props.src), [props.src])//tmp 
     const canvasRef = React.createRef();
     const createBase64Canvas = () => { //using canvas help
@@ -44,42 +44,56 @@ const ImageCropper = props => {
             ctx.drawImage(image, sx, sy, srcWidth, srcHeight, 0, 0, destinationWidth, destinationHeight);
 
             const newBase64 = canvas.toDataURL();
-            setCrop({});
-            props.onChange({ target: { files: [newBase64] } }, true);
+            setCrop({});props.onChange({ target: { files: [newBase64] } }, false,false);
+            props.onClose && props.onClose();
         }
 
     }
     let texts = props.texts || {};
+    if(!props.src) {
+        // setOpen(false);
+        // props.onClose && props.onClose();
+        return null;
+    }
     return <div dir={props.dir || "ltr"}>
-        <div className="modal fade" id="myCropModal" /*ref="cropPopup"*/ role="dialog" >
-            <div className="modal-dialog modal-lg">
-                {/* <!-- Modal content--> */}
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h4 className="modal-title">{texts.popupTitle ? texts.popupTitle : "Plese crop your image"}</h4>
-                    </div>
-                    <div className="modal-body">
-                        {/* body of modal */}
-                        {/* {console.log("image src: ", src)} */}
-                        <ReactCrop //tmp we need to figure out props here
-                            onComplete={(px, percentCrop) => setCrop(percentCrop)}
-                            src={src}
-                            crop={crop}
-                            ruleOfThirds={props.grid || false}
-                            onChange={(px, percentCrop) => setCrop(percentCrop)}
-                            circularCrop={props.ellipse}
-                        />
-                    </div>
-                    <div className="modal-footer">
-                        <button onClick={props.getCropUrl ? props.getCropUrl : () => console.log("image changed, no callback to send data to")}
-                            type="button" className="btn btn-secondary cancleCropButton " data-dismiss="modal">{texts.close ? texts.close : "Close"}</button>
-                        <button onClick={() => createBase64Canvas(src, crop, canvasRef.current)}//run onChange with resault
-                            type="button" className="btn btn-primary "
-                            data-dismiss="modal">{texts.done ? texts.done : "done"}</button>
-                    </div>
-                </div>
 
+        <div className={`cropModal ${open ? "" : "dontDisplay"}`}/*ref="cropPopup"*/ onClick={() =>  {props.onClose && props.onClose();setOpen(false)}}>
+            {/* <!-- Modal content--> */}
+            <div className="modalContent" onClick={e => e.stopPropagation()}>
+                <div className="modalHeader">
+                    <h4 className="modalTitle"><strong>{texts.popupTitle ? texts.popupTitle : "Plese crop your image"}</strong></h4>
+                </div>
+                <hr/>
+                <div className="modalBody">
+                    {/* body of modal */}
+                    <ReactCrop 
+                        className="modalBody"
+                        imageStyle={{
+                            maxHeight: "60vh",
+                            maxWidth: "74vw"
+                        }}
+                        onComplete={(px, percentCrop) => setCrop(percentCrop)}
+                        src={src}
+                        crop={crop}
+                        ruleOfThirds={props.grid || false}
+                        onChange={(px, percentCrop) => setCrop(percentCrop)}
+                        circularCrop={props.ellipse}
+                    />
+                </div>
+                <hr />
+                <div className="modalFooter">
+                    <button onClick={() => { 
+                         setOpen(false); createBase64Canvas(src, crop, canvasRef.current) }}//run onChange with resault
+                        className="doneCropButton  modelCropButton"
+                    >{texts.done ? texts.done : "done"}</button>
+                    <button onClick={() => {
+                        props.onClose && props.onClose();
+                        setOpen(false); props.getCropUrl ? props.getCropUrl() : console.log("image changed, no callback to send data to")
+                    }}
+                        className="cancleCropButton modelCropButton">{texts.close ? texts.close : "Close"}</button>
+                </div>
             </div>
+
         </div>
         {/* Canvas */}
         <canvas id="imageCanvas" style={{ display: "none" }} ref={canvasRef} />
@@ -87,4 +101,3 @@ const ImageCropper = props => {
 }
 
 export default ImageCropper;
-
