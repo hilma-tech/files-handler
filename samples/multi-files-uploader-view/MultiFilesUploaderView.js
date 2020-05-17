@@ -20,6 +20,7 @@ export default class MultiFilesUploaderView extends Component {
     }
 
     onChange = (event) => {
+        console.log("event", event)
         let name = (event.target && event.target.name) || null;
         let value = (event.target && event.target.value) || null;
         let isSubmitDisabled = true;
