@@ -30,9 +30,6 @@ export default class MultiFilesUploader extends Component {
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
-        console.log("acceptedfiles", acceptedfiles)
-        console.log("rejectedFiles", rejectedFiles)
-
         let filesData = [...this.state.filesData];
 
         for (let i = 0; i < acceptedfiles.length; i++) {

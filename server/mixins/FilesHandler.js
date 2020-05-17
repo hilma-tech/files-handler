@@ -265,16 +265,16 @@ module.exports = function FilesHandler(Model) {
                             keyData[z].src = isFileInRange ? keyData[z].src : null;
                             logFile("isFileInRange", isFileInRange)
                         }
+
+                        if (!keyData.length) continue;
                     }
 
                     // take the data in dataObj and put it in obj called filesToSave inside dataObj
                     // so we can later take it and add it to the file/img/audio table
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    if (keyData.length) {
-                        filesToSave[key] = keyData;
-                        ctx.args[field]["filesToSave"] = filesToSave;
-                        ctx.args[field][key] = null;
-                    }
+                    filesToSave[key] = keyData;
+                    ctx.args[field]["filesToSave"] = filesToSave;
+                    ctx.args[field][key] = null;
                 };
             }
 
@@ -288,12 +288,13 @@ module.exports = function FilesHandler(Model) {
             return next();
         if (!modelInstance) return next();
         modelInstance = modelInstance.success || modelInstance;
-        let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
-            ctx.args.options.accessToken.userId : //if there's accessToken use userId
-            (Model === Model.app.models.CustomUser ? //else, if we are creating new user use new user's id
-                (modelInstance && modelInstance.id) : null);
 
+        let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
+            ctx.args.options.accessToken.userId : // If there's accessToken use userId
+            (Model === Model.app.models.CustomUser ? // Else, if we are creating new user use new user's id
+                (modelInstance && modelInstance.id) : null);
         logFile("The owner of the file is fileOwnerId", fileOwnerId);
+
         //Access is always restricted without authentication
         if (!fileOwnerId) { logFile("No owner for this file, aborting..."); return next(); }
 
@@ -313,7 +314,6 @@ module.exports = function FilesHandler(Model) {
                 if (field === "options") continue;
 
                 if (!args[field] || !args[field].filesToSave) return next();
-
                 let filesToSave = args[field].filesToSave;
 
                 for (let fileKey in filesToSave) {
