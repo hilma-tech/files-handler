@@ -205,13 +205,25 @@ module.exports = function FilesHandler(Model) {
             }
         }
 
+        let principalType = null, principalId = null;
+        if (!fileOwnerId) {
+            // Check resctrictions of unauthentication
+            const modulesConfig = Model.app.get("modules");
+            const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
+            const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
+            if (authConfig.enable) {
+                principalType = authConfig.record_permission_type;
+                principalId = authConfig.record_permission_id;
+            }
+        }
+
         // giving the owner of the file/image permission to view it
         const rpModel = Model.app.models.RecordsPermissions;
         let rpData = {
             model: FileModelName,
             recordId: newFileId,
-            principalType: Consts.USER,
-            principalId: fileOwnerId,
+            principalType: principalType || Consts.USER,
+            principalId: principalId || fileOwnerId,
             permission: Consts.ALLOW
         }
         let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
@@ -295,8 +307,14 @@ module.exports = function FilesHandler(Model) {
                 (modelInstance && modelInstance.id) : null);
         logFile("The owner of the file is fileOwnerId", fileOwnerId);
 
-        //Access is always restricted without authentication
-        if (!fileOwnerId) { logFile("No owner for this file, aborting..."); return next(); }
+        if (!fileOwnerId) {
+            // Check resctrictions of unauthentication
+            const modulesConfig = Model.app.get("modules");
+            const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
+            const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
+
+            if (authConfig && !authConfig.enable) { logFile("No owner for this file, and unauthenticated upload is disabled. aborting..."); return next(); }
+        }
 
         let args = ctx.args;
 
