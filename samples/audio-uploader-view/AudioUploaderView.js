@@ -10,7 +10,7 @@ export default class AudioUploaderView extends Component {
             <div>
                 <SingleFileUploaderView
                     type={Consts.FILE_TYPE_AUDIO}
-                    uploader={<AudioUploader />}
+                    uploader={<AudioUploader/>}
                     tableInfo={TableInfo}
                     defaultChosenFileName={'myAudio.wav'}
                 />

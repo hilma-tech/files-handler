@@ -10,7 +10,7 @@ export default class FileUploaderView extends Component {
             <div>
                 <SingleFileUploaderView
                     type={Consts.FILE_TYPE_FILE}
-                    uploader={<FileUploader />}
+                    uploader={<FileUploader/>}
                     tableInfo={TableInfo}
                     sqlImage={require('./files-sql.png')}
                     defaultChosenFileName={'myFile.pdf'}

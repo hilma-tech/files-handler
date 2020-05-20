@@ -1,5 +1,134 @@
 .single-file-uploader {
   direction: ltr;
+  // display: flex;
+
+  .single-file-preview {
+    position: relative;
+
+    label {
+      margin: 0;
+    }
+
+    .thumb {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-thumb {
+      // height: 80%;
+
+      .chosen-img {
+        // height: 100%;
+        // width: 8em;
+        // width: 10em;
+        // height: 10em;
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+      }
+    }
+
+    .file-thumb {
+      display: flex;
+      min-width: 0;
+      overflow: hidden;
+
+      div {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: center;
+        height: 100%;
+      }
+
+      img {
+        display: block;
+        height: 70%;
+      }
+
+      h2 {
+        direction: rtl;
+        font-size: 1.1em;
+        margin: 0;
+        max-height: 1.5em;
+        position: absolute;
+        bottom: 0;
+        height: fit-content;
+        width: fit-content;
+        max-width: 16em;
+        text-align: center;
+        right: 50%;
+        transform: translate(50%, -1.1em);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .video-thumb {
+      overflow: hidden;
+
+      video {
+        height: 100%;
+        border-radius: 5px;
+      }
+    }
+
+    .audio-thumb {
+      audio {
+        width: 17em;
+        border: 1px solid gray;
+        border-radius: 70px;
+      }
+    }
+
+    .remove-icon {
+      position: absolute;
+      top: 0;
+      right: -1em;
+
+      img {
+        // height: 1.8em;
+        background-color: white;
+        border-radius: 15px;
+      }
+    }
+
+    .error-icon {
+      position: absolute;
+      top: 0;
+      left: -1em;
+
+      img {
+        // height: 2em;
+      }
+    }
+
+    .tool-tip {
+      color: red;
+    }
+  }
+
+  // Hides the "load file" button
+  input[type="file"] {
+    position: absolute;
+    -webkit-appearance: none;
+    width: 0;
+    -moz-appearance: none;
+    appearance: none;
+    opacity: 0;
+    right: 0;
+    visibility: hidden;
+  }
+
+  .basic-theme {
+    margin: auto;
+    // margin-bottom: 0;
+    width: fit-content;
+    // padding-top: 1em;
+    // padding-bottom: 1em;
+  }
 
   .button-theme {
     label {
@@ -22,145 +151,7 @@
         height: auto;
         display: block;
       }
-
-      .remove-icon img {
-        right: 4.5em;
-        top: 0;
-      }
-
-      .error-icon img {
-        left: 4em;
-        top: 0;
-      }
     }
-  }
-
-  .single-file-preview {
-    position: relative;
-
-    .thumb {
-      margin-bottom: 0.5em;
-      height: 10em;
-      display: flex;
-      align-items: center;
-    }
-
-    .image-thumb {
-      .chosen-img {
-        width: 10em;
-        height: 10em;
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-position: center;
-      }
-    }
-
-    .file-thumb {
-      display: flex;
-      min-width: 0;
-      overflow: hidden;
-
-      div {
-        display: flex;
-        flex-direction: column;
-      }
-
-      img {
-        display: block;
-        height: 5em;
-      }
-
-      h2 {
-        direction: rtl;
-        font-size: 1.25em;
-        margin: 0;
-        margin-top: 1em;
-        max-height: 1.5em;
-        max-width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-      }
-    }
-
-    .video-thumb {
-      width: 18em;
-      height: 10em;
-      overflow: hidden;
-
-      video {
-        height: 100%;
-        border-radius: 5px;
-      }
-    }
-
-    .audio-thumb {
-      audio {
-        width: 17em;
-        border: 1px solid gray;
-        border-radius: 70px;
-      }
-    }
-
-    .remove-icon img {
-      position: absolute;
-      right: -0.5em;
-      top: 0em;
-      height: 1.8em;
-      background-color: white;
-      border-radius: 15px;
-    }
-
-    .error-icon img {
-      position: absolute;
-      left: -0.5em;
-      top: 0em;
-      height: 2em;
-    }
-
-    .tool-tip {
-      color: red;
-    }
-  }
-
-  .audio-preview {
-    .remove-icon img {
-      right: -0.5em;
-      top: 3em;
-    }
-
-    .error-icon img {
-      left: -1em;
-      top: 3em;
-    }
-  }
-
-  .file-preview {
-    .remove-icon img {
-      right: 5em;
-    }
-
-    .error-icon img {
-      left: 4.5em;
-    }
-  }
-
-  // Hides the "load file" button
-  input[type="file"] {
-    position: absolute;
-    -webkit-appearance: none;
-    width: 0;
-    -moz-appearance: none;
-    appearance: none;
-    opacity: 0;
-    right: 0;
-    visibility: hidden;
-  }
-
-  .basic-theme {
-    margin: auto;
-    width: fit-content;
-    padding-top: 1em;
-    padding-bottom: 1em;
   }
 
   .error-popup {
@@ -182,7 +173,7 @@
       top: 30%;
       left: calc(50vw - 35vh);
       background-color: white;
-      z-index: 3;
+      z-index: 4;
       display: flex;
       flex-direction: column;
       align-items: center;

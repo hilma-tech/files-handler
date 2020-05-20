@@ -75,13 +75,16 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                     <div className="image-input-samples">
 
                         <div className="image-input-sample">
-                            <p>This is the default-theme [deprecated] style. No <em>theme</em> prop is required.</p>
+                            <p>This is the default-theme style. No <em>theme</em> prop is required.<br/>
+                            <strong>This theme is deprecated and does not support all the props!</strong>
+                            </p>
                             <ImageUploader
                                 category="my-images"
                                 name="imageSample1"
                                 title="my-image"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
 
@@ -94,6 +97,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 theme="basic-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
 
@@ -106,6 +110,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 theme="circle-theme"
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
                     </div>
@@ -128,6 +133,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 previewWidget={<PreviewWidget />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
 
@@ -142,6 +148,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 previewWidget={<PreviewWidget enableEdit={true} />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
 
@@ -156,6 +163,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 previewWidget={<PreviewWidget enableEdit={true} enableDelete={true} />}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
                     </div>
@@ -176,6 +184,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 onChange={this.handleFileChange}
                                 defaultThumbnailImageSrc={require('../media//myImage.jpg')}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
                     </div>
@@ -195,6 +204,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 onChange={this.handleFileChange}
                                 defaultChosenFile={require('../media//myImage.jpg')}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
                     </div>
@@ -222,6 +232,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 isErrorPopup={true}
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
 
@@ -236,6 +247,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
                                 isErrorPopup={true}
+                                height="15vh"
                             />
                         </div>
 
@@ -249,6 +261,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 onChange={this.handleFileChange}
                                 disabled={this.state.isUploaderDisabled}
                                 isErrorPopup={true}
+                                height="15vh"
                             />
                         </div>
                     </div>
@@ -271,6 +284,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 onChange={this.handleFileChange}
                                 isMultiSizes={true}
                                 disabled={this.state.isUploaderDisabled}
+                                height="15vh"
                             />
                         </div>
                     </div>
@@ -288,6 +302,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 </div>)}
                         </div>}
                 </div>
+                
                 <h2> Image cropper ✂️</h2>
                 <p className="explanation">The image cropper enables the user to cut his image before uploading it. It could be useful for cropping a profile image and much more. </p>
                 <p className="explanation"> To use it simply add to the ImageUploader the prop crop=true</p>
@@ -302,47 +317,49 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                 <li className="inner-list">popupTitle</li><li className="inner-list">close (the popup)</li><li className="inner-list">done</li><li className="inner-list">cropButtonName</li></li>
                 <p className="explanation">If you whant to use previewWidget add the crop object in previewWidget's props</p>
                 <p className="explanation"><strong>And the real thing</strong></p>
-                 <div className="uploader">
-                     <p>using PreviewWidget</p>
-                <ImageUploader
-                    previewWidget={<PreviewWidget 
-                        enableEdit={true} 
-                        enableDelete={true}
-                        crop={{
-                            ellipse: true,
-                            proportion: 1,
-                            grid: true,
-                            texts: {
-                                popupTitle: "custom popup title",
-                                cropButtonName: "crop ✂️",
-                                close: "this might be equal to \"rm -rf /*\"",
-                                done: "Taadaa"
-                            }
-                        }}
+                <div className="uploader">
+                    <p>using PreviewWidget</p>
+                    <ImageUploader
+                        previewWidget={<PreviewWidget
+                            enableEdit={true}
+                            enableDelete={true}
+                            crop={{
+                                ellipse: true,
+                                proportion: 1,
+                                grid: true,
+                                texts: {
+                                    popupTitle: "custom popup title",
+                                    cropButtonName: "crop ✂️",
+                                    close: "this might be equal to \"rm -rf /*\"",
+                                    done: "Taadaa"
+                                }
+                            }}
                         />}
-                    // isErrorPopup
-                    category="my-images"
-                    name="imageSample13"
-                    title="my-image"
-                    theme="circle-theme"
-                    onChange={this.handleFileChange}
-                /></div>
-                 <div className="uploader">
-                     <p>simple example</p>
-                <ImageUploader
+                        // isErrorPopup
+                        category="my-images"
+                        name="imageSample13"
+                        title="my-image"
+                        theme="circle-theme"
+                        onChange={this.handleFileChange}
+                        height="15vh"
+                    /></div>
+                <div className="uploader">
+                    <p>simple example</p>
+                    <ImageUploader
                         crop={{
                             grid: true,
                             texts: {
                                 cropButtonName: "crop ✂️",
                             }
                         }}
-                    // isErrorPopup
-                    category="my-images"
-                name="imageSample14"
-                    title="my-image"
-                    theme="basic-theme"
-                    onChange={this.handleFileChange}
-                />
+                        // isErrorPopup
+                        category="my-images"
+                        name="imageSample14"
+                        title="my-image"
+                        theme="basic-theme"
+                        onChange={this.handleFileChange}
+                        height="15vh"
+                    />
                 </div>
             </div>
         );

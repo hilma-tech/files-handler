@@ -1,8 +1,17 @@
+.App > div:nth-child(2) {
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow: auto;
+  overflow-x: hidden;
+}
 .image-uploader-sample {
-
   .image-input-samples {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap
   }
 
   .image-input-sample {
@@ -22,5 +31,14 @@
     height: 15%;
     margin: 2em;
     margin-top: 1em;
+  }
+}
+
+@media screen and (max-width: 630px) and (min-height: 550px) {
+  .image-uploader-sample {
+    .image-input-sample {
+      width: 85vw;
+      margin: 1vh auto;
+    }
   }
 }

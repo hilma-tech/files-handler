@@ -180,7 +180,7 @@ export default class SingleFileUploaderView extends Component {
 
                 <div className="uploader">
                     {this.props.uploader && this.addExtraProps(this.props.uploader, {
-                        name: `${this.type}Id2`, // keyToSaveFileId
+                        name: `${this.type}Id3`, // keyToSaveFileId
                         title: `my-${this.type}s`,
                         category: `my-${this.type}s`,
                         onChange: this.handleFileChange,
@@ -202,7 +202,7 @@ export default class SingleFileUploaderView extends Component {
 
                 <div className="uploader">
                     {this.props.uploader && this.addExtraProps(this.props.uploader, {
-                        name: `${this.type}Id3`, // keyToSaveFileId
+                        name: `${this.type}Id4`, // keyToSaveFileId
                         title: `my-${this.type}s`,
                         category: `my-${this.type}s`,
                         onChange: this.handleFileChange,

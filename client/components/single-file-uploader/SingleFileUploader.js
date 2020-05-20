@@ -36,6 +36,10 @@ export default class SingleFileUploader extends Component {
         this.type = Consts.FILE_TYPES.includes(props.type) ?
             props.type : Consts.FILE_TYPE_IMAGE;
 
+        this.height = this.props.height || "10em";
+
+        this.thumbHeight = this.calcHeight(0.8, this.height);
+
         this.acceptedExtensions = this.getAcceptedExtensions();
 
         this.minSizeInKB = props.minSizeInKB && props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE ?
@@ -45,6 +49,13 @@ export default class SingleFileUploader extends Component {
             props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
 
         this.isErrorPopup = typeof this.props.isErrorPopup === "boolean" ? this.props.isErrorPopup : false; // default false 
+    }
+
+    calcHeight = (presentage, originalHeight) => {
+        let uploaderHeight = originalHeight.match(/\d+/)[0];
+        let unit = originalHeight.split(uploaderHeight)[1];
+        let newHeight = (Number(uploaderHeight) * presentage) + unit;
+        return newHeight;
     }
 
     getDefaultThumbnail = () => {
@@ -87,7 +98,7 @@ export default class SingleFileUploader extends Component {
                 this.uploaderInputRef.current.value = null;
             }
             else {
-                if (this.type !== Consts.FILE_TYPE_FILE)  base64String = !readFileToBase64 ? (file && file.file ? file.file : file) : await this.readFileToBase64(file);
+                if (this.type !== Consts.FILE_TYPE_FILE) base64String = !readFileToBase64 ? (file && file.file ? file.file : file) : await this.readFileToBase64(file);
 
                 filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
             }
@@ -163,7 +174,6 @@ export default class SingleFileUploader extends Component {
         if (this.type === Consts.FILE_TYPE_FILE) {
             filePreview.preview = isDefaultChosenFile ? "Default file" : file.name;
             filePreview.extension = isDefaultChosenFile ? file.split(".").pop() : this.getExtension(file.type);
-            // console.log("extension", filePreview.extension)
         }
         else filePreview.preview = base64String;
 
@@ -177,19 +187,19 @@ export default class SingleFileUploader extends Component {
         switch (type) {
             case Consts.FILE_TYPE_FILE:
                 filePreview =
-                    <div ref={this.props.previewRef}>
+                    <div ref={this.props.previewRef} style={{ height: this.thumbHeight }}>
                         <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} alt={`uploading ${this.type}`} />
                         <h2>{file.preview}</h2>
                     </div>;
                 break;
 
             case Consts.FILE_TYPE_IMAGE:
-                let style = { backgroundImage: `url(${file.preview})` };
+                let style = { backgroundImage: `url(${file.preview})`, height: this.thumbHeight, width: this.thumbHeight };
                 filePreview = <div ref={this.props.previewRef} className="chosen-img" style={style} />;
                 break;
 
             case Consts.FILE_TYPE_VIDEO:
-                filePreview = <video ref={this.props.previewRef} src={file.preview} type={"video/*"} />;
+                filePreview = <video ref={this.props.previewRef} src={file.preview} type={"video/*"} style={{ height: this.thumbHeight }} />;
                 break;
 
             case Consts.FILE_TYPE_AUDIO:
@@ -262,7 +272,7 @@ export default class SingleFileUploader extends Component {
             return this.props.replaceReturn(vars, this);
 
         return (
-            <div className="single-file-uploader">
+            <div className="single-file-uploader" style={{ height: this.height }}>
                 <div className={this.props.theme || "basic-theme"}>
                     <input
                         id={this.props.name}
@@ -285,7 +295,9 @@ export default class SingleFileUploader extends Component {
                         {this.props.theme !== "button-theme" &&
                             <label htmlFor={this.props.name}>
                                 {filePreviewHtml}
-                                <div className="label">{this.props.label || `Load ${this.type}`}</div>
+                                <div className="label" style={{ fontSize: this.calcHeight(0.125, this.thumbHeight) }}>
+                                    {this.props.label || `Load ${this.type}`}
+                                </div>
                             </label>}
 
                         {this.props.theme === "button-theme" && !isDefaultPreview &&
@@ -294,14 +306,14 @@ export default class SingleFileUploader extends Component {
                         {// Add remove button
                             !this.props.disabled && !isDefaultPreview &&
                             <div className="remove-icon" onClick={this.removeFile}>
-                                <img src={this.props.removeFileIcon || require('../../../imgs/x-icon.png')} alt="x" />
+                                <img src={this.props.removeFileIcon || require('../../../imgs/x-icon.png')} alt="x" style={{ height: this.calcHeight(0.25, this.thumbHeight) }} />
                             </div>}
 
                         {// Add error icon if needed
                             file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
                             <div className="error-icon">
                                 <Tooltip title={file.errMsg} placement="left" className="tool-tip">
-                                    <img src={require('../../../imgs/error.svg')} alt={file.errMsg} />
+                                    <img src={require('../../../imgs/error.svg')} alt={file.errMsg} style={{ height: this.calcHeight(0.25, this.thumbHeight) }} />
                                 </Tooltip>
                             </div>}
                     </div>
