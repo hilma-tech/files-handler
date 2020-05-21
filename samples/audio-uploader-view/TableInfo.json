@@ -37,6 +37,12 @@
             "Default": "Load audio"
         },
         {
+            "Property": "height",
+            "Type": "string",
+            "Description": "The wanted height of the uploader",
+            "Default": "10em"
+        },
+        {
             "Property": "minSizeInKB",
             "Type": "int",
             "Description": "Minimum audio's size in KB",
