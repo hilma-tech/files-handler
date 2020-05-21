@@ -52,7 +52,7 @@ export default class SingleFileUploader extends Component {
     }
 
     calcHeight = (presentage, originalHeight) => {
-        let uploaderHeight = originalHeight.match(/\d+/)[0];
+        let uploaderHeight = originalHeight.match(/(\d||\.)+/)[0];
         let unit = originalHeight.split(uploaderHeight)[1];
         let newHeight = (Number(uploaderHeight) * presentage) + unit;
         return newHeight;
@@ -189,7 +189,7 @@ export default class SingleFileUploader extends Component {
                 filePreview =
                     <div ref={this.props.previewRef} style={{ height: this.thumbHeight }}>
                         <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} alt={`uploading ${this.type}`} />
-                        <h2>{file.preview}</h2>
+                        <h2 style={{fontSize: this.calcHeight(0.15, this.thumbHeight)}}>{file.preview}</h2>
                     </div>;
                 break;
 

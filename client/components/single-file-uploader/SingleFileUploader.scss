@@ -1,9 +1,9 @@
 .single-file-uploader {
   direction: ltr;
-  // display: flex;
 
   .single-file-preview {
     position: relative;
+    display: flex;
 
     label {
       margin: 0;
@@ -16,13 +16,8 @@
     }
 
     .image-thumb {
-      // height: 80%;
 
       .chosen-img {
-        // height: 100%;
-        // width: 8em;
-        // width: 10em;
-        // height: 10em;
         background-repeat: no-repeat;
         background-size: cover;
         background-position: center;
@@ -49,7 +44,6 @@
 
       h2 {
         direction: rtl;
-        font-size: 1.1em;
         margin: 0;
         max-height: 1.5em;
         position: absolute;
@@ -59,7 +53,7 @@
         max-width: 16em;
         text-align: center;
         right: 50%;
-        transform: translate(50%, -1.1em);
+        transform: translate(50%, -1em);
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -86,10 +80,11 @@
     .remove-icon {
       position: absolute;
       top: 0;
-      right: -1em;
+      left: 100%;
+      transform: translateX(-50%);
+      display: flex;
 
       img {
-        // height: 1.8em;
         background-color: white;
         border-radius: 15px;
       }
@@ -98,11 +93,9 @@
     .error-icon {
       position: absolute;
       top: 0;
-      left: -1em;
-
-      img {
-        // height: 2em;
-      }
+      right: 100%;
+      transform: translateX(50%);
+      display: flex;
     }
 
     .tool-tip {
@@ -124,10 +117,7 @@
 
   .basic-theme {
     margin: auto;
-    // margin-bottom: 0;
     width: fit-content;
-    // padding-top: 1em;
-    // padding-bottom: 1em;
   }
 
   .button-theme {
