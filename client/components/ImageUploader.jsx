@@ -44,7 +44,7 @@ export default class ImageUploader extends Component {
     }
 
     getExtraVars = (vars, pThis) => { // pThis = parent this
-        let previewWidgetChosenImg = this.props.previewWidget ? <div className="chosen-img-preview" style={{ backgroundImage: `url(${vars.file.preview})`}} /> : null;
+        let previewWidgetChosenImg = this.props.previewWidget ? <div className="chosen-img-preview" style={{ backgroundImage: `url(${vars.file.preview})` }} /> : null;
         let filePreviewHtml = this.addExtraProps(pThis.getFilePreviewHtml(vars.file, vars.isDefaultPreview), { onClick: this.props.previewWidget && this.togglePreviewPopup });
         return { previewWidgetChosenImg, filePreviewHtml };
     }
@@ -55,7 +55,7 @@ export default class ImageUploader extends Component {
             height: pThis.calcHeight(0.5, pThis.thumbHeight),
             fontSize: pThis.calcHeight(0.125, pThis.thumbHeight)
         } : { fontSize: pThis.calcHeight(0.125, pThis.thumbHeight) };
-
+        let style = this.props.style ? this.props.style : { height: pThis.thumbHeight, width: pThis.thumbHeight }
         // Supports previous versions (AKA default-theme)
         if (!pThis.props.theme && !pThis.props.previewWidget)
             return (
@@ -89,8 +89,7 @@ export default class ImageUploader extends Component {
                                     let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
                                     pThis.setState({ fileData });
                                 }}
-                                style={{ height: pThis.thumbHeight, width: pThis.thumbHeight }}
-                                {...this.props}
+                                style={style}
                             />
                             <div className="default-theme-label">{pThis.props.label || "Defalt-theme is not recommended and will be deprecated"}</div>
                         </label>
@@ -182,7 +181,7 @@ export default class ImageUploader extends Component {
         )
     }
 
-    /* 
+    /*
     Below code enables extending the SingleFileUploader's return function without literly extending it.
     We needs to change SingleFileUploader component default props,
     such as type/theme/defaultThumbnailImageSrc etc, so it can't be an extention of SingleFileUploader.
