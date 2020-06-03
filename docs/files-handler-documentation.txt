@@ -60,7 +60,6 @@ Let's break it down and describe each prop:
 ._______________._________._______________________________________________________________________.__________._________________.
 
 
-
 2. Saving the image
 
 The onChange function you pass to the uploader as props get an event object (eventObj) as a parameter.
@@ -73,7 +72,12 @@ The save process takes place into a form for a specific model (e.g: games)
 
 Meaning, you do NOT have to post directly to Images model, but you can post to other models too.
 
-
+***NOTE: when you upload image, in the image meta data (EXIF) there is an orientation property so the
+        browser can detect whether to rotate the image when display it or not.
+        When the image is too heavy the browser ignores the orientation property and displays it as it is without 
+        rotating to the correct orientation. 
+        To fix this problem, we check the image orientation, draw the image on canvas, rotate the canvas to the 
+        correct orientation, and only then convert the canvas to base64 and save the image (canvas), in the folder.
 
 3. The FilesHandler mixin
 

@@ -3,6 +3,7 @@ import Dropzone from 'react-dropzone';
 import Consts from '../../../consts/Consts.json';
 import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
+import FixImgOrientation from '../FixImgOrientation';
 import './MultiFilesUploader.scss';
 
 export default class MultiFilesUploader extends Component {
@@ -34,7 +35,12 @@ export default class MultiFilesUploader extends Component {
 
         for (let i = 0; i < acceptedfiles.length; i++) {
             if (filesData.length >= config.MULTI_FILES_LIMIT) { this.isOverFilesNumLimit = true; break; }
-            let base64String = await this.readFileToBase64(acceptedfiles[i]);
+            let base64String;
+            //if image => get base64 of image on canvas with orientation 1 
+            if (this.props.type === Consts.FILE_TYPE_IMAGE)
+                base64String = await FixImgOrientation.resetOrientation(acceptedfiles[i]);
+            //if audio/file => get base64 
+            else this.readFileToBase64(acceptedfiles[i]);
 
             let fileObj = {
                 src: base64String,
@@ -132,7 +138,13 @@ export default class MultiFilesUploader extends Component {
             extension = this.getExtension(file.type);
         }
         else {
-            if (!base64String) base64String = await this.readFileToBase64(file);
+            if (!base64String) {
+                //if image => get base64 of image on canvas with orientation 1 
+                if (this.props.type === Consts.FILE_TYPE_IMAGE)
+                    base64String = await FixImgOrientation.resetOrientation(file);
+                //if audio/file => get base64 
+                else base64String = await this.readFileToBase64(file);
+            }
             preview = base64String;
         }
 

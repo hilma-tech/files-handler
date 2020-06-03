@@ -4,6 +4,7 @@ import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from '../ErrorPopup';
+import FixImgOrientation from '../FixImgOrientation';
 import './SingleFileUploader.scss';
 
 export default class SingleFileUploader extends Component {
@@ -78,7 +79,22 @@ export default class SingleFileUploader extends Component {
         const extraFileObjProps = this.props.extraFileObjProps || {};
 
         if (status === Consts.FILE_ACCEPTED) {
-            base64String = !readFileToBase64 ? (file && file.file ? file.file : file) : await this.readFileToBase64(file);
+
+            if (!readFileToBase64) {
+                if (file && file.file)
+                    base64String = file.file;
+
+                else base64String = file;
+            }
+            else {
+                //if image => get base64 of image on canvas with orientation 1 
+                if (this.props.type === Consts.FILE_TYPE_IMAGE) base64String = await FixImgOrientation.resetOrientation(file);
+                //if audio/file => get base64 
+                else base64String = await this.readFileToBase64(file);
+            }
+
+
+
             fileObj = {
                 src: base64String,
                 type: this.type,
@@ -98,8 +114,21 @@ export default class SingleFileUploader extends Component {
                 this.uploaderInputRef.current.value = null;
             }
             else {
-                if (this.type !== Consts.FILE_TYPE_FILE) base64String = !readFileToBase64 ? (file && file.file ? file.file : file) : await this.readFileToBase64(file);
-
+                if (this.type !== Consts.FILE_TYPE_FILE) {
+                    if (!readFileToBase64) {
+                        if (file && file.file) base64String = file.file;
+                        else base64String = file;
+                    }
+                    else {
+                        //if image => get base64 of image on canvas with orientation 1 
+                        if (this.props.type === Consts.FILE_TYPE_IMAGE) {
+                            base64String = await FixImgOrientation.resetOrientation(file)
+                        }
+                        //if audio/file => get base64 
+                        else base64String = await this.readFileToBase64(file);
+                    }
+                }
+                // --------
                 filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
             }
         }
@@ -189,7 +218,7 @@ export default class SingleFileUploader extends Component {
                 filePreview =
                     <div ref={this.props.previewRef} style={{ height: this.thumbHeight }}>
                         <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} alt={`uploading ${this.type}`} />
-                        <h2 style={{fontSize: this.calcHeight(0.15, this.thumbHeight)}}>{file.preview}</h2>
+                        <h2 style={{ fontSize: this.calcHeight(0.15, this.thumbHeight) }}>{file.preview}</h2>
                     </div>;
                 break;
 

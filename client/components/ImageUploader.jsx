@@ -90,6 +90,7 @@ export default class ImageUploader extends Component {
                                     pThis.setState({ fileData });
                                 }}
                                 style={{ height: pThis.thumbHeight, width: pThis.thumbHeight }}
+                                {...this.props}
                             />
                             <div className="default-theme-label">{pThis.props.label || "Defalt-theme is not recommended and will be deprecated"}</div>
                         </label>
