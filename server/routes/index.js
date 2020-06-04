@@ -7,8 +7,8 @@ const FileProperties = require('../lib/FileProperties');
 module.exports = function (app) {
     let FileshandlerConfig = app.get('modules').fileshandler;
     const PermissionsFilter = FileshandlerConfig &&
-        FileshandlerConfig.importPermissionsFilter ? 
-        require('./../../../'+FileshandlerConfig.importPermissionsFilter) : 
+        FileshandlerConfig.importPermissionsFilter ?
+        require('./../../../' + FileshandlerConfig.importPermissionsFilter) :
         require('./../lib/PermissionsFilter');
 
     function allowFileAccess(req, res, fileType) {

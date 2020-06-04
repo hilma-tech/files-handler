@@ -60,15 +60,15 @@ module.exports = function FilesHandler(Model) {
         logFile("regex", regex);
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
-        logFile("\nownerId", ownerId);
+        logFile("ownerId", ownerId);
 
+        let { src, type, ...extraProperies } = file;
         let fileObj = {
-            category: file.category ? file.category : 'uploaded',
             owner: ownerId,
             format: extension,
-            title: file.title,
-            description: file.description,
+            category: file.category ? file.category : 'uploaded',
             dontSave: true, // don't let afterSave remote do anything- needed?
+            ...extraProperies
         };
 
         /* If we are posting to and from the same model,
