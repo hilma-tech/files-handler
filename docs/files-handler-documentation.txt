@@ -72,12 +72,22 @@ The save process takes place into a form for a specific model (e.g: games)
 
 Meaning, you do NOT have to post directly to Images model, but you can post to other models too.
 
-***NOTE: when you upload image, in the image meta data (EXIF) there is an orientation property so the
+***NOTE: When you upload image, in the image meta data (EXIF) there is an orientation property so the
         browser can detect whether to rotate the image when display it or not.
         When the image is too heavy the browser ignores the orientation property and displays it as it is without 
         rotating to the correct orientation. 
         To fix this problem, we check the image orientation, draw the image on canvas, rotate the canvas to the 
         correct orientation, and only then convert the canvas to base64 and save the image (canvas), in the folder.
+
+***NOTE: If you want to allow the user to upload heavy images (so the user won't be limited and would be able to upload
+         heavy images) without harming the user experiance, you can change in your ModulesConfig.js the variable
+         SHRINK_LARGE_IMAGE_TO_MAX_SIZE" to true and add a large size to 'IMAGE_SIZES_IN_PX'(you don't have to because 
+         if you dont add a large size the function will set the image size to 1000 as default) .
+         This will reduce the size of large and heavy images that the user uploads.
+         The function resizeLargeImage takes the large image, draw the image on a canvas and set the width 
+         of the canvas to the width you set in your ModulesConfig as large size ('l' in 'IMAGE_SIZES_IN_PX'), 
+         and only then convert the canvas to base64 and save the image (canvas), in the folder.
+         (resize the canvas => image)
 
 3. The FilesHandler mixin
 

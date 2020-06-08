@@ -20,6 +20,7 @@ const to = (promise) => {
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
+
         var fData;
         if (ctx.instance) { // For first upload
             fData = ctx.instance;
@@ -31,6 +32,7 @@ module.exports = function (BaseImages) {
             if (fData.isMultiSizes) {
                 fData.multipleSizes = [];
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
+                    if (config.SHRINK_LARGE_IMAGE_TO_MAX_SIZE && sign === 'l') continue;
                     fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
                 }
             }
@@ -127,6 +129,9 @@ module.exports = function (BaseImages) {
 
             if (file.isMultiSizes) {
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
+                    let width = await getImgWidth(base64Data);
+
+                    if (sign === 'l' && width === config.IMAGE_SIZES_IN_PX[sign]) continue;
                     let fileTargetPath = `${specificSaveDir + newFile.id}.${sign}.${extension}`
                     fs.writeFileSync(fileTargetPath, base64Data, 'base64');
                     resizeImg(fileTargetPath, config.IMAGE_SIZES_IN_PX[sign]);

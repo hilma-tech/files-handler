@@ -77,8 +77,7 @@ export default class SingleFileUploader extends Component {
         let [status, errMsg] = this.isFileInSizeRange(file, fileSizeInRange); // !NOTICE: When defaultChosenFile=true, the file is automatically accepted
 
         const extraFileObjProps = this.props.extraFileObjProps || {};
-
-        if (status === Consts.FILE_ACCEPTED) {
+        if (config.SHRINK_LARGE_IMAGE_TO_MAX_SIZE || status === Consts.FILE_ACCEPTED) {
 
             if (!readFileToBase64) {
                 if (file && file.file)
@@ -92,8 +91,12 @@ export default class SingleFileUploader extends Component {
                 //if audio/file => get base64 
                 else base64String = await this.readFileToBase64(file);
             }
-
-
+            if (this.props.type === Consts.FILE_TYPE_IMAGE && errMsg === Consts.ERROR_MSG_FILE_TOO_BIG) {
+                //resize the image to smaller size and don't show the error message
+                errMsg = null;
+                status = Consts.FILE_ACCEPTED;
+                base64String = await this.resizeLargeImage(file, base64String);
+            }
 
             fileObj = {
                 src: base64String,
@@ -106,6 +109,7 @@ export default class SingleFileUploader extends Component {
 
             filePreview = this.getFilePreviewObj(file, base64String, status, errMsg, fileSizeInRange);
         }
+
         else { // status = Consts.FILE_REJECTED
 
             if (this.isErrorPopup) {
@@ -137,6 +141,45 @@ export default class SingleFileUploader extends Component {
 
         // Display previews of dropped files and calls the onChange callback with the accepted files
         this.setState({ fileData, showErrPopup }, () => !fileSizeInRange && this.parentOnChange());
+    }
+
+    //resize large image to the large size given in config.IMAGE_SIZES_IN_PX
+    resizeLargeImage = (file, base64) => {
+        return new Promise((resolve, reject) => {
+            const maxWidth = config.IMAGE_SIZES_IN_PX['l'] ? config.IMAGE_SIZES_IN_PX['l'] : 1000;
+
+            const maxHeight = 500;
+            var canvas = document.createElement("canvas");
+            var ctx = canvas.getContext("2d");
+            var canvasCopy = document.createElement("canvas");
+            var copyContext = canvasCopy.getContext("2d");
+
+            // Create original image
+            var img = new Image();
+            img.src = base64;
+            img.onload = function () {
+                // Determine new ratio based on max size
+                var ratio = 1;
+                if (img.width > maxWidth)
+                    ratio = maxWidth / img.width;
+                else if (img.height > maxHeight)
+                    ratio = maxHeight / img.height;
+
+                // Draw original image in second canvas
+                canvasCopy.width = img.width;
+                canvasCopy.height = img.height;
+                copyContext.drawImage(img, 0, 0);
+
+                // Copy and resize second canvas to first canvas
+                //the first canvas has smaller width and height than the original image
+                canvas.width = img.width * ratio;
+                canvas.height = img.height * ratio;
+
+                ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL(file.type));
+                reject(base64);
+            };
+        });
     }
 
     parentOnChange = () => {
