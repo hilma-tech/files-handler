@@ -16,7 +16,6 @@ const to = (promise) => {
     })
         .catch(err => [err]);
 }
-
 module.exports = function (BaseImages) {
 
     BaseImages.observe('loaded', function (ctx, next) {
@@ -148,6 +147,23 @@ module.exports = function (BaseImages) {
             }
             let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
             fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+
+            
+                fs.readdir(specificSaveDir,(err, files) => {
+                    if(err) throw err;
+                    if(files){
+                        files = files.filter((file) => 
+                            file.includes(newFile.id) && ( (!file.includes(extension)) ||
+                            (Object.keys(config.IMAGE_SIZES_IN_PX).some( size => file.includes(`.${size}.`) )  && !newFile.isMultiSizes  ) ) );
+    
+                        files.map((f )=> {
+                            let fullPath = `${specificSaveDir}${f}`;
+                            if (fs.existsSync(fullPath) ) 
+                                fs.unlink(fullPath ,(err)=>{  if(err) throw err }  )
+                        });
+                    }
+                });
+                   
 
         } catch (err) {
             logFile("Err", err);
