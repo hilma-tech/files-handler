@@ -32,8 +32,15 @@ module.exports = function (BaseImages) {
             if (fData.isMultiSizes) {
                 fData.multipleSizes = [];
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
-                    if (config.SHRINK_LARGE_IMAGE_TO_MAX_SIZE && sign === 'l') continue;
-                    fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
+                    try {
+                        if (fs.existsSync(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`)) {
+                            //file exists
+                            fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
+                        }
+                        else continue;
+                    } catch (err) {
+                        continue;
+                    }
                 }
             }
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
