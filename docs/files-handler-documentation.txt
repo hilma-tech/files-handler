@@ -80,7 +80,7 @@ Meaning, you do NOT have to post directly to Images model, but you can post to o
         correct orientation, and only then convert the canvas to base64 and save the image (canvas), in the folder.
 
 ***NOTE: If you want to allow the user to upload heavy images (so the user won't be limited and would be able to upload
-         heavy images) without harming the user experiance, you can change in your ModulesConfig.js the variable
+         heavy images) without harming the user experiance, you can change in your ModulesConfig.json the variable
          SHRINK_LARGE_IMAGE_TO_MAX_SIZE" to true and add a large size to 'IMAGE_SIZES_IN_PX'(you don't have to because 
          if you dont add a large size the function will set the image size to 1000 as default) .
          This will reduce the size of large and heavy images that the user uploads.
