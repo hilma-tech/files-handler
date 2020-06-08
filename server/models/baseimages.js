@@ -32,11 +32,13 @@ module.exports = function (BaseImages) {
             if (fData.isMultiSizes) {
                 fData.multipleSizes = [];
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
+                    //check if the file exist in the public directory
                     try {
                         if (fs.existsSync(`public/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`)) {
                             //file exists
                             fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
                         }
+                        //file is not exist-> continue the for loop and don't add the path to multipleSizes
                         else continue;
                     } catch (err) {
                         continue;
