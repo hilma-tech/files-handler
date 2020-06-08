@@ -33,7 +33,7 @@ module.exports = function (BaseImages) {
                 fData.multipleSizes = [];
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
                     try {
-                        if (fs.existsSync(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`)) {
+                        if (fs.existsSync(`public/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`)) {
                             //file exists
                             fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
                         }
