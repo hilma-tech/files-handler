@@ -60,6 +60,7 @@ module.exports = function FilesHandler(Model) {
         logFile("regex", regex);
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
+        console.log("base64", base64Data)
         logFile("ownerId", ownerId);
 
         let { src, type, ...extraProperies } = file;
