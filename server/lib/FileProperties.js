@@ -61,7 +61,8 @@ module.exports = class FileProperties {
             "mp4": /^data:video+\/mp4?;base64,/,
             "ogg": /^data:video+\/ogg?;base64,/,
             "avi": /^data:video+\/avi?;base64,/,
-            "mov": /^data:video\/quicktime;base64,/
+            "mov": /^data:video\/quicktime;base64,/,
+            "aac": /^data:audio+\/x-hx-aac-adts;base64,/
         };
         if (!Object.keys(FILE_REGEXS).includes(extension)) return null;
         return FILE_REGEXS[extension];
