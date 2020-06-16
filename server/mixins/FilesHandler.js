@@ -50,6 +50,7 @@ module.exports = function FilesHandler(Model) {
 
     // Saves file at directory and create a reference at FileModel
     Model.saveFile = async function (file, FileModel, ownerId = null, fileId = null) {
+        console.log("inside save file")
         logFile("Model.saveFile is launched with ownerId", ownerId);
         let saveDir = FileProperties.getSaveDir(file.type);
         if (!saveDir) return false;
