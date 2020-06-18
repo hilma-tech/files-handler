@@ -53,11 +53,16 @@ module.exports = function FilesHandler(Model) {
         console.log("inside save file")
         logFile("Model.saveFile is launched with ownerId", ownerId);
         let saveDir = FileProperties.getSaveDir(file.type);
-        if (!saveDir) return false;
+        console.log("saveDir", saveDir)
+        if (!saveDir) return false
+        console.log("file.src",file.src);
+        console.log("file.type",file.type)
         let extension = FileProperties.getFileExtension(file.src, file.type);
+        console.log("extension",extension)
         logFile("extension", extension);
         if (!extension) return false;
         let regex = FileProperties.getRegex(extension);
+        console.log("regex",regex)
         logFile("regex", regex);
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
@@ -238,17 +243,20 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
-
+        // console.log("ctx",ctx.args)
         logFile("Model.beforeRemote is launched", ctx.req.method);
-        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
+        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH"){
+            console.log("ctx1",ctx.args)
             return next()
+        }
+            
 
         let args = ctx.args;
         let data, field, key;
 
         (async () => {
             const argsKeys = Object.keys(args);
-
+            console.log("ctx2",ctx.args)
             // we are not using map funcs, because we cannot put async inside it.
             for (let i = 0; i < argsKeys.length; i++) {
                 field = argsKeys[i];
@@ -267,6 +275,7 @@ module.exports = function FilesHandler(Model) {
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
                         isFileInRange = await FileProperties.isFileSizeInRange(keyData);
+                        console.log(keyData.src = isFileInRange ? keyData.src : null,"!!!!!!")
                         keyData.src = isFileInRange ? keyData.src : null;
                         logFile('isFileInRange', isFileInRange)
                     }
