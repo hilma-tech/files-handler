@@ -2,19 +2,30 @@ import React, { Component } from 'react';
 import Consts from '../../../consts/Consts.json';
 import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import FixImgOrientation from '../FixImgOrientation';
-import './SingleFileUploader.scss';
+// import './SingleFileUploader.scss';
 
-export default class SingleFileUploader { // Should be react related?
+export default class SingleFileUploaderClass extends Component { // Should be react related?
 
     constructor(props) { // TODO: Remove state dependency
-        this.props = props; // TODO: Change to props instead of this.props
+        super(props);
 
         this.initialValues(); // TODO: Convert to regular 
+        let defaltPreviewObj = this.getDefaultFilePreviewObj();
 
-        let defaltPreviewObj = this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
-        this.fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
+        this.state = {
+            fileData: { previewObj: defaltPreviewObj, acceptedObj: null }
+        };
 
         this.onChange = this.onChange.bind(this); // Intentionally bind instead of arrow function
+    }
+
+    componentDidMount() {
+        // In order to show the default chosen file, we "simulate" onChange function with the given file
+        if (this.props.defaultChosenFile) {
+            let file = this.props.defaultChosenFile;
+            let e = { target: { files: [file] } };
+            this.onChange(e, true, false);
+        }
     }
 
     getFilePreviewObj = (file = null, base64String = null, status, errMsg = null, isDefaultChosenFile = false) => {
@@ -30,7 +41,7 @@ export default class SingleFileUploader { // Should be react related?
 
         if (isDefaultPreview) return filePreview;
 
-        if (this.type === Consts.FILE_TYPE_FILE) { // TODO: Split dependency
+        if (this.props.type === Consts.FILE_TYPE_FILE) { // TODO: Split dependency
             filePreview.preview = isDefaultChosenFile ? "Default file" : file.name;
             filePreview.extension = isDefaultChosenFile ? file.split(".").pop() : this.getExtension(file.type);
         }
@@ -39,18 +50,18 @@ export default class SingleFileUploader { // Should be react related?
         return filePreview;
     }
 
-    initialValues = () => {
+    getDefaultFilePreviewObj = () => {
+        return this.getFilePreviewObj(null, this.defaultTumbnail, Consts.DEFAULT_THUMBNAIL);
+    }
 
+    initialValues = () => {
         this.defaultTumbnail = this.getDefaultThumbnail();
 
-        this.type = Consts.FILE_TYPES.includes(this.props.type) ?
-            this.props.type : Consts.FILE_TYPE_IMAGE;
+        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[this.props.type].MIN_SIZE ?
+            this.props.minSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.props.type].MIN_SIZE;
 
-        this.minSizeInKB = this.props.minSizeInKB && this.props.minSizeInKB > config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE ?
-            this.props.minSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MIN_SIZE;
-
-        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
-            this.props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
+        this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.props.type].MAX_SIZE ?
+            this.props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.props.type].MAX_SIZE;
     }
 
     getDefaultThumbnail = () => {
@@ -61,7 +72,7 @@ export default class SingleFileUploader { // Should be react related?
     }
 
     getExtension = (mime) => {
-        let extensions = Consts.FILE_EXTENSIONS[this.type];
+        let extensions = Consts.FILE_EXTENSIONS[this.props.type];
         for (let extension of extensions) {
             let mimeOrMimes = Consts.FILE_MIMES[extension];
             if (Array.isArray(mimeOrMimes)) {
@@ -73,7 +84,7 @@ export default class SingleFileUploader { // Should be react related?
         return null;
     }
 
-    async onChange(e, isDefaultChosenFile = false, readFileToBase64 = true) {
+    async onChange(e, isDefaultChosenFile = false, readFileToBase64 = true, cb = () => { }) {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
@@ -96,7 +107,7 @@ export default class SingleFileUploader { // Should be react related?
                 //if audio/file => get base64 
                 else base64String = await this.readFileToBase64(file);
             }
-            if (this.props.type === Consts.FILE_TYPE_IMAGE && errMsg === Consts.ERROR_MSG_FILE_TOO_BIG) {
+            if (this.props.type === Consts.FILE_TYPE_IMAGE && errMsg === Consts.ERROR_MSG_FILE_TOO_BIG) { // TODO: Fix condition
                 //resize the image to smaller size and don't show the error message
                 errMsg = null;
                 status = Consts.FILE_ACCEPTED;
@@ -105,7 +116,7 @@ export default class SingleFileUploader { // Should be react related?
 
             fileObj = {
                 src: base64String,
-                type: this.type,
+                type: this.props.type,
                 title: this.props.title || "default_title",
                 category: this.props.category || "default_category",
                 description: this.props.description || "default_description"
@@ -119,7 +130,7 @@ export default class SingleFileUploader { // Should be react related?
             if (this.props.isErrorPopup)
                 filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
             else {
-                if (this.type !== Consts.FILE_TYPE_FILE) {
+                if (this.props.type !== Consts.FILE_TYPE_FILE) {
                     if (!readFileToBase64) {
                         if (file && file.file) base64String = file.file;
                         else base64String = file;
@@ -138,8 +149,9 @@ export default class SingleFileUploader { // Should be react related?
             }
         }
 
-        let fileData = { previewObj: filePreview, acceptedObj: fileObj };
-        this.props.parentOnChange(fileData, isDefaultChosenFile); // TODO: Decide on isErrPopup
+        let fileData = { previewObj: filePreview, acceptedObj: fileObj }; // TODO: this.fileData = fileData
+        this.setState({ fileData },
+            () => cb(fileData, isDefaultChosenFile));
     }
 
     isFileInSizeRange = (file, isDefaultChosenFile = false) => {
@@ -212,5 +224,22 @@ export default class SingleFileUploader { // Should be react related?
                 reject(base64);
             };
         });
+    }
+
+    removeFile = (cb = () => { }) => {
+        if (this.state.fileData.previewObj.state === Consts.DEFAULT_THUMBNAIL) return;
+        let defaltPreviewObj = this.getDefaultFilePreviewObj();
+        let fileData = { previewObj: defaltPreviewObj, acceptedObj: null };
+        this.setState({ fileData },
+            () => cb(fileData));
+    }
+
+    render() {
+        let data = {
+            fileData: this.state.fileData,
+            onChange: this.onChange,
+            removeFile: this.removeFile
+        }
+        return this.props.children(data);
     }
 }
