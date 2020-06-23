@@ -18,7 +18,8 @@ export default class SingleFileUploader { // Should be react related?
     }
 
     getFilePreviewObj = (file = null, base64String = null, status, errMsg = null, isDefaultChosenFile = false) => {
-        let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL || (status === Consts.FILE_REJECTED && this.isErrorPopup);
+        let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL ||
+            (status === Consts.FILE_REJECTED && this.props.isErrorPopup);
 
         let filePreview = {
             preview: base64String,
@@ -29,7 +30,7 @@ export default class SingleFileUploader { // Should be react related?
 
         if (isDefaultPreview) return filePreview;
 
-        if (this.type === Consts.FILE_TYPE_FILE) {
+        if (this.type === Consts.FILE_TYPE_FILE) { // TODO: Split dependency
             filePreview.preview = isDefaultChosenFile ? "Default file" : file.name;
             filePreview.extension = isDefaultChosenFile ? file.split(".").pop() : this.getExtension(file.type);
         }
@@ -50,8 +51,6 @@ export default class SingleFileUploader { // Should be react related?
 
         this.maxSizeInKB = this.props.maxSizeInKB && this.props.maxSizeInKB < config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE ?
             this.props.maxSizeInKB : config.FILE_SIZE_RANGE_IN_KB[this.type].MAX_SIZE;
-
-        this.isErrorPopup = typeof this.props.isErrorPopup === "boolean" ? this.props.isErrorPopup : false; // default false 
     }
 
     getDefaultThumbnail = () => {
@@ -74,19 +73,18 @@ export default class SingleFileUploader { // Should be react related?
         return null;
     }
 
-    async onChange(e, fileSizeInRange = false, readFileToBase64 = true) {
+    async onChange(e, isDefaultChosenFile = false, readFileToBase64 = true) {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
         let base64String = null;
         let fileObj = null;
         let filePreview = null;
-        // let showErrPopup = false; // TODO: Decide about showErrPopup
 
         // !NOTICE: When defaultChosenFile=true, the file is automatically accepted
-        let [status, errMsg] = this.isFileInSizeRange(file, fileSizeInRange);
+        let [status, errMsg] = this.isFileInSizeRange(file, isDefaultChosenFile);
 
-        if (config.SHRINK_LARGE_IMAGE_TO_MAX_SIZE || status === Consts.FILE_ACCEPTED) { // TODO: Only relevant to image
+        if (config.SHRINK_LARGE_IMAGE_TO_MAX_SIZE || status === Consts.FILE_ACCEPTED) { // TODO: Only relevant to image, check SHRINK_LARGE_IMAGE_TO_MAX_SIZE=true
 
             if (!readFileToBase64) {
                 if (file && file.file) base64String = file.file;
@@ -113,16 +111,13 @@ export default class SingleFileUploader { // Should be react related?
                 description: this.props.description || "default_description"
             };
 
-            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg, fileSizeInRange);
+            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg, isDefaultChosenFile);
         }
 
         else { // status = Consts.FILE_REJECTED
 
-            if (this.isErrorPopup) {
+            if (this.props.isErrorPopup)
                 filePreview = this.getFilePreviewObj(null, this.defaultTumbnail, status, errMsg);
-                // showErrPopup = true;
-                this.uploaderInputRef.current.value = null;
-            }
             else {
                 if (this.type !== Consts.FILE_TYPE_FILE) {
                     if (!readFileToBase64) {
@@ -144,7 +139,7 @@ export default class SingleFileUploader { // Should be react related?
         }
 
         let fileData = { previewObj: filePreview, acceptedObj: fileObj };
-        this.props.onUploaderChange(fileData, fileSizeInRange); // TODO: Decide on isErrPopup
+        this.props.parentOnChange(fileData, isDefaultChosenFile); // TODO: Decide on isErrPopup
     }
 
     isFileInSizeRange = (file, isDefaultChosenFile = false) => {
@@ -219,18 +214,3 @@ export default class SingleFileUploader { // Should be react related?
         });
     }
 }
-
-// class SingleFileUploaderX extends Component {
-//     constructor(props) {
-//         super(props);
-//     }
-
-//     componentDidMount() {
-//         // In order to show the default chosen file, we "simulate" onChange function with the given file
-//         if (this.props.defaultChosenFile) {
-//             let file = this.props.defaultChosenFile;
-//             let e = { target: { files: [file] } };
-//             this.onChange(e, true, false);
-//         }
-//     }
-// }
