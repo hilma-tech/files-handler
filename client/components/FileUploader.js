@@ -1,22 +1,16 @@
-import React, { Component } from 'react';
+import React from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
+import FileDataHandler from './uploadres/file-uploader/FileDataHandler';
 import Consts from '../../consts/Consts.json';
 
-export default class FileUploader extends Component {
-
-    updateProps = () => {
-        let props = { ...this.props };
-        props.type = Consts.FILE_TYPE_FILE;
-        return props;
-    }
-
-    render() {
-        return (
-            <>
-                <SingleFileUploader
-                    {...this.updateProps()}
-                />
-            </>
-        );
-    }
+export default function FileUploader(props) {
+    return (
+        <>
+            <SingleFileUploader
+                type={Consts.FILE_TYPE_FILE}
+                wrapper={FileDataHandler}
+                {...props}
+            />
+        </>
+    );
 }

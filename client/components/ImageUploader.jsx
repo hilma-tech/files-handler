@@ -1,10 +1,23 @@
 import React, { Component } from 'react';
 import SingleFileUploader from './single-file-uploader/SingleFileUploader';
+import ImageDataHandler from './uploadres/file-uploader/FileDataHandler';
 import Consts from '../../consts/Consts.json';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from './ErrorPopup';
-import './ImageUploader.scss';
 import CropPopup from "./ImageCropper";
+import './ImageUploader.scss';
+
+// export default function ImageUploader(props) {
+//     return (
+//         <>
+//             <SingleFileUploader
+//                 type={Consts.FILE_TYPE_IMAGE}
+//                 wrapper={ImageDataHandler}
+//                 {...props}
+//             />
+//         </>
+//     );
+// }
 
 // Change to functional component
 export default class ImageUploader extends Component {

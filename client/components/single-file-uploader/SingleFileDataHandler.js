@@ -1,10 +1,9 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import Consts from '../../../consts/Consts.json';
 import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import FixImgOrientation from '../FixImgOrientation';
-// import './SingleFileUploader.scss';
 
-export default class SingleFileUploaderClass extends Component { // Should be react related?
+export default class SingleFileDataHandler extends Component { // Should be react related?
 
     constructor(props) { // TODO: Remove state dependency
         super(props);
@@ -28,7 +27,7 @@ export default class SingleFileUploaderClass extends Component { // Should be re
         }
     }
 
-    getFilePreviewObj = (file = null, base64String = null, status, errMsg = null, isDefaultChosenFile = false) => {
+    getFilePreviewObj = (file = null, base64String = null, status, errMsg = null) => {
         let isDefaultPreview = status === Consts.DEFAULT_THUMBNAIL ||
             (status === Consts.FILE_REJECTED && this.props.isErrorPopup);
 
@@ -40,13 +39,7 @@ export default class SingleFileUploaderClass extends Component { // Should be re
         };
 
         if (isDefaultPreview) return filePreview;
-
-        if (this.props.type === Consts.FILE_TYPE_FILE) { // TODO: Split dependency
-            filePreview.preview = isDefaultChosenFile ? "Default file" : file.name;
-            filePreview.extension = isDefaultChosenFile ? file.split(".").pop() : this.getExtension(file.type);
-        }
-        else filePreview.preview = base64String;
-
+        filePreview.preview = base64String;
         return filePreview;
     }
 

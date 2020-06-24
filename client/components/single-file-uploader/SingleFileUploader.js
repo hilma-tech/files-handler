@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import SingleFileUploaderClass from './SingleFileUploaderClass';
+import SingleFileDataHandler from './SingleFileDataHandler';
 import Consts from '../../../consts/Consts.json';
 import ErrorPopup from '../ErrorPopup';
 import Tooltip from '@material-ui/core/Tooltip';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import './SingleFileUploader.scss';
 
 export default class SingleFileUploader extends Component {
@@ -135,80 +134,107 @@ export default class SingleFileUploader extends Component {
         this.setState({ showErrPopup: false });
     }
 
+    getWrapper = (Component, extraProps, children) => {
+        return (
+            <Component {...Component.props} {...extraProps}>
+                {children}
+            </Component>
+        );
+    }
+
     render() { // TODO: Devide to sub components
         return (
-            <SingleFileUploaderClass {...this.uploaderProps}>
-                {({ fileData, onChange, removeFile }) => {
-                    let file = fileData.previewObj;
-                    let isErrorPopup = file.status === Consts.FILE_REJECTED && this.isErrorPopup;
-                    let isDefaultPreview = file.status === Consts.DEFAULT_THUMBNAIL || isErrorPopup;
-                    let filePreviewHtml = this.getFilePreviewHtml(file, isDefaultPreview);
-                    let currType = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
+            <div>
+                {this.getWrapper(
+                    this.props.wrapper || SingleFileDataHandler,
+                    this.uploaderProps,
 
-                    return (
-                        <div className="single-file-uploader" style={{ height: this.height }}>
-                            <div className={this.props.theme || "basic-theme"}>
-                                <input
-                                    id={this.props.name}
-                                    name={this.type}
-                                    type="file"
-                                    onChange={(e) => onChange(e, false, true, this.onChange)}
-                                    disabled={this.props.disabled}
-                                    required={this.props.required || false}
-                                    accept={this.acceptedExtensions}
-                                    ref={this.uploaderInputRef}
-                                />
+                    ({ fileData, onChange, removeFile }) => {
+                        let file = fileData.previewObj;
+                        let isErrorPopup = file.status === Consts.FILE_REJECTED && this.isErrorPopup;
+                        let isDefaultPreview = file.status === Consts.DEFAULT_THUMBNAIL || isErrorPopup;
+                        let filePreviewHtml = this.getFilePreviewHtml(file, isDefaultPreview);
+                        let currType = file.status === Consts.DEFAULT_THUMBNAIL ? Consts.FILE_TYPE_IMAGE : this.type;
 
-                                {this.props.theme === "button-theme" &&
-                                    <label htmlFor={this.props.name}>
-                                        <FontAwesomeIcon icon={"upload"} />
-                                        <div className="label">{this.props.label || `Load ${this.type}`}</div>
-                                    </label>}
+                        return (
+                            <div className="single-file-uploader" style={{ height: this.height }}>
+                                <div className={this.props.theme || "basic-theme"}>
+                                    <input
+                                        id={this.props.name}
+                                        name={this.type}
+                                        type="file"
+                                        onChange={(e) => onChange(e, false, true, this.onChange)}
+                                        disabled={this.props.disabled}
+                                        required={this.props.required || false}
+                                        accept={this.acceptedExtensions}
+                                        ref={this.uploaderInputRef}
+                                    />
 
-                                <div className={`single-file-preview ${currType}-preview`}>
+                                    <div className={`single-file-preview ${currType}-preview`}>
 
-                                    {this.props.theme !== "button-theme" &&
-                                        <label htmlFor={this.props.name}>
-                                            {filePreviewHtml}
-                                            <div className="label" style={{ fontSize: this.calcHeight(0.125, this.thumbHeight) }}>
-                                                {this.props.label || `Load ${this.type}`}
-                                            </div>
-                                        </label>}
+                                        {this.props.theme !== "button-theme" &&
+                                            <FilePreview
+                                                onClick={(e) => this.uploaderInputRef.current.click(e, false, true, this.onChange)}
+                                                filePreview={filePreviewHtml}
+                                                fontSize={this.calcHeight(0.125, this.thumbHeight)}
+                                                label={this.props.label || `Load ${this.type}`}
+                                            />
+                                        }
 
-                                    {this.props.theme === "button-theme" && !isDefaultPreview && // TODO: Remove button-theme
-                                        filePreviewHtml}
+                                        {!this.props.disabled && !isDefaultPreview &&
+                                            <RemoveIcon
+                                                onClick={() => removeFile(this.removeFile)}
+                                                removeFileIcon={this.props.removeFileIcon}
+                                                height={this.calcHeight(0.25, this.thumbHeight)}
+                                            />}
 
-                                    {// Add remove button
-                                        !this.props.disabled && !isDefaultPreview &&
-                                        <div className="remove-icon" onClick={() => removeFile(this.removeFile)}>
-                                            <img
-                                                src={this.props.removeFileIcon || require('../../../imgs/x-icon.png')}
-                                                alt="x"
-                                                style={{ height: this.calcHeight(0.25, this.thumbHeight) }} />
-                                        </div>}
+                                        {file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
+                                            <ErrorIcon
+                                                msg={file.errMsg}
+                                                height={this.calcHeight(0.25, this.thumbHeight)}
+                                            />}
+                                    </div>
 
-                                    {// Add error icon if needed
-                                        file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
-                                        <div className="error-icon">
-                                            <Tooltip title={file.errMsg} placement="left" className="tool-tip">
-                                                <img
-                                                    src={require('../../../imgs/error.svg')}
-                                                    alt={file.errMsg}
-                                                    style={{ height: this.calcHeight(0.25, this.thumbHeight) }} />
-                                            </Tooltip>
-                                        </div>}
+                                    {isErrorPopup && typeof this.state.showErrPopup === "boolean" &&
+                                        <ErrorPopup
+                                            message={file.errMsg}
+                                            showPopup={this.state.showErrPopup}
+                                            toggleShowPopup={this.turnOffErrPopup} />}
                                 </div>
-
-                                {isErrorPopup && typeof this.state.showErrPopup === "boolean" &&
-                                    <ErrorPopup
-                                        message={file.errMsg}
-                                        showPopup={this.state.showErrPopup}
-                                        toggleShowPopup={this.turnOffErrPopup} />}
                             </div>
-                        </div>
-                    );
-                }}
-            </SingleFileUploaderClass>
+                        );
+                    })}
+            </div>
         )
     }
 }
+
+const FilePreview = (props) => (
+    <label onClick={props.onClick}>
+        {props.filePreview}
+        <div className="label" style={{ fontSize: props.fontSize }}>
+            {props.label}
+        </div>
+    </label>
+);
+
+const RemoveIcon = (props) => (
+    <div className="remove-icon" onClick={props.onClick}>
+        <img
+            src={props.removeFileIcon || require('../../../imgs/x-icon.png')}
+            alt="x"
+            style={{ height: props.height }} />
+    </div>
+);
+
+const ErrorIcon = (props) => (
+    <div className="error-icon">
+        <Tooltip title={props.msg} placement="left" className="tool-tip">
+            <img
+                src={require('../../../imgs/error.svg')}
+                alt={props.msg}
+                style={{ height: props.height }}
+            />
+        </Tooltip>
+    </div>
+);
