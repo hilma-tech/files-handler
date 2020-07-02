@@ -23,7 +23,7 @@ module.exports = class FileProperties {
             return;
         }
     }
-
+    static isBase64(src){return /^data:[\s\S]*;base64,[\s\S]*/.test(src)};
     static getRegex(extension) {
         /* 
         Instruction for supporting a new file format:

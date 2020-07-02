@@ -264,6 +264,13 @@ module.exports = function FilesHandler(Model) {
 
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
+                        if (!FileProperties.isBase64(keyData.src)) {
+                            if (!typeof Model.parseSrc === "function") {
+                                logFile("Model.parseSrc is not a function");
+                                continue;
+                            }
+                            keyData.src = await Model.parseSrc(keyData.src);
+                        }
                         isFileInRange = await FileProperties.isFileSizeInRange(keyData);
                         keyData.src = isFileInRange ? keyData.src : null;
                         logFile('isFileInRange', isFileInRange)
@@ -330,10 +337,8 @@ module.exports = function FilesHandler(Model) {
                 logFile("Iterating with field (%s)", field);
 
                 if (field === "options") continue;
-
                 if (!args[field] || !args[field].filesToSave) return next();
                 let filesToSave = args[field].filesToSave;
-
                 for (let fileKey in filesToSave) {
                     const fileOrFiles = filesToSave[fileKey];
 
