@@ -59,7 +59,7 @@ module.exports = function (BaseImages) {
 
         const isProd = process.env.NODE_ENV == 'production';
         //also on production we save into public (and not to build because the file can get delete from 'build')
-        const baseFileDirPath = '../../../../../public';
+        const baseFileDirPath = process.env.PUBLIC_PATH ? process.env.PUBLIC_PATH : '../../../../../public';
         let filePaths = [prevFileRes.path];
         if (prevFileRes.isMultiSizes) {
             filePaths = filePaths.concat(prevFileRes.multipleSizes);
