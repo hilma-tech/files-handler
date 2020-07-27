@@ -25,8 +25,10 @@ module.exports = function (app) {
             }
 
             //also on production we save into public (and not to build because the file can get delete from 'build')
-            const baseFileDirPath = 'public';
-            const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/${Consts.FOLDERS[fileType]}/${req.params[0]}`;
+            // const baseFileDirPath = 'public';
+            const baseFileDirPath = process.env.PUBLIC_PATH ? process.env.PUBLIC_PATH : '../../../../../public';
+            const filePath = path.join(__dirname, baseFileDirPath + `/${Consts.FOLDERS[fileType]}/${req.params[0]}`);
+            console.log(filePath)
             let ext = req.params[0].split('.');
             const fileExtension = ext[ext.length - 1]; //pdf, mp3, wav...
 
@@ -53,6 +55,7 @@ module.exports = function (app) {
     });
 
     app.get(`/${Consts.FOLDERS[Consts.FILE_TYPE_IMAGE]}/*`, function (req, res) {
+        console.log("!!!")
         logFile("fileshandler routes for verb GET with /imgs/* is launched");
         allowFileAccess(req, res, Consts.FILE_TYPE_IMAGE);
     });
