@@ -2,6 +2,8 @@
 const path = require('path');
 const fs = require('fs');
 const Consts = require('../../consts/Consts.json');
+const modulesConfig = require('../../../../consts/ModulesConfig.json');
+const config = modulesConfig.fileshandler;
 const logFile = require('debug')('model:file');
 const FileProperties = require('../lib/FileProperties');
 const to = (promise) => {
@@ -29,7 +31,7 @@ module.exports = function FilesHandler(Model) {
 
         const isProd = process.env.NODE_ENV == 'production';
         //also on production we save into public (and not to build because the file can get delete from 'build')
-        const baseFileDirPath = '../../../../../public';
+        const baseFileDirPath = config.PATH_TO_SAVE_FILES ? `../../../${config.PATH_TO_SAVE_FILES}` :'../../../../../public';
         let filePath = prevFileRes.path;
         if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
 
@@ -148,7 +150,6 @@ module.exports = function FilesHandler(Model) {
         let oldFileId = await Model.handleEmptyRow(file, fileKey, modelInstance, FileModel, newRes, isMultiFilesSave, isEmptyRowHandled);
 
         let newFileId = null;
-
         FileModel.overrideSaveFile && typeof FileModel.overrideSaveFile === "function" ?
             newFileId = await FileModel.overrideSaveFile(file, FileModel, fileOwnerId, oldFileId) :
             newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
@@ -208,7 +209,6 @@ module.exports = function FilesHandler(Model) {
         let principalType = null, principalId = null;
         if (!fileOwnerId) {
             // Check resctrictions of unauthentication
-            const modulesConfig = Model.app.get("modules");
             const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
             const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
             if (authConfig.enable) {
@@ -316,7 +316,6 @@ module.exports = function FilesHandler(Model) {
 
         if (!fileOwnerId) {
             // Check resctrictions of unauthentication
-            const modulesConfig = Model.app.get("modules");
             const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
             const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
 

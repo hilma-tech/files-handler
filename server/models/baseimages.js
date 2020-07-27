@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 const Consts = require('../../consts/Consts.json');
-const ModulesConfig = require('../../../../consts/ModulesConfig');
+const ModulesConfig = require('../../../../consts/ModulesConfig.json');
 const config = ModulesConfig.fileshandler;
 const logFile = require('debug')('model:file');
 const https = require('https');
@@ -17,7 +17,6 @@ const to = (promise) => {
         .catch(err => [err]);
 }
 module.exports = function (BaseImages) {
-
     BaseImages.observe('loaded', function (ctx, next) {
 
         var fData;
@@ -59,7 +58,7 @@ module.exports = function (BaseImages) {
 
         const isProd = process.env.NODE_ENV == 'production';
         //also on production we save into public (and not to build because the file can get delete from 'build')
-        const baseFileDirPath = '../../../../../public';
+        const baseFileDirPath = config.PATH_TO_SAVE_FILES?`../../../${config.PATH_TO_SAVE_FILES}`: '../../../../../public';
         let filePaths = [prevFileRes.path];
         if (prevFileRes.isMultiSizes) {
             filePaths = filePaths.concat(prevFileRes.multipleSizes);
