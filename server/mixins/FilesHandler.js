@@ -299,7 +299,9 @@ function getRegex(extension) {
             return /^data:video+\/ogg?;base64,/;
         case 'avi':
             return /^data:video+\/avi?;base64,/;
-        default:
+	case 'mov':
+	    return /^data:video+\/quicktime?;base64,/;
+	default:
             return null;
     }
 }
@@ -326,6 +328,7 @@ function getFileExtension(fileSrc) {
         mp4: 'video/mp4',
         ogg: 'video/ogg',
         avi: 'video/avi',
+	mov: 'video/quicktime',
         //video+audio
         webm: ['audio/webm', 'video/webm'],
     };

@@ -38,7 +38,8 @@ module.exports = function (app) {
             mp4: 'video/mp4',
             webm: 'video/webm',
             ogg: 'video/ogg',
-            avi: 'video/avi'
+            avi: 'video/avi',
+	    mov: 'video/quicktime'
         };
         return contentTypes[extension];
     }
