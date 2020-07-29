@@ -69,7 +69,7 @@ export default class ImageUploader extends Component {
                         name="image"
                         required={this.props.required || false}
                         type="file"
-                        accept=".png, .jpg, .jpeg, .gif, .svg"
+                        accept="image/*"
                         ref="imageUploaderInputRef"
                     />
                     <img
