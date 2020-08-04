@@ -31,6 +31,7 @@ module.exports = function FilesHandler(Model) {
         if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
 
         const isProd = process.env.NODE_ENV == 'production';
+        // const baseFileDirPath = isProd ? '../../../../../build' : '../../../../../public';
         const baseFileDirPath = isProd ? '../../../../../build' : '../../../../../public';
         let filePath = prevFileRes.path;
         if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
@@ -252,7 +253,8 @@ module.exports = function FilesHandler(Model) {
 
 function getSaveDir(type) {
     try {
-        const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
+        // const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
+        const baseFileDirPath = '../../../../../public';
         const saveDir = path.join(__dirname, `${baseFileDirPath}/${folders[type]}/`);
         if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
             fs.mkdirSync(saveDir, { recursive: true });

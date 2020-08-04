@@ -60,7 +60,8 @@ module.exports = function (app) {
                 logFile("Access is allowed for this specific user, for further info see records_permissions table");
             }
 
-            const baseFileDirPath = process.env.NODE_ENV == 'production' ? 'build' : 'public';
+            // const baseFileDirPath = process.env.NODE_ENV == 'production' ? 'build' : 'public';
+            const baseFileDirPath = 'public';
             const filePath = path.join(__dirname, '../../../../../') + `${baseFileDirPath}/${folders[fileModel]}/${req.params[0]}`;
             const fileExtension = req.params[0].split('.')[1]; //pdf, mp3, wav...
 
