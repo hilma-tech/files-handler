@@ -1,9 +1,8 @@
-const squel = require('squel');
 const logFile = require('debug')('model:file');
 const Consts = require('../../consts/Consts.json');
 
 function to(promise) { return promise.then(data => { return [null, data]; }).catch(err => [err]); }
-async function exeQuery(sql, app) { return await to(new Promise(function (resolve, reject) { let ds = app.dataSources['msql']; ds.connector.execute(sql, [], function (err, res) { if (err) reject(res); else resolve(res); }); })); }
+async function exeQuery(sql, params, app) { if (!app) { app = params; params = []; } return await to(new Promise(function (resolve, reject) { let ds = app.dataSources['msql']; ds.connector.execute(sql, params, function (err, res) { if (err) reject(res); else resolve(res); }); })); }
 
 module.exports = class PermissionsFilter {
 
@@ -76,27 +75,20 @@ module.exports = class PermissionsFilter {
         }
 
         logFile("userRole", userRole);
-        let query = squel
-            .select({ separator: "\n" })
-            .field("*")
-            .from('records_permissions')
-            .where("model=?", model)
-            .where(
-                squel.expr()
-                    .and("principalId is null")
-                    .or("principalId=?", userId)
-                    .or("principalId=?", userRole)
-                    .or("principalId=?", Consts.EVERYONE)
-                    .or("principalId=?", authStatus)
-            )
-            .where(
-                squel.expr().and("recordId is null").or("recordId=?", fileId)
-            );
+        let q = `SELECT * FROM records_permissions
+        WHERE (model=?)
+        AND 
+        (principalId is null OR principalId=? OR principalId=? OR principalId=? OR principalId=?)
+         AND
+        (recordId is null OR recordId=?);`
+        const params = [model, userId, userRole, Consts.EVERYONE, authStatus, fileId];
+        if (params.some(item => /[",';|]/.test(item) || /(or true)/.test(item) || /(select)/.test(item) || /(drop)/.test(item))) {
+            console.error("hack attemp ", params);
+            return false;
+        }
+        logFile("sql query:", q);
 
-        logFile("\nSQL Query", query.toString());
-        logFile("\n");
-
-        let [err, pRecords] = await exeQuery(query.toString(), this.app);
+        let [err, pRecords] = await exeQuery(q, params, this.app);
         if (err) { logFile("exeQuery err", err); return false; }
         if (!pRecords) { logFile("no precords, aborting..."); return false; }
 
