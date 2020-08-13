@@ -1,3 +1,8 @@
 {
-    "importPermissionsFilter": null
+    "importPermissionsFilter": null,
+    "unauthenticated_file_upload": {
+        "enable": false,
+        "record_permission_type": "",
+        "record_permission_id": ""
+    }
 }

@@ -11,7 +11,7 @@ module.exports = class FileProperties {
         logFile("type", type)
         try {
             //also on production we save into public (and not to build because the file can get delete from 'build')
-            const baseFileDirPath = '../../../../../public';
+            const baseFileDirPath = config.PATH_TO_SAVE_FILES ? `../../../${config.PATH_TO_SAVE_FILES}`:'../../../../../public';
             const saveDir = path.join(__dirname, `${baseFileDirPath}/${Consts.FOLDERS[type]}/`);
             if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
                 fs.mkdirSync(saveDir, { recursive: true });
@@ -23,7 +23,7 @@ module.exports = class FileProperties {
             return;
         }
     }
-
+    static isBase64(src){return /^data:[\s\S]*;base64,[\s\S]*/.test(src)};
     static getRegex(extension) {
         /* 
         Instruction for supporting a new file format:
@@ -61,7 +61,8 @@ module.exports = class FileProperties {
             "mp4": /^data:video+\/mp4?;base64,/,
             "ogg": /^data:video+\/ogg?;base64,/,
             "avi": /^data:video+\/avi?;base64,/,
-            "mov": /^data:video\/quicktime;base64,/
+            "mov": /^data:video\/quicktime;base64,/,
+            "aac": /^data:audio\/aac;base64,/
         };
         if (!Object.keys(FILE_REGEXS).includes(extension)) return null;
         return FILE_REGEXS[extension];

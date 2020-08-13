@@ -70,12 +70,15 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         <button onClick={this.toggleTable}>{!this.state.isTable ? "Show props details" : "Show less"}</button>
                     </div>
 
+                    <h2>Style Themes</h2>
                     <p className="explanation">There are a few basic styles you can easly implement by adding props.</p>
 
                     <div className="image-input-samples">
 
                         <div className="image-input-sample">
-                            <p>This is the default-theme [deprecated] style. No <em>theme</em> prop is required.</p>
+                            <p>This is the default-theme style. No <em>theme</em> prop is required.<br />
+                                <strong>This theme is deprecated and does not support all the props!</strong>
+                            </p>
                             <ImageUploader
                                 category="my-images"
                                 name="imageSample1"
@@ -110,11 +113,13 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         </div>
                     </div>
 
+                    <h2>Preview Widjet</h2>
                     <p className="explanation">
                         Below are two examples with the default previewWidget.<br />
                         You can achieve it by adding <em>previewWidget={"{<PreviewWidget/>}"}</em> as a prop.<br />
-                        The previewWidget component can be controled with <em>enableEdit</em> and <em>enableDelete</em> props which by default are unabled.<br />
-                        (The previewWidget component can be imported from modules/fileshandler/client/componens/PreviewWidget.js)<br />
+                        The previewWidget component can be controled with <em>enableEdit</em>, <em>enableDelete</em> and <em>crop</em> props which by default are unabled.<br />
+                        (For more details on <em>crop</em> scroll down)<br/>
+                        The previewWidget component can be imported from modules/fileshandler/client/componens/PreviewWidget.js<br />
                         The default previewWidget component can be easly replaced by costume previewWidget component which extends the original.</p>
 
                     <div className="image-input-samples">
@@ -160,10 +165,10 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         </div>
                     </div>
 
-                                    <p className="explanation">
-                    Below is an example of an uploader with the prop <em>defaultThumbnailImageSrc="../media/myImage.jpg"</em>.<br />
-                    This image will replace the default upload thumbnail.
-                </p>
+                    <h2>Default Src</h2>
+                    <p className="explanation">
+                        Below is an example of an uploader with the prop <em>defaultThumbnailImageSrc="../media/myImage.jpg"</em>.<br />
+                        This image will replace the default upload thumbnail.</p>
 
                     <div className="image-input-samples">
 
@@ -180,9 +185,9 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         </div>
                     </div>
 
-                <p className="explanation">
-                    Below is an example of an uploader with the prop <em>defaultChosenFile="../media/{this.props.defaultChosenFileName}"</em>.<br />
-                </p>
+                    <p className="explanation">
+                        Below is an example of an uploader with the prop <em>defaultChosenFile="../media/{this.props.defaultChosenFileName}"</em>.<br />
+                    </p>
 
                     <div className="image-input-samples">
 
@@ -199,6 +204,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         </div>
                     </div>
 
+                    <h2>Error Popup</h2>
                     <p className="explanation">
                         Below are examples of uploaders with the prop <em>isErrorPopup = true</em>.<br />
                         In this case, when choosing a file which exceeds the size limitation as they defiend at src/consts/ModulesConfig.json<br />
@@ -253,6 +259,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         </div>
                     </div>
 
+                    <h2>Multi Sizes</h2>
                     <p className="explanation">When <em>isMultiSizes</em> is true (like in this example), the chosen images is resized and uploaded in maximum 3 different versions: small, mediuim and large.<br />
                         The images are saved at public/imgs/[category]/[image_id].[s/m/l].[format]<br />
                         The original image is resized only to smaller versions, which means that in some cases the image will have only medium and small versions, and in others only small.<br />
@@ -275,6 +282,72 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                         </div>
                     </div>
 
+                    <h2> Image cropper ✂️</h2>
+                    <p className="explanation">The image cropper enables the user to cut his image before uploading it. It could be useful for cropping a profile image and much more.<br />
+                        To use it simply add to the ImageUploader the prop <em>crop=true</em>.<br />
+                    </p>
+
+                    <h4 className="explanation">Additional features</h4>
+                    <p className="explanation"> Change <em>crop=true</em> to <em>crop={"{}"}</em> and add keys according to what you want.</p>
+                    <ul className="explanation">
+                        <li><em>ellipse:true</em> - If you whant the crop to be in an oval shape</li>
+                        <li><em>proportion:number {"<=1"}</em> - To define fixed proportions between height/weight</li>
+                        <li><em>direction:"ltr"/"rtl"</em> - Should popup titles be from rtl or ltr</li>
+                        <li><em>grid:true</em> - Adds grid lines to help user with proportion</li>
+                        <li><em>texts:{"{}"}</em> - Override default texts, the obect has key(name of text) value (replaced text).<br />
+                            The texts you can override are:</li>
+                        <ul className="inner-list">
+                            <li>popupTitle</li>
+                            <li>close (the popup)</li>
+                            <li>done</li>
+                            <li>cropButtonName</li>
+                        </ul>
+                    </ul>
+
+                    <p className="explanation">If you whant to use previewWidget add the crop object in previewWidget's props.<br />
+                        <strong>And the real thing</strong></p>
+
+                    <div className="uploader">
+                        <p>Simple example</p>
+                        <ImageUploader
+                            category="my-images"
+                            name="imageSample14"
+                            title="my-image"
+                            theme="basic-theme"
+                            onChange={this.handleFileChange}
+                            crop={{
+                                grid: true,
+                                texts: { cropButtonName: "crop ✂️" }
+                            }}
+                        />
+                    </div>
+                    
+                    <div className="uploader">
+                        <p>Using PreviewWidget</p>
+                        <ImageUploader
+                            category="my-images"
+                            name="imageSample13"
+                            title="my-image"
+                            theme="circle-theme"
+                            onChange={this.handleFileChange}
+                            previewWidget={<PreviewWidget
+                                enableEdit={true}
+                                enableDelete={true}
+                                crop={{
+                                    ellipse: true,
+                                    proportion: 1,
+                                    grid: true,
+                                    texts: {
+                                        popupTitle: "custom popup title",
+                                        cropButtonName: "crop ✂️",
+                                        close: "this might be equal to \"rm -rf /*\"",
+                                        done: "Taadaa"
+                                    }
+                                }}
+                            />}
+                        />
+                    </div>
+
                     <p className="explanation">
                         <strong>Note:</strong> In this example the Submit button uploads all the chosen images to Images model<br />
                         (without saving a reference image_id in another model like in "Upload image to relative model (by creating a new game)" sample).</p>
@@ -288,7 +361,7 @@ export default class ImageUploaderVIew extends SingleFileUploaderView {
                                 </div>)}
                         </div>}
                 </div>
-            </div>
+            </div >
         );
     }
 }

@@ -22,5 +22,6 @@
         "m": 800,
         "l": 1200
     },
-    "MULTI_FILES_LIMIT": 8
+    "MULTI_FILES_LIMIT": 8,
+    "SHRINK_LARGE_IMAGE_TO_MAX_SIZE": false
 }

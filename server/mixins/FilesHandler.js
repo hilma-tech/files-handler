@@ -2,6 +2,8 @@
 const path = require('path');
 const fs = require('fs');
 const Consts = require('../../consts/Consts.json');
+const modulesConfig = require('../../../../consts/ModulesConfig.json');
+const config = modulesConfig.fileshandler;
 const logFile = require('debug')('model:file');
 const FileProperties = require('../lib/FileProperties');
 const to = (promise) => {
@@ -29,7 +31,7 @@ module.exports = function FilesHandler(Model) {
 
         const isProd = process.env.NODE_ENV == 'production';
         //also on production we save into public (and not to build because the file can get delete from 'build')
-        const baseFileDirPath = '../../../../../public';
+        const baseFileDirPath = config.PATH_TO_SAVE_FILES ? `../../../${config.PATH_TO_SAVE_FILES}` :'../../../../../public';
         let filePath = prevFileRes.path;
         if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
 
@@ -60,15 +62,15 @@ module.exports = function FilesHandler(Model) {
         logFile("regex", regex);
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
-        logFile("\nownerId", ownerId);
+        logFile("ownerId", ownerId);
 
+        let { src, type, ...extraProperies } = file;
         let fileObj = {
-            category: file.category ? file.category : 'uploaded',
             owner: ownerId,
             format: extension,
-            title: file.title,
-            description: file.description,
+            category: file.category ? file.category : 'uploaded',
             dontSave: true, // don't let afterSave remote do anything- needed?
+            ...extraProperies
         };
 
         /* If we are posting to and from the same model,
@@ -148,7 +150,6 @@ module.exports = function FilesHandler(Model) {
         let oldFileId = await Model.handleEmptyRow(file, fileKey, modelInstance, FileModel, newRes, isMultiFilesSave, isEmptyRowHandled);
 
         let newFileId = null;
-
         FileModel.overrideSaveFile && typeof FileModel.overrideSaveFile === "function" ?
             newFileId = await FileModel.overrideSaveFile(file, FileModel, fileOwnerId, oldFileId) :
             newFileId = await Model.saveFile(file, FileModel, fileOwnerId, oldFileId);
@@ -205,13 +206,24 @@ module.exports = function FilesHandler(Model) {
             }
         }
 
+        let principalType = null, principalId = null;
+        if (!fileOwnerId) {
+            // Check resctrictions of unauthentication
+            const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
+            const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
+            if (authConfig.enable) {
+                principalType = authConfig.record_permission_type;
+                principalId = authConfig.record_permission_id;
+            }
+        }
+
         // giving the owner of the file/image permission to view it
         const rpModel = Model.app.models.RecordsPermissions;
         let rpData = {
             model: FileModelName,
             recordId: newFileId,
-            principalType: Consts.USER,
-            principalId: fileOwnerId,
+            principalType: principalType || Consts.USER,
+            principalId: principalId || fileOwnerId,
             permission: Consts.ALLOW
         }
         let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
@@ -252,6 +264,13 @@ module.exports = function FilesHandler(Model) {
 
                     if (!Array.isArray(keyData)) {
                         if (!keyData.src || !keyData.type) continue;
+                        if (!FileProperties.isBase64(keyData.src)) {
+                            if (!typeof Model.parseSrc === "function") {
+                                logFile("Model.parseSrc is not a function");
+                                continue;
+                            }
+                            keyData.src = await Model.parseSrc(keyData.src);
+                        }
                         isFileInRange = await FileProperties.isFileSizeInRange(keyData);
                         keyData.src = isFileInRange ? keyData.src : null;
                         logFile('isFileInRange', isFileInRange)
@@ -265,16 +284,16 @@ module.exports = function FilesHandler(Model) {
                             keyData[z].src = isFileInRange ? keyData[z].src : null;
                             logFile("isFileInRange", isFileInRange)
                         }
+
+                        if (!keyData.length) continue;
                     }
 
                     // take the data in dataObj and put it in obj called filesToSave inside dataObj
                     // so we can later take it and add it to the file/img/audio table
                     let filesToSave = ctx.args[field].filesToSave || {};
-                    if (keyData.length) {
-                        filesToSave[key] = keyData;
-                        ctx.args[field]["filesToSave"] = filesToSave;
-                        ctx.args[field][key] = null;
-                    }
+                    filesToSave[key] = keyData;
+                    ctx.args[field]["filesToSave"] = filesToSave;
+                    ctx.args[field][key] = null;
                 };
             }
 
@@ -288,14 +307,20 @@ module.exports = function FilesHandler(Model) {
             return next();
         if (!modelInstance) return next();
         modelInstance = modelInstance.success || modelInstance;
-        let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
-            ctx.args.options.accessToken.userId : //if there's accessToken use userId
-            (Model === Model.app.models.CustomUser ? //else, if we are creating new user use new user's id
-                (modelInstance && modelInstance.id) : null);
 
+        let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
+            ctx.args.options.accessToken.userId : // If there's accessToken use userId
+            (Model === Model.app.models.CustomUser ? // Else, if we are creating new user use new user's id
+                (modelInstance && modelInstance.id) : null);
         logFile("The owner of the file is fileOwnerId", fileOwnerId);
-        //Access is always restricted without authentication
-        if (!fileOwnerId) { logFile("No owner for this file, aborting..."); return next(); }
+
+        if (!fileOwnerId) {
+            // Check resctrictions of unauthentication
+            const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
+            const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
+
+            if (authConfig && !authConfig.enable) { logFile("No owner for this file, and unauthenticated upload is disabled. aborting..."); return next(); }
+        }
 
         let args = ctx.args;
 
@@ -311,11 +336,8 @@ module.exports = function FilesHandler(Model) {
                 logFile("Iterating with field (%s)", field);
 
                 if (field === "options") continue;
-
                 if (!args[field] || !args[field].filesToSave) return next();
-
                 let filesToSave = args[field].filesToSave;
-
                 for (let fileKey in filesToSave) {
                     const fileOrFiles = filesToSave[fileKey];
 

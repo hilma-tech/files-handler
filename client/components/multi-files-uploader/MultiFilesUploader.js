@@ -3,6 +3,7 @@ import Dropzone from 'react-dropzone';
 import Consts from '../../../consts/Consts.json';
 import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import Tooltip from '@material-ui/core/Tooltip';
+import FixImgOrientation from '../FixImgOrientation';
 import './MultiFilesUploader.scss';
 
 export default class MultiFilesUploader extends Component {
@@ -30,14 +31,16 @@ export default class MultiFilesUploader extends Component {
     }
 
     onDrop = async (acceptedfiles, rejectedFiles) => {
-        console.log("acceptedfiles", acceptedfiles)
-        console.log("rejectedFiles", rejectedFiles)
-
         let filesData = [...this.state.filesData];
 
         for (let i = 0; i < acceptedfiles.length; i++) {
             if (filesData.length >= config.MULTI_FILES_LIMIT) { this.isOverFilesNumLimit = true; break; }
-            let base64String = await this.readFileToBase64(acceptedfiles[i]);
+            let base64String;
+            //if image => get base64 of image on canvas with orientation 1 
+            if (this.props.type === Consts.FILE_TYPE_IMAGE)
+                base64String = await FixImgOrientation.resetOrientation(acceptedfiles[i]);
+            //if audio/file => get base64 
+            else this.readFileToBase64(acceptedfiles[i]);
 
             let fileObj = {
                 src: base64String,
@@ -57,7 +60,9 @@ export default class MultiFilesUploader extends Component {
             if (filesData.length >= config.MULTI_FILES_LIMIT) { this.isOverFilesNumLimit = true; break; }
             if (!this.acceptedMimes.includes(rejectedFiles[i].type)) continue;
 
-            let filePreview = await this.getFilePreviewObj(rejectedFiles[i], null, Consts.FILE_REJECTED, Consts.ERROR_MSG_FILE_TOO_BIG);
+            let [status, errMsg] = this.isFileInSizeRange(rejectedFiles[i]);
+
+            let filePreview = await this.getFilePreviewObj(rejectedFiles[i], null, Consts.FILE_REJECTED, errMsg);
 
             filesData.push({ previewObj: filePreview });
         }
@@ -65,6 +70,66 @@ export default class MultiFilesUploader extends Component {
         // Display previews of dropped files and calls the onChange callback with the accepted files
         this.setState({ filesData }, this.parentOnChange);
     };
+
+    //resize large image to the large size given in config.IMAGE_SIZES_IN_PX
+    resizeLargeImage = (file, base64) => {
+        return new Promise((resolve, reject) => {
+            const maxWidth = config.IMAGE_SIZES_IN_PX['l'] ? config.IMAGE_SIZES_IN_PX['l'] : 1000;
+
+            const maxHeight = 500;
+            var canvas = document.createElement("canvas");
+            var ctx = canvas.getContext("2d");
+            var canvasCopy = document.createElement("canvas");
+            var copyContext = canvasCopy.getContext("2d");
+
+            // Create original image
+            var img = new Image();
+            img.src = base64;
+            img.onload = function () {
+                // Determine new ratio based on max size
+                var ratio = 1;
+                if (img.width > maxWidth)
+                    ratio = maxWidth / img.width;
+                else if (img.height > maxHeight)
+                    ratio = maxHeight / img.height;
+
+                // Draw original image in second canvas
+                canvasCopy.width = img.width;
+                canvasCopy.height = img.height;
+                copyContext.drawImage(img, 0, 0);
+
+                // Copy and resize second canvas to first canvas
+                //the first canvas has smaller width and height than the original image
+                canvas.width = img.width * ratio;
+                canvas.height = img.height * ratio;
+
+                ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL(file.type));
+                reject(base64);
+            };
+        });
+    }
+
+    isFileInSizeRange = (file, isDefaultChosenFile = false) => {
+        let status = Consts.FILE_ACCEPTED;
+        let errMsg = null;
+
+        if (isDefaultChosenFile) {
+            return [status, errMsg];
+        }
+
+        let sizeKB = file.size;
+        if (sizeKB < this.minSizeInBytes) {
+            status = Consts.FILE_REJECTED;
+            errMsg = Consts.ERROR_MSG_FILE_TOO_SMALL;
+        }
+        if (sizeKB > this.maxSizeInBytes) {
+            status = Consts.FILE_REJECTED;
+            errMsg = Consts.ERROR_MSG_FILE_TOO_BIG;
+        }
+
+        return [status, errMsg];
+    }
 
     getFilesData = () => {
         let filesData = this.state.filesData;
@@ -135,7 +200,20 @@ export default class MultiFilesUploader extends Component {
             extension = this.getExtension(file.type);
         }
         else {
-            if (!base64String) base64String = await this.readFileToBase64(file);
+            if (!base64String) {
+                //if image => get base64 of image on canvas with orientation 1 
+                if (this.props.type === Consts.FILE_TYPE_IMAGE) {
+                    base64String = await FixImgOrientation.resetOrientation(file);
+                    if (config.SHRINK_LARGE_IMAGE_TO_MAX_SIZE && errMsg === Consts.ERROR_MSG_FILE_TOO_BIG) {
+                        //resize the image to smaller size and don't show the error message
+                        errMsg = null;
+                        status = Consts.FILE_ACCEPTED;
+                        base64String = await this.resizeLargeImage(file, base64String);
+                    }
+                }
+                //if audio/file => get base64 
+                else base64String = await this.readFileToBase64(file);
+            }
             preview = base64String;
         }
 

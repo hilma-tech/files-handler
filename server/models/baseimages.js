@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 const Consts = require('../../consts/Consts.json');
-const ModulesConfig = require('../../../../consts/ModulesConfig');
+const ModulesConfig = require('../../../../consts/ModulesConfig.json');
 const config = ModulesConfig.fileshandler;
 const logFile = require('debug')('model:file');
 const https = require('https');
@@ -16,10 +16,9 @@ const to = (promise) => {
     })
         .catch(err => [err]);
 }
-
 module.exports = function (BaseImages) {
-
     BaseImages.observe('loaded', function (ctx, next) {
+
         var fData;
         if (ctx.instance) { // For first upload
             fData = ctx.instance;
@@ -31,7 +30,17 @@ module.exports = function (BaseImages) {
             if (fData.isMultiSizes) {
                 fData.multipleSizes = [];
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
-                    fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
+                    //check if the file exist in the public directory
+                    try {
+                        if (fs.existsSync(`public/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`)) {
+                            //file exists
+                            fData.multipleSizes.push(`${hostName}/imgs/${fData.category}/${fData.id}.${sign}.${fData.format}`);
+                        }
+                        //file is not exist-> continue the for loop and don't add the path to multipleSizes
+                        else continue;
+                    } catch (err) {
+                        continue;
+                    }
                 }
             }
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
@@ -49,7 +58,7 @@ module.exports = function (BaseImages) {
 
         const isProd = process.env.NODE_ENV == 'production';
         //also on production we save into public (and not to build because the file can get delete from 'build')
-        const baseFileDirPath = '../../../../../public';
+        const baseFileDirPath = config.PATH_TO_SAVE_FILES?`../../../${config.PATH_TO_SAVE_FILES}`: '../../../../../public';
         let filePaths = [prevFileRes.path];
         if (prevFileRes.isMultiSizes) {
             filePaths = filePaths.concat(prevFileRes.multipleSizes);
@@ -88,7 +97,7 @@ module.exports = function (BaseImages) {
         logFile("regex", regex);
         if (!regex) return false;
         let base64Data = file.src.replace(regex, ''); // regex = /^data:[a-z]+\/[a-z]+\d?;base64,/
-        logFile("\nownerId", ownerId);
+        logFile("ownerId", ownerId);
 
         if (file.isMultiSizes) {
             let width = await getImgWidth(base64Data);
@@ -98,14 +107,14 @@ module.exports = function (BaseImages) {
             }
         }
 
+        let { src, type, ...extraProperies } = file;
         let fileObj = {
-            category: file.category ? file.category : 'uploaded',
             owner: ownerId,
             format: extension,
-            title: file.title,
-            description: file.description,
+            category: file.category ? file.category : 'uploaded',
             isMultiSizes: file.isMultiSizes ? true : false, // file.isMultiSizes might be undefiend
-            dontSave: true // don't let afterSave remote do anything- needed?
+            dontSave: true, // don't let afterSave remote do anything- needed?
+            ...extraProperies
         };
 
         /* If we are posting to and from the same model,
@@ -127,6 +136,9 @@ module.exports = function (BaseImages) {
 
             if (file.isMultiSizes) {
                 for (let sign in config.IMAGE_SIZES_IN_PX) {
+                    let width = await getImgWidth(base64Data);
+
+                    if (sign === 'l' && width === config.IMAGE_SIZES_IN_PX[sign]) continue;
                     let fileTargetPath = `${specificSaveDir + newFile.id}.${sign}.${extension}`
                     fs.writeFileSync(fileTargetPath, base64Data, 'base64');
                     resizeImg(fileTargetPath, config.IMAGE_SIZES_IN_PX[sign]);
@@ -134,6 +146,23 @@ module.exports = function (BaseImages) {
             }
             let fileTargetPath = specificSaveDir + newFile.id + "." + extension;
             fs.writeFileSync(fileTargetPath, base64Data, 'base64');
+
+            
+                fs.readdir(specificSaveDir,(err, files) => {
+                    if(err) throw err;
+                    if(files){
+                        files = files.filter((file) => 
+                            file.includes(newFile.id) && ( (!file.includes(extension)) ||
+                            (Object.keys(config.IMAGE_SIZES_IN_PX).some( size => file.includes(`.${size}.`) )  && !newFile.isMultiSizes  ) ) );
+    
+                        files.map((f )=> {
+                            let fullPath = `${specificSaveDir}${f}`;
+                            if (fs.existsSync(fullPath) ) 
+                                fs.unlink(fullPath ,(err)=>{  if(err) throw err }  )
+                        });
+                    }
+                });
+                   
 
         } catch (err) {
             logFile("Err", err);
@@ -235,7 +264,7 @@ async function resizeImg(imgPath, width) {
 }
 
 async function getImgWidth(base64Data) {
-    let img = new Buffer(base64Data, 'base64');
+    let img = new Buffer.from(base64Data, 'base64');
     let dimensions = sizeOf(img);
     logFile("image dimensions", dimensions);
     return dimensions.width;

@@ -46,7 +46,8 @@
             "m4a",
             "wav",
             "mpeg",
-            "webm"
+            "webm",
+            "aac"
         ],
         "video": [
             "mp4",
@@ -82,7 +83,8 @@
         "mp4": "video/mp4",
         "ogg": "video/ogg",
         "avi": "video/avi",
-        "mov": "video/quicktime"
+        "mov": "video/quicktime",
+        "aac": "audio/aac"
     },
     "IMAGE_SMALL_SIGN": "s",
     "IMAGE_MEDIUM_SIGN": "m",

@@ -4,6 +4,7 @@ import { fileshandler as config } from '../../../../../consts/ModulesConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Tooltip from '@material-ui/core/Tooltip';
 import ErrorPopup from '../ErrorPopup';
+import FixImgOrientation from '../FixImgOrientation';
 import './SingleFileUploader.scss';
 
 export default class SingleFileUploader extends Component {
@@ -26,7 +27,7 @@ export default class SingleFileUploader extends Component {
         if (this.props.defaultChosenFile) {
             let file = this.props.defaultChosenFile;
             let e = { target: { files: [file] } };
-            this.onChange(e, true);
+            this.onChange(e, true, false);
         }
     }
 
@@ -35,6 +36,10 @@ export default class SingleFileUploader extends Component {
 
         this.type = Consts.FILE_TYPES.includes(props.type) ?
             props.type : Consts.FILE_TYPE_IMAGE;
+
+        this.height = this.props.height || "10em";
+
+        this.thumbHeight = this.calcHeight(0.8, this.height);
 
         this.acceptedExtensions = this.getAcceptedExtensions();
 
@@ -47,6 +52,13 @@ export default class SingleFileUploader extends Component {
         this.isErrorPopup = typeof this.props.isErrorPopup === "boolean" ? this.props.isErrorPopup : false; // default false 
     }
 
+    calcHeight = (presentage, originalHeight) => {
+        let uploaderHeight = originalHeight.match(/(\d||\.)+/)[0];
+        let unit = originalHeight.split(uploaderHeight)[1];
+        let newHeight = (Number(uploaderHeight) * presentage) + unit;
+        return newHeight;
+    }
+
     getDefaultThumbnail = () => {
         // Suppport previous versions
         let propsDefaultTumbnail = this.props.defaultValue || this.props.thumbnail || this.props.defaultThumbnailImageSrc;
@@ -54,8 +66,7 @@ export default class SingleFileUploader extends Component {
         return defaultThumbnail;
     }
 
-    async onChange(e, isDefaultChosenFile = false) {
-        
+    async onChange(e, fileSizeInRange = false, readFileToBase64 = true) {
         if (!e.target || !e.target.files || !e.target.files[0]) return;
         let file = e.target.files[0];
 
@@ -63,12 +74,30 @@ export default class SingleFileUploader extends Component {
         let fileObj = null;
         let filePreview = null;
         let showErrPopup = false;
-        let [status, errMsg] = this.isFileInSizeRange(file, isDefaultChosenFile); // NOTICE: When defaultChosenFile=true, the file is automatically accepted
+        let [status, errMsg] = this.isFileInSizeRange(file, fileSizeInRange); // !NOTICE: When defaultChosenFile=true, the file is automatically accepted
 
         const extraFileObjProps = this.props.extraFileObjProps || {};
+        if (config.SHRINK_LARGE_IMAGE_TO_MAX_SIZE || status === Consts.FILE_ACCEPTED) {
 
-        if (status === Consts.FILE_ACCEPTED) {
-            base64String = isDefaultChosenFile ? file : await this.readFileToBase64(file);
+            if (!readFileToBase64) {
+                if (file && file.file)
+                    base64String = file.file;
+
+                else base64String = file;
+            }
+            else {
+                //if image => get base64 of image on canvas with orientation 1 
+                if (this.props.type === Consts.FILE_TYPE_IMAGE) base64String = await FixImgOrientation.resetOrientation(file);
+                //if audio/file => get base64 
+                else base64String = await this.readFileToBase64(file);
+            }
+            if (this.props.type === Consts.FILE_TYPE_IMAGE && errMsg === Consts.ERROR_MSG_FILE_TOO_BIG) {
+                //resize the image to smaller size and don't show the error message
+                errMsg = null;
+                status = Consts.FILE_ACCEPTED;
+                base64String = await this.resizeLargeImage(file, base64String);
+            }
+
             fileObj = {
                 src: base64String,
                 type: this.type,
@@ -78,8 +107,9 @@ export default class SingleFileUploader extends Component {
                 ...extraFileObjProps
             };
 
-            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg, isDefaultChosenFile);
+            filePreview = this.getFilePreviewObj(file, base64String, status, errMsg, fileSizeInRange);
         }
+
         else { // status = Consts.FILE_REJECTED
 
             if (this.isErrorPopup) {
@@ -88,7 +118,21 @@ export default class SingleFileUploader extends Component {
                 this.uploaderInputRef.current.value = null;
             }
             else {
-                if (this.type !== Consts.FILE_TYPE_FILE) base64String = await this.readFileToBase64(file);
+                if (this.type !== Consts.FILE_TYPE_FILE) {
+                    if (!readFileToBase64) {
+                        if (file && file.file) base64String = file.file;
+                        else base64String = file;
+                    }
+                    else {
+                        //if image => get base64 of image on canvas with orientation 1 
+                        if (this.props.type === Consts.FILE_TYPE_IMAGE) {
+                            base64String = await FixImgOrientation.resetOrientation(file)
+                        }
+                        //if audio/file => get base64 
+                        else base64String = await this.readFileToBase64(file);
+                    }
+                }
+                // --------
                 filePreview = this.getFilePreviewObj(file, base64String, status, errMsg);
             }
         }
@@ -96,7 +140,46 @@ export default class SingleFileUploader extends Component {
         let fileData = { previewObj: filePreview, acceptedObj: fileObj };
 
         // Display previews of dropped files and calls the onChange callback with the accepted files
-        this.setState({ fileData, showErrPopup }, () => !isDefaultChosenFile && this.parentOnChange());
+        this.setState({ fileData, showErrPopup }, () => !fileSizeInRange && this.parentOnChange());
+    }
+
+    //resize large image to the large size given in config.IMAGE_SIZES_IN_PX
+    resizeLargeImage = (file, base64) => {
+        return new Promise((resolve, reject) => {
+            const maxWidth = config.IMAGE_SIZES_IN_PX['l'] ? config.IMAGE_SIZES_IN_PX['l'] : 1000;
+
+            const maxHeight = 500;
+            var canvas = document.createElement("canvas");
+            var ctx = canvas.getContext("2d");
+            var canvasCopy = document.createElement("canvas");
+            var copyContext = canvasCopy.getContext("2d");
+
+            // Create original image
+            var img = new Image();
+            img.src = base64;
+            img.onload = function () {
+                // Determine new ratio based on max size
+                var ratio = 1;
+                if (img.width > maxWidth)
+                    ratio = maxWidth / img.width;
+                else if (img.height > maxHeight)
+                    ratio = maxHeight / img.height;
+
+                // Draw original image in second canvas
+                canvasCopy.width = img.width;
+                canvasCopy.height = img.height;
+                copyContext.drawImage(img, 0, 0);
+
+                // Copy and resize second canvas to first canvas
+                //the first canvas has smaller width and height than the original image
+                canvas.width = img.width * ratio;
+                canvas.height = img.height * ratio;
+
+                ctx.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL(file.type));
+                reject(base64);
+            };
+        });
     }
 
     parentOnChange = () => {
@@ -161,9 +244,8 @@ export default class SingleFileUploader extends Component {
         if (isDefaultPreview) return filePreview;
 
         if (this.type === Consts.FILE_TYPE_FILE) {
-            filePreview.preview = isDefaultChosenFile ? "Default file" :  file.name;
-            filePreview.extension = isDefaultChosenFile? file.split(".").pop() : this.getExtension(file.type);
-            console.log("extension", filePreview.extension)
+            filePreview.preview = isDefaultChosenFile ? "Default file" : file.name;
+            filePreview.extension = isDefaultChosenFile ? file.split(".").pop() : this.getExtension(file.type);
         }
         else filePreview.preview = base64String;
 
@@ -177,19 +259,19 @@ export default class SingleFileUploader extends Component {
         switch (type) {
             case Consts.FILE_TYPE_FILE:
                 filePreview =
-                    <div ref={this.props.previewRef}>
+                    <div ref={this.props.previewRef} style={{ height: this.thumbHeight }}>
                         <img src={require(`../../../imgs/fileThumbnails/${file.extension}-file-thumbnail.svg`)} alt={`uploading ${this.type}`} />
-                        <h2>{file.preview}</h2>
+                        <h2 style={{ fontSize: this.calcHeight(0.15, this.thumbHeight) }}>{file.preview}</h2>
                     </div>;
                 break;
 
             case Consts.FILE_TYPE_IMAGE:
-                let style = { backgroundImage: `url(${file.preview})` };
+                let style = { backgroundImage: `url(${file.preview})`, height: this.thumbHeight, width: this.thumbHeight };
                 filePreview = <div ref={this.props.previewRef} className="chosen-img" style={style} />;
                 break;
 
             case Consts.FILE_TYPE_VIDEO:
-                filePreview = <video ref={this.props.previewRef} src={file.preview} type={"video/*"} />;
+                filePreview = <video ref={this.props.previewRef} src={file.preview} type={"video/*"} style={{ height: this.thumbHeight }} />;
                 break;
 
             case Consts.FILE_TYPE_AUDIO:
@@ -262,7 +344,7 @@ export default class SingleFileUploader extends Component {
             return this.props.replaceReturn(vars, this);
 
         return (
-            <div className="single-file-uploader">
+            <div className="single-file-uploader" style={{ height: this.height }}>
                 <div className={this.props.theme || "basic-theme"}>
                     <input
                         id={this.props.name}
@@ -285,7 +367,9 @@ export default class SingleFileUploader extends Component {
                         {this.props.theme !== "button-theme" &&
                             <label htmlFor={this.props.name}>
                                 {filePreviewHtml}
-                                <div className="label">{this.props.label || `Load ${this.type}`}</div>
+                                <div className="label" style={{ fontSize: this.calcHeight(0.125, this.thumbHeight) }}>
+                                    {this.props.label || `Load ${this.type}`}
+                                </div>
                             </label>}
 
                         {this.props.theme === "button-theme" && !isDefaultPreview &&
@@ -294,14 +378,14 @@ export default class SingleFileUploader extends Component {
                         {// Add remove button
                             !this.props.disabled && !isDefaultPreview &&
                             <div className="remove-icon" onClick={this.removeFile}>
-                                <img src={this.props.removeFileIcon || require('../../../imgs/x-icon.png')} alt="x" />
+                                <img src={this.props.removeFileIcon || require('../../../imgs/x-icon.png')} alt="x" style={{ height: this.calcHeight(0.25, this.thumbHeight) }} />
                             </div>}
 
                         {// Add error icon if needed
                             file.status === Consts.FILE_REJECTED && !isDefaultPreview &&
                             <div className="error-icon">
                                 <Tooltip title={file.errMsg} placement="left" className="tool-tip">
-                                    <img src={require('../../../imgs/error.svg')} alt={file.errMsg} />
+                                    <img src={require('../../../imgs/error.svg')} alt={file.errMsg} style={{ height: this.calcHeight(0.25, this.thumbHeight) }} />
                                 </Tooltip>
                             </div>}
                     </div>
