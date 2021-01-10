@@ -5,7 +5,7 @@ const Consts = require('../../consts/Consts.json');
 const FileProperties = require('../lib/FileProperties');
 
 module.exports = function (app) {
-    let FileshandlerConfig = app.get('modules').fileshandler;
+    let FileshandlerConfig = app.get('modules') && app.get('modules').fileshandler;
     const PermissionsFilter = FileshandlerConfig &&
         FileshandlerConfig.importPermissionsFilter ?
         require('./../../../' + FileshandlerConfig.importPermissionsFilter) :
