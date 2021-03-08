@@ -70,7 +70,7 @@
             "audio/mp3",
             "application/octet-stream"
         ],
-        "m4a": "audio/x-m4a",
+        "m4a": ["audio/x-m4a","audio/m4a"],
         "wav": [
             "audio/wav",
             "audio/x-wav"
