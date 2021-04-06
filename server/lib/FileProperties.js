@@ -54,7 +54,7 @@ module.exports = class FileProperties {
             "gif": /^data:image+\/gif?;base64,/,
             "svg": /^data:image+\/svg+\++\xml;base64,?/,
             "mp3": /^data:(audio+\/mp3?|application\/octet-stream);base64,/,
-            "m4a": /^data:audio\/x-m4a;base64,/,
+            "m4a": /^data:(audio+\/m4a?|audio\/x-m4a);base64,/,
             "wav": /^data:(audio+\/wav?|audio\/x-wav);base64,/,
             "mpeg": /^data:audio\/mpeg;base64,/,
             "webm": /^data:(video|audio)\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/,
