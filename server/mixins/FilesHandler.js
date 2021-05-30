@@ -2,8 +2,8 @@
 const path = require('path');
 const to = (promise) => {
     return promise.then(data => {
-        return [null, data];
-    })
+            return [null, data];
+        })
         .catch(err => [err]);
 }
 
@@ -27,8 +27,15 @@ module.exports = function FilesHandler(Model) {
     Model.deleteFile = async function (prevFileId, ModelToSave) {
         logFile("Model.deleteFile is launched now with prevFileId: ", prevFileId);
 
-        let [prevFileErr, prevFileRes] = await to(ModelToSave.findOne({ where: { id: prevFileId } }));
-        if (prevFileErr || !prevFileRes) { logFile("Error finding previous file path", prevFileErr); return null; }
+        let [prevFileErr, prevFileRes] = await to(ModelToSave.findOne({
+            where: {
+                id: prevFileId
+            }
+        }));
+        if (prevFileErr || !prevFileRes) {
+            logFile("Error finding previous file path", prevFileErr);
+            return null;
+        }
 
         const isProd = process.env.NODE_ENV == 'production';
         const baseFileDirPath = isProd ? './../../build' : './../../public';
@@ -51,7 +58,7 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.saveFile = async function (file, FileModel, ownerId = null, fileId = null) {
-
+        console.log("IN SAVE FILE");
         logFile("Model.saveFile is launched with ownerId", ownerId);
         let saveDir = getSaveDir(file.type);
         if (!saveDir) return false;
@@ -68,7 +75,7 @@ module.exports = function FilesHandler(Model) {
             owner: ownerId,
             format: extension,
             created: Date.now(),
-            dontSave: true,// dont let afterSave remote do anything- needed?
+            dontSave: true, // dont let afterSave remote do anything- needed?
             title: file.title
         };
 
@@ -76,21 +83,26 @@ module.exports = function FilesHandler(Model) {
 
         // If we are posting to and from the same model,
         // the instance was already created in the remote so we just update it 
-        if (/*Model === FileModel && */fileId !== null)
+        if ( /*Model === FileModel && */ fileId !== null)
             fileObj.id = fileId;
         logFile("fileObj before save", fileObj);
 
         let specificSaveDir = saveDir + fileObj.category + "/";
         let [err, newFile] = await to(FileModel.upsert(fileObj));
 
-        if (err) { console.error("Error creating file, aborting...", err); return false }
+        if (err) {
+            console.error("Error creating file, aborting...", err);
+            return false
+        }
         logFile("New entry created for model ", file.type, newFile);
 
         let fileTargetPath = null;
 
         try {
-            if (!fs.existsSync(specificSaveDir)) {//create dir if dosent exist.
-                fs.mkdirSync(specificSaveDir, { recursive: true });
+            if (!fs.existsSync(specificSaveDir)) { //create dir if dosent exist.
+                fs.mkdirSync(specificSaveDir, {
+                    recursive: true
+                });
                 logFile("New folder was created ", specificSaveDir);
             }
 
@@ -106,9 +118,10 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
+        console.log('here: ');
 
         logFile("Model.beforeRemote is launched", ctx.req.method);
-        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH"/* && !modelInstance.id*/)
+        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH" /* && !modelInstance.id*/ )
             return next()
 
         let args = ctx.args;
@@ -131,16 +144,18 @@ module.exports = function FilesHandler(Model) {
                     let filesToSave = ctx.args[field].filesToSave || {};
                     filesToSave[key] = data[key];
                     ctx.args[field]["filesToSave"] = filesToSave;
+
                     ctx.args[field][key] = null;
                 };
             }
+            console.log(ctx.args)
             return next();
         })();
     });
 
     Model.afterRemote('*', function (ctx, modelInstance, next) {
         logFile("Model.afterRemote(*) is launched", ctx.req.method);
-        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH" /*&& !modelInstance.id*/)
+        if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH" /*&& !modelInstance.id*/ )
             return next();
 
         let fileOwnerId = (ctx.args.options && ctx.args.options.accessToken) ?
@@ -151,7 +166,10 @@ module.exports = function FilesHandler(Model) {
 
         logFile("The owner of the file is fileOwnerId", fileOwnerId);
         //Access is always restricted without authentication
-        if (!fileOwnerId) { logFile("No owner for this file, aborting..."); return next(); }
+        if (!fileOwnerId) {
+            logFile("No owner for this file, aborting...");
+            return next();
+        }
 
         let args = ctx.args;
 
@@ -186,12 +204,13 @@ module.exports = function FilesHandler(Model) {
                             ModelToSave = Model.app.models.Video;
                             ModelToSaveName = `${FILE_TYPE_VIDEO}s`;
                             break;
-                        // TODO Shira ? - add Audio model and a case for it ?
+                            // TODO Shira ? - add Audio model and a case for it ?
                         case FILE_TYPE_AUDIO:
                             ModelToSave = Model.app.models.Audio;
                             ModelToSaveName = `${FILE_TYPE_AUDIO}s`;
                             break;
-                        default: continue;
+                        default:
+                            continue;
                     }
 
                     logFile("ModelToSave - Should be either Images/Files/Video", ModelToSaveName);
@@ -206,20 +225,36 @@ module.exports = function FilesHandler(Model) {
                     logFile("FileId right before saveFile is launched is", fileId);
 
                     let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, fileId);
-                    if (!newFileId) { logFile("Couldn't create your file dude, aborting..."); continue; }
+                    if (!newFileId) {
+                        logFile("Couldn't create your file dude, aborting...");
+                        continue;
+                    }
 
                     // If [fileKey] doesnt exist in Model then dont upsert
-                    let [findErr, findRes] = await to(Model.findOne({ where: { id: modelInstance.id } }));
-                    if (findErr || !findRes) { logFile("Error finding field, aborting...", findErr); continue; }
-                    if (!(fileKey in findRes)) { logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/ }
-                    else {
+                    let [findErr, findRes] = await to(Model.findOne({
+                        where: {
+                            id: modelInstance.id
+                        }
+                    }));
+                    if (findErr || !findRes) {
+                        logFile("Error finding field, aborting...", findErr);
+                        continue;
+                    }
+                    if (!(fileKey in findRes)) {
+                        logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/
+                    } else {
                         // Updating the row to include the id of the file added
-                        let [upsertErr, upsertRes] = await to(Model.upsertWithWhere(
-                            { id: modelInstance.id }, { [fileKey]: newFileId }
-                        ));
+                        let [upsertErr, upsertRes] = await to(Model.upsertWithWhere({
+                            id: modelInstance.id
+                        }, {
+                            [fileKey]: newFileId
+                        }));
                         logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
 
-                        if (upsertErr) { logFile(`error upserting field "${fileKey}", aborting...`, upsertErr); continue; }
+                        if (upsertErr) {
+                            logFile(`error upserting field "${fileKey}", aborting...`, upsertErr);
+                            continue;
+                        }
                     }
 
                     // giving the owner of the file/image permission to view it
@@ -233,10 +268,17 @@ module.exports = function FilesHandler(Model) {
                     }
                     let [rpErr, rpRes] = await to(rpModel.findOrCreate(rpData));
                     logFile("New permission row is created on RecordsPermissions model with data", rpData);
-                    if (rpErr) { console.error(`Error granting permissions to file owner, aborting...`, rpErr); continue; }
+                    if (rpErr) {
+                        console.error(`Error granting permissions to file owner, aborting...`, rpErr);
+                        continue;
+                    }
 
                     //calling a custom remote method after FilesHandler is done
-                    let afhData = { model: ModelToSaveName, recordId: newFileId, principalId: fileOwnerId };
+                    let afhData = {
+                        model: ModelToSaveName,
+                        recordId: newFileId,
+                        principalId: fileOwnerId
+                    };
                     Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
                 };
             }
@@ -249,8 +291,10 @@ function getSaveDir(type) {
     try {
         const baseFileDirPath = process.env.NODE_ENV == 'production' ? '../../../../../build' : '../../../../../public';
         const saveDir = path.join(__dirname, `${baseFileDirPath}/${folders[type]}/`);
-        if (!fs.existsSync(saveDir)) {//create dir if dosent exist.
-            fs.mkdirSync(saveDir, { recursive: true });
+        if (!fs.existsSync(saveDir)) { //create dir if dosent exist.
+            fs.mkdirSync(saveDir, {
+                recursive: true
+            });
             logFile("New folder was created ", saveDir);
         }
         return saveDir;
@@ -280,16 +324,16 @@ function getRegex(extension) {
             return /^data:audio+\/mp3?;base64,/;
         case 'wav':
             return /^data:audio+\/wav?;base64,/;
-        // TODO Shira: uncomment this when we start handling webm
-        // case 'webm':
-        //     //TODO Shira: make the following regex be valid for both "video" and "audio"
-        //     return /^data:video\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/; 
+            // TODO Shira: uncomment this when we start handling webm
+            // case 'webm':
+            //     //TODO Shira: make the following regex be valid for both "video" and "audio"
+            //     return /^data:video\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/; 
         case 'webm':
             return /^data:(video|audio)\/[a-zA-Z0-9?><;,{}[\]\-_+=!@#$%\^&*|']+;base64,/;
         case 'mp4':
             return /^data:video+\/mp4?;base64,/;
-        // case 'webm':
-        //     return /^data:video+\/webm?;base64,/; // return /^data:(\bvideo\b)|(\baudio\b)+\/webm?;base64,/
+            // case 'webm':
+            //     return /^data:video+\/webm?;base64,/; // return /^data:(\bvideo\b)|(\baudio\b)+\/webm?;base64,/
         case 'ogg':
             return /^data:video+\/ogg?;base64,/;
         case 'avi':

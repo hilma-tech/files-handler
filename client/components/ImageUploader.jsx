@@ -27,7 +27,6 @@ export default class ImageUploader extends Component {
             }
             else reject("no file");
         })
-
     }
 
     removeFile = () => {
@@ -53,10 +52,12 @@ export default class ImageUploader extends Component {
 
         let eventObj = { target: { name: this.props.name, value: imageObj } }
         this.props.onChange(eventObj);
+        if(this.props.closePopUp !== undefined){
+            this.props.closePopUp()
+        }
     }
 
     render() {
-
         return (
             <div>
                 {(this.state.thumbnail !== this.props.thumbnail)
@@ -74,7 +75,7 @@ export default class ImageUploader extends Component {
                     />
                     <img
                         src={this.state.thumbnail}
-                        height="100px"
+                        height={this.props.small ? "25px" : "100px"}
                         width="auto"
                         alt="uploading image"
                         onError={e => {
