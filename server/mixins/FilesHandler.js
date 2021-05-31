@@ -144,16 +144,15 @@ module.exports = function FilesHandler(Model) {
                     let filesToSave = ctx.args[field].filesToSave || {};
                     filesToSave[key] = data[key];
                     ctx.args[field]["filesToSave"] = filesToSave;
-
                     ctx.args[field][key] = null;
                 };
             }
-            console.log(ctx.args)
+            console.log("sjjxknckjc: ",ctx.args)
             return next();
         })();
     });
 
-    Model.afterRemote('*', function (ctx, modelInstance, next) {
+    Model.beforeRemote('*', function (ctx, modelInstance, next) {
         logFile("Model.afterRemote(*) is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH" /*&& !modelInstance.id*/ )
             return next();
@@ -225,6 +224,7 @@ module.exports = function FilesHandler(Model) {
                     logFile("FileId right before saveFile is launched is", fileId);
 
                     let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, fileId);
+                    
                     if (!newFileId) {
                         logFile("Couldn't create your file dude, aborting...");
                         continue;
@@ -280,6 +280,7 @@ module.exports = function FilesHandler(Model) {
                         principalId: fileOwnerId
                     };
                     Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
+                    ctx.args[field][fileKey] = newFileId
                 };
             }
             return next();
