@@ -6,7 +6,7 @@
         },
         "image": {
             "MIN_SIZE": 10,
-            "MAX_SIZE": 5000
+            "MAX_SIZE": 50000
         },
         "video": {
             "MIN_SIZE": 100,
