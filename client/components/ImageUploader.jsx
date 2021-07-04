@@ -1,5 +1,10 @@
 import React, { Component } from 'react';
+import { async } from 'validate.js';
+import { DefaultDayPost } from '../../../../components';
 import defaultThumbnail from './../../imgs/default-thumbnail-img.png';
+import { IconButton, Snackbar } from '@material-ui/core';
+import { Close } from '@material-ui/icons';
+
 
 /********************THIS VERSION WILL BE DEPRECATED************************/
 
@@ -39,9 +44,17 @@ export default class ImageUploader extends Component {
 
     onChangeImg = async (e) => {
         // console.log("Image has changed");
-        let base64String = await this.readFileToBase64(e.target.files[0]);
-        this.setState({ thumbnail: base64String })
-
+        let fileURl = ""
+        if(window.Capacitor){
+            fileURl = e
+        } else {
+            fileURl = e.target.files[0]
+        }
+        
+        let base64String = await this.readFileToBase64(fileURl);
+        if(!window.Capacitor){
+            this.setState({ thumbnail: base64String })
+        }
         let imageObj = {
             src: base64String,
             type: 'image',
@@ -49,17 +62,43 @@ export default class ImageUploader extends Component {
             category: this.props.category || "default_image_category",
             description: this.props.description || "default_image_description"
         };
-
+        
         let eventObj = { target: { name: this.props.name, value: imageObj } }
+        console.log('eventObj: ', eventObj);
         this.props.onChange(eventObj);
-        if(this.props.closePopUp !== undefined){
+        console.log('this.props.closePopUp: ', this.props.closePopUp);
+        if (this.props.closePopUp !== undefined) {
+            this.props.closePopUp()
+        }
+    }
+
+    takePhotoForCapacitor = () => {
+        if (window.Capacitor) {
+            document.addEventListener("deviceready", this.takePicture, false);
+        }
+    }
+
+    takePicture = async () => {
+        this.clicked = true
+        try{
+            const imageUrl = await window.Capacitor.Plugins.Camera.getPhoto({
+                quality: 90,
+                resultType: 'dataUrl',
+                source: 'PHOTOS'
+            });
+            console.log('imageUrl.dataUrl: ', imageUrl.dataUrl);
+            await this.onChangeImg(imageUrl.dataUrl)
+        }catch(e){
+            console.log('e: ', e);
+        }
+        if (this.props.closePopUp !== undefined) {
             this.props.closePopUp()
         }
     }
 
     render() {
         return (
-            <div>
+            <div onClick={this.takePhotoForCapacitor}>
                 {(this.state.thumbnail !== this.props.thumbnail)
                     && (this.state.thumbnail !== defaultThumbnail)
                     && (this.state.thumbnail !== this.props.defaultThumbnailImageSrc) &&
