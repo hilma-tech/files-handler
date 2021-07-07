@@ -34,6 +34,16 @@ export default class ImageUploader extends Component {
         })
     }
 
+    readFileToBase64Capacitor = (fileInfo) => {
+        console.log('fileInfo: ', fileInfo);
+        return new Promise((resolve, reject) => {
+            if (fileInfo) {
+                resolve(fileInfo)
+            }
+            else reject("no file");
+        })
+    }
+
     removeFile = () => {
         if (this.state.thumbnail === (this.props.thumbnail || defaultThumbnail)) return;
         this.refs.imageUploaderInputRef.value = null;
@@ -44,17 +54,14 @@ export default class ImageUploader extends Component {
 
     onChangeImg = async (e) => {
         // console.log("Image has changed");
-        let fileURl = ""
+        let base64String = ""
         if(window.Capacitor){
-            fileURl = e
+            base64String = await this.readFileToBase64Capacitor(e)
         } else {
-            fileURl = e.target.files[0]
+            base64String = await this.readFileToBase64(e.target.files[0])
         }
-        
-        let base64String = await this.readFileToBase64(fileURl);
-        if(!window.Capacitor){
-            this.setState({ thumbnail: base64String })
-        }
+        console.log('base64String: ', base64String);
+        this.setState({ thumbnail: base64String })
         let imageObj = {
             src: base64String,
             type: 'image',
