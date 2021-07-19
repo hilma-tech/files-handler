@@ -1,4 +1,4 @@
-const EnvHandler = require('./../../../tools/server/lib/EnvHandler');
+const EnvHandler = require('../../../tools/server/lib/EnvHandler');
 const logFile = require('debug')('model:file');
 
 module.exports = function (BaseFiles) {

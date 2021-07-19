@@ -31,7 +31,7 @@ module.exports = function FilesHandler(Model) {
 
         const isProd = process.env.NODE_ENV == 'production';
         //also on production we save into public (and not to build because the file can get delete from 'build')
-        const baseFileDirPath = config.PATH_TO_SAVE_FILES ? `../../../${config.PATH_TO_SAVE_FILES}` :'../../../../../public';
+        const baseFileDirPath = config.PATH_TO_SAVE_FILES ? `../../../${config.PATH_TO_SAVE_FILES}` : '../../../../../public';
         let filePath = prevFileRes.path;
         if (!isProd) filePath = filePath.replace('http://localhost:8080', '');
 
@@ -143,7 +143,7 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.saveFileWithPermissions = async function (file, fileKey, fileOwnerId, filesToSave, modelInstance, ctx, newRes, isEmptyRowHandled, isMultiFilesSave = false) {
-
+       
         let [FileModel, FileModelName] = Model.getFileModelOfFile(file, Model);
         logFile("FileModel - Should be either Images/Files/Audio/Video", FileModelName);
 
@@ -211,10 +211,10 @@ module.exports = function FilesHandler(Model) {
             // Check resctrictions of unauthentication
             const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
             const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
-            if (authConfig.enable) {
-                principalType = authConfig.record_permission_type;
-                principalId = authConfig.record_permission_id;
-            }
+            // if (authConfig && authConfig.enable) {
+            //     principalType = authConfig.record_permission_type;
+            //     principalId = authConfig.record_permission_id;
+            // }
         }
 
         // giving the owner of the file/image permission to view it
@@ -236,7 +236,6 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
-
         logFile("Model.beforeRemote is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
             return next()
@@ -296,7 +295,6 @@ module.exports = function FilesHandler(Model) {
                     ctx.args[field][key] = null;
                 };
             }
-
             return next();
         })();
     });
@@ -304,7 +302,7 @@ module.exports = function FilesHandler(Model) {
     Model.afterRemote('*', function (ctx, modelInstance, next) {
         logFile("Model.afterRemote(*) is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH")
-            return next();
+               return next();
         if (!modelInstance) return next();
         modelInstance = modelInstance.success || modelInstance;
 
@@ -318,8 +316,8 @@ module.exports = function FilesHandler(Model) {
             // Check resctrictions of unauthentication
             const fileshandlerConfig = modulesConfig && modulesConfig.fileshandler;
             const authConfig = fileshandlerConfig && fileshandlerConfig.unauthenticated_file_upload;
-
             if (authConfig && !authConfig.enable) { logFile("No owner for this file, and unauthenticated upload is disabled. aborting..."); return next(); }
+            
         }
 
         let args = ctx.args;
@@ -340,11 +338,13 @@ module.exports = function FilesHandler(Model) {
                 let filesToSave = args[field].filesToSave;
                 for (let fileKey in filesToSave) {
                     const fileOrFiles = filesToSave[fileKey];
+                    logFile("1 Iterating with field (%s)", filesToSave[fileKey]);
 
                     if (Array.isArray(fileOrFiles)) {
                         for (let j = 0; j < fileOrFiles.length; j++) {
                             if (typeof fileOrFiles[j] !== "object") continue;
                             await Model.saveFileWithPermissions(fileOrFiles[j], fileKey, fileOwnerId, filesToSave, modelInstance, ctx, newRes, isEmptyRowHandled, true);
+
                         }
                     }
                     else {
@@ -354,7 +354,6 @@ module.exports = function FilesHandler(Model) {
                     }
                 }
             }
-
             Model.updateRes(newRes, ctx);
             return next();
         })();
