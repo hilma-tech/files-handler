@@ -14,7 +14,7 @@ module.exports = function (BaseImages) {
             fData = ctx.instance;
         }
         else {
-            const hostName = process.env.NODE_ENV == 'production' ?'https://myday.carmel6000.com' : 'http://localhost:8080';            
+            const hostName = process.env.NODE_ENV == 'production' ?'https://myday-t.carmel6000.com' : 'http://localhost:8080';            
             fData = ctx.data;
             fData.path = `${hostName}/imgs/${fData.category}/${fData.id}.${fData.format}`;
         };
