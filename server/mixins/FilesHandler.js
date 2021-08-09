@@ -118,7 +118,6 @@ module.exports = function FilesHandler(Model) {
     }
 
     Model.beforeRemote('*', function (ctx, modelInstance, next) {
-        console.log('here: ');
 
         logFile("Model.beforeRemote is launched", ctx.req.method);
         if (ctx.req.method !== "POST" && ctx.req.method !== "PUT" && ctx.req.method !== "PATCH" /* && !modelInstance.id*/ )
@@ -147,7 +146,6 @@ module.exports = function FilesHandler(Model) {
                     ctx.args[field][key] = null;
                 };
             }
-            console.log("sjjxknckjc: ",ctx.args)
             return next();
         })();
     });
@@ -224,7 +222,8 @@ module.exports = function FilesHandler(Model) {
                     logFile("FileId right before saveFile is launched is", fileId);
 
                     let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, fileId);
-                    
+                    console.log('newFileId: ', newFileId);
+
                     if (!newFileId) {
                         logFile("Couldn't create your file dude, aborting...");
                         continue;
@@ -240,22 +239,22 @@ module.exports = function FilesHandler(Model) {
                         logFile("Error finding field, aborting...", findErr);
                         continue;
                     }
-                    if (!(fileKey in findRes)) {
-                        logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/
-                    } else {
-                        // Updating the row to include the id of the file added
-                        let [upsertErr, upsertRes] = await to(Model.upsertWithWhere({
-                            id: modelInstance.id
-                        }, {
-                            [fileKey]: newFileId
-                        }));
-                        logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
+                    // if (!(fileKey in findRes)) {
+                    //     logFile(`The field "${fileKey}" doesnt exist in model, skipping upsert to that field...`); /*continue;*/
+                    // } else {
+                    //     // Updating the row to include the id of the file added
+                    //     let [upsertErr, upsertRes] = await to(Model.upsertWithWhere({
+                    //         id: modelInstance.id
+                    //     }, {
+                    //         [fileKey]: newFileId
+                    //     }));
+                    //     logFile("Updated model with key,val:%s,%s", fileKey, newFileId);
 
-                        if (upsertErr) {
-                            logFile(`error upserting field "${fileKey}", aborting...`, upsertErr);
-                            continue;
-                        }
-                    }
+                    //     if (upsertErr) {
+                    //         logFile(`error upserting field "${fileKey}", aborting...`, upsertErr);
+                    //         continue;
+                    //     }
+                    // }
 
                     // giving the owner of the file/image permission to view it
                     const rpModel = Model.app.models.RecordsPermissions;
@@ -272,13 +271,14 @@ module.exports = function FilesHandler(Model) {
                         console.error(`Error granting permissions to file owner, aborting...`, rpErr);
                         continue;
                     }
-
                     //calling a custom remote method after FilesHandler is done
                     let afhData = {
                         model: ModelToSaveName,
                         recordId: newFileId,
                         principalId: fileOwnerId
                     };
+                    console.log('fileKey: ', fileKey);
+                    console.log('newFileId: ', newFileId);
                     Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
                     ctx.args[field][fileKey] = newFileId
                 };
