@@ -35,7 +35,6 @@ export default class ImageUploader extends Component {
     }
 
     readFileToBase64Capacitor = (fileInfo) => {
-        console.log('fileInfo: ', fileInfo);
         return new Promise((resolve, reject) => {
             if (fileInfo) {
                 resolve(fileInfo)
@@ -53,14 +52,12 @@ export default class ImageUploader extends Component {
     }
 
     onChangeImg = async (e) => {
-        // console.log("Image has changed");
         let base64String = ""
         if(window.Capacitor){
             base64String = await this.readFileToBase64Capacitor(e)
         } else {
             base64String = await this.readFileToBase64(e.target.files[0])
         }
-        console.log('base64String: ', base64String);
         this.setState({ thumbnail: base64String })
         let imageObj = {
             src: base64String,
@@ -71,9 +68,7 @@ export default class ImageUploader extends Component {
         };
         
         let eventObj = { target: { name: this.props.name, value: imageObj } }
-        console.log('eventObj: ', eventObj);
         this.props.onChange(eventObj);
-        console.log('this.props.closePopUp: ', this.props.closePopUp);
         if (this.props.closePopUp !== undefined) {
             this.props.closePopUp()
         }
@@ -93,7 +88,6 @@ export default class ImageUploader extends Component {
                 resultType: 'dataUrl',
                 source: 'PHOTOS'
             });
-            console.log('imageUrl.dataUrl: ', imageUrl.dataUrl);
             await this.onChangeImg(imageUrl.dataUrl)
         }catch(e){
             console.log('e: ', e);

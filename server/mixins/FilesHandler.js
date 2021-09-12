@@ -222,7 +222,6 @@ module.exports = function FilesHandler(Model) {
                     logFile("FileId right before saveFile is launched is", fileId);
 
                     let newFileId = await Model.saveFile(file, ModelToSave, fileOwnerId, fileId);
-                    console.log('newFileId: ', newFileId);
 
                     if (!newFileId) {
                         logFile("Couldn't create your file dude, aborting...");
@@ -277,8 +276,6 @@ module.exports = function FilesHandler(Model) {
                         recordId: newFileId,
                         principalId: fileOwnerId
                     };
-                    console.log('fileKey: ', fileKey);
-                    console.log('newFileId: ', newFileId);
                     Model.afterFilesHandler && await Model.afterFilesHandler(afhData, fileId, modelInstance);
                     ctx.args[field][fileKey] = newFileId
                 };
