@@ -1,11 +1,7 @@
 {
   "name": "BaseImages",
   "isPublic": "false",
-  "mixins": {
-    "FilesHandler": true,
-    "GenerateInstanceTimes": true,
-    "ExcludeModelFields": true
-  },
+  
   "excludeFields": [
     "owner"
   ],
