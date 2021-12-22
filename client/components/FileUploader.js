@@ -38,8 +38,9 @@ export default class FileUploader extends Component {
             type: 'file',
             title: this.props.title || "default_file_title",
             category: this.props.category || "default_file_category",
-            description: this.props.description || "default_file_description"
-        };
+            description: this.props.description || "default_file_description",
+            length:base64String.length
+	};
 
         let eventObj = { target: { name: this.props.name, value: fileObj } }
         this.props.onChange(eventObj);
