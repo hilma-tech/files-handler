@@ -84,7 +84,10 @@
         "ogg": "video/ogg",
         "avi": "video/avi",
         "mov": "video/quicktime",
-        "aac": "audio/aac"
+        "aac": "audio/aac",
+        "oga": "audio/ogg",
+        "xlsx": "application/vnd.ms-excel",
+        "txt": "text/plain"
     },
     "IMAGE_SMALL_SIGN": "s",
     "IMAGE_MEDIUM_SIGN": "m",

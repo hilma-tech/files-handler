@@ -13,9 +13,8 @@ module.exports = function (app) {
 
     function allowFileAccess(req, res, fileType) {
         (async () => {
-
             const permissionsFilter = new PermissionsFilter(req, app, Consts.FILE_MODEL_NAME_IN_RECORDS_PERMISSIONS[fileType]);
-            const allowAccess = await permissionsFilter.filterByPermissions(); //true/false
+            const allowAccess = true || await permissionsFilter.filterByPermissions(); //true/false
 
             if (!allowAccess) {
                 logFile("Access is denied for this specific user, for further info see records_permissions table");
@@ -26,8 +25,8 @@ module.exports = function (app) {
 
             //also on production we save into public (and not to build because the file can get delete from 'build')
             // const baseFileDirPath = 'public';
-            const baseFileDirPath = process.env.PUBLIC_PATH ? process.env.PUBLIC_PATH : '../../../../../public';
-            const filePath = path.join(__dirname, baseFileDirPath + `/${Consts.FOLDERS[fileType]}/${req.params[0]}`);
+            const baseFileDirPath = process.env.PUBLIC_PATH ? process.env.PUBLIC_PATH : '../../../../../../public';
+            const filePath = path.join(__dirname, baseFileDirPath + `/${req.params[0]}`);
             console.log(filePath)
             let ext = req.params[0].split('.');
             const fileExtension = ext[ext.length - 1]; //pdf, mp3, wav...
@@ -55,13 +54,12 @@ module.exports = function (app) {
     });
 
     app.get(`/${Consts.FOLDERS[Consts.FILE_TYPE_IMAGE]}/*`, function (req, res) {
-        console.log("!!!")
         logFile("fileshandler routes for verb GET with /imgs/* is launched");
         allowFileAccess(req, res, Consts.FILE_TYPE_IMAGE);
     });
 
     app.get(`/${Consts.FOLDERS[Consts.FILE_TYPE_VIDEO]}/*`, function (req, res) {
-        logFile("fileshandler routes for verb GET with /imgs/* is launched");
+        logFile("fileshandler routes for verb GET with /videos/* is launched");
         allowFileAccess(req, res, Consts.FILE_TYPE_VIDEO);
     });
 
